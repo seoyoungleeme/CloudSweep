@@ -49,7 +49,7 @@ report as "not yet supported" and continue with the types that are supported.
 ## Step 3 — Delegate to Sub-skill(s)
 
 For each matched sub-skill, execute it by following that skill's SKILL.md
-located at `~/.claude/skills/<sub-skill>/SKILL.md`.
+located at `.claude/skills/<sub-skill>/SKILL.md` relative to the project root.
 
 Pass the same `WORK_DIR` and input file paths. Each sub-skill writes its own
 `finops_report.md` (or a prefixed variant if multiple skills run).
