@@ -1,0 +1,99 @@
+{
+  "scenario_id": "L1-005",
+  "currency": "USD",
+  "period_months": 6,
+  "monthly_data": [
+    {
+      "month_offset": 5,
+      "label": "M-5",
+      "total_spend_usd": 214.44,
+      "waste_usd": 32.73,
+      "waste_pct": 15.3,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 45.64,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 4,
+      "label": "M-4",
+      "total_spend_usd": 217.65,
+      "waste_usd": 33.24,
+      "waste_pct": 15.3,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 36.26,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 3,
+      "label": "M-3",
+      "total_spend_usd": 222.94,
+      "waste_usd": 34.07,
+      "waste_pct": 15.3,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 49.48,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 2,
+      "label": "M-2",
+      "total_spend_usd": 202.8,
+      "waste_usd": 32.21,
+      "waste_pct": 15.9,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 47.08,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 1,
+      "label": "M-1",
+      "total_spend_usd": 201.96,
+      "waste_usd": 33.97,
+      "waste_pct": 16.8,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 37.98,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 0,
+      "label": "M-0",
+      "total_spend_usd": 224.04,
+      "waste_usd": 33.05,
+      "waste_pct": 14.8,
+      "services": [
+        {
+          "service": "ELB",
+          "spend_usd": 48.25,
+          "contains_waste": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "avg_monthly_total": 213.97,
+    "avg_monthly_waste": 33.21,
+    "waste_services": [
+      "ELB"
+    ],
+    "pricing_note": "ALB 고정 비용: $0.0225/hr × 730hr × 2 = $32.85/mo (LCU 비용 제외, 트래픽 0)"
+  }
+}

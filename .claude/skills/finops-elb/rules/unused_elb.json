@@ -1,0 +1,33 @@
+{
+  "rule_name": "unused_elb",
+  "description": "ALB/ELB Unused Detection Rule — Identifies waste if request_count and active_connection_count stay continuously below threshold",
+  "version": "1.0.0",
+  "thresholds": {
+    "request_count_avg_max": 0,
+    "active_connection_count_avg_max": 0,
+    "min_zero_days": 28,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "alb_hourly_usd": 0.0225,
+    "hours_per_month": 730,
+    "alb_monthly_usd": 16.425,
+    "lcu_hourly_usd": 0.008,
+    "note": "LCU cost is zero when there is no traffic. Monthly cost = hourly × 730hr (AWS standard average month)."
+  },
+  "severity_rules": [
+    {
+      "condition": "request_count_avg == 0 AND active_connection_count_avg == 0 AND zero_days >= 28",
+      "severity": "HIGH",
+      "action": "DELETE",
+      "confidence": "HIGH"
+    },
+    {
+      "condition": "request_count_avg == 0 AND active_connection_count_avg > 0",
+      "severity": "MEDIUM",
+      "action": "MONITOR",
+      "confidence": "MEDIUM"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "analyzed_at": "2026-03-26T10:10:42.145189Z",
+  "region": "us-east-1",
+  "alb_monthly_cost_usd": 16.425,
+  "total_resources_checked": 3,
+  "findings_count": 2,
+  "total_estimated_monthly_saving_usd": 32.86,
+  "total_potential_monthly_saving_usd": 0,
+  "total_estimated_annual_saving_usd": 394.32,
+  "cost_summary": {
+    "avg_total": 213.97,
+    "avg_waste": 33.21,
+    "avg_waste_pct": 15.5,
+    "months": [
+      {
+        "month_offset": 5,
+        "label": "M-5",
+        "total_spend_usd": 214.44,
+        "waste_usd": 32.73,
+        "waste_pct": 15.3,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 45.64,
+            "contains_waste": true
+          }
+        ]
+      },
+      {
+        "month_offset": 4,
+        "label": "M-4",
+        "total_spend_usd": 217.65,
+        "waste_usd": 33.24,
+        "waste_pct": 15.3,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 36.26,
+            "contains_waste": true
+          }
+        ]
+      },
+      {
+        "month_offset": 3,
+        "label": "M-3",
+        "total_spend_usd": 222.94,
+        "waste_usd": 34.07,
+        "waste_pct": 15.3,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 49.48,
+            "contains_waste": true
+          }
+        ]
+      },
+      {
+        "month_offset": 2,
+        "label": "M-2",
+        "total_spend_usd": 202.8,
+        "waste_usd": 32.21,
+        "waste_pct": 15.9,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 47.08,
+            "contains_waste": true
+          }
+        ]
+      },
+      {
+        "month_offset": 1,
+        "label": "M-1",
+        "total_spend_usd": 201.96,
+        "waste_usd": 33.97,
+        "waste_pct": 16.8,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 37.98,
+            "contains_waste": true
+          }
+        ]
+      },
+      {
+        "month_offset": 0,
+        "label": "M-0",
+        "total_spend_usd": 224.04,
+        "waste_usd": 33.05,
+        "waste_pct": 14.8,
+        "services": [
+          {
+            "service": "ELB",
+            "spend_usd": 48.25,
+            "contains_waste": true
+          }
+        ]
+      }
+    ]
+  },
+  "findings": [
+    {
+      "resource_id": "lb-4dzo8v",
+      "resource_type": "aws_lb",
+      "lb_type": "application",
+      "verdict": "Unused ALB — Immediate deletion recommended",
+      "severity": "HIGH",
+      "action": "DELETE",
+      "saving_type": "confirmed",
+      "confidence": "HIGH",
+      "metrics_summary": {
+        "request_count_avg": 0.0,
+        "active_connection_count_avg": 0.0,
+        "active_connection_data_missing": false,
+        "request_count_zero_days": 30,
+        "period_days": 30
+      },
+      "root_cause": "30-day request_count average 0.0, active_connection_count average 0.0. Traffic is exactly zero, incurring only ALB fixed costs. Suspected incomplete cleanup of test/old environments or unremoved resources after service termination.",
+      "remediation": "1. Check Route 53 / CNAME references before deletion\n2. Terraform: Run `terraform destroy -target=aws_lb.lb-4dzo8v`\n3. Or AWS CLI: `aws elbv2 delete-load-balancer --load-balancer-arn <ARN>`",
+      "estimated_monthly_saving_usd": 16.43,
+      "estimated_annual_saving_usd": 197.16
+    },
+    {
+      "resource_id": "lb-ucc4pu",
+      "resource_type": "aws_lb",
+      "lb_type": "application",
+      "verdict": "Unused ALB — Immediate deletion recommended",
+      "severity": "HIGH",
+      "action": "DELETE",
+      "saving_type": "confirmed",
+      "confidence": "HIGH",
+      "metrics_summary": {
+        "request_count_avg": 0.0,
+        "active_connection_count_avg": 0.0,
+        "active_connection_data_missing": false,
+        "request_count_zero_days": 30,
+        "period_days": 30
+      },
+      "root_cause": "30-day request_count average 0.0, active_connection_count average 0.0. Traffic is exactly zero, incurring only ALB fixed costs. Suspected incomplete cleanup of test/old environments or unremoved resources after service termination.",
+      "remediation": "1. Check Route 53 / CNAME references before deletion\n2. Terraform: Run `terraform destroy -target=aws_lb.lb-ucc4pu`\n3. Or AWS CLI: `aws elbv2 delete-load-balancer --load-balancer-arn <ARN>`",
+      "estimated_monthly_saving_usd": 16.43,
+      "estimated_annual_saving_usd": 197.16
+    }
+  ]
+}
