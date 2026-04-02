@@ -25,7 +25,7 @@ def parse_terraform(tf_path: str) -> list[dict]:
 
     # Match resource "aws_lb" "<name>" { ... } blocks
     pattern = re.compile(
-        r'resource\s+"aws_(?:lb|alb)"\s+"([^"]+)"\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}',
+        r'resource\s+"aws_(?:lb|alb)"\s+"([^"]+)"\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
         re.DOTALL
     )
     for m in pattern.finditer(text):

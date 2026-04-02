@@ -1,0 +1,179 @@
+{
+  "analyzed_at": "2026-04-02T05:02:44.920149Z",
+  "region": "us-east-1",
+  "total_resources_checked": 3,
+  "findings_count": 4,
+  "total_estimated_monthly_saving_usd": 654.08,
+  "total_estimated_annual_saving_usd": 7848.96,
+  "cost_summary": {
+    "avg_rds_monthly": 428.46,
+    "avg_total_monthly": 3135.41,
+    "months": [
+      {
+        "month_offset": 5,
+        "label": "M-5",
+        "total_spend_usd": 3222.74,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 505.66
+          }
+        ]
+      },
+      {
+        "month_offset": 4,
+        "label": "M-4",
+        "total_spend_usd": 3083.01,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 431.27
+          }
+        ]
+      },
+      {
+        "month_offset": 3,
+        "label": "M-3",
+        "total_spend_usd": 3359.95,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 479.31
+          }
+        ]
+      },
+      {
+        "month_offset": 2,
+        "label": "M-2",
+        "total_spend_usd": 3021.82,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 343.99
+          }
+        ]
+      },
+      {
+        "month_offset": 1,
+        "label": "M-1",
+        "total_spend_usd": 3090.12,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 342.89
+          }
+        ]
+      },
+      {
+        "month_offset": 0,
+        "label": "M-0",
+        "total_spend_usd": 3034.8,
+        "services": [
+          {
+            "service": "RDS",
+            "spend_usd": 467.63
+          }
+        ]
+      }
+    ],
+    "pricing_note": "Multi-AZ 추가 비용: 2 × $0.24/hr × 730hr = $350.4/mo (Single-AZ 전환 시 절감액)"
+  },
+  "findings": [
+    {
+      "rule_id": "R1",
+      "resource_id": "db-instance-0p5pam",
+      "resource_type": "aws_db_instance",
+      "instance_class": "db.r5.large",
+      "environment": "dev",
+      "verdict": "Multi-AZ enabled on 'dev' environment — redundancy unnecessary outside production",
+      "severity": "HIGH",
+      "action": "DISABLE_MULTI_AZ",
+      "saving_type": "confirmed",
+      "confidence": "HIGH",
+      "metrics_summary": {
+        "cpu_utilization_avg": 14.78,
+        "database_connections_avg": 4.75,
+        "period_days": 30
+      },
+      "root_cause": "`db-instance-0p5pam` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ → $350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
+      "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-0p5pam`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-0p5pam`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
+      "current_monthly_cost_usd": 350.4,
+      "optimized_monthly_cost_usd": 175.2,
+      "estimated_monthly_saving_usd": 175.2,
+      "estimated_annual_saving_usd": 2102.4
+    },
+    {
+      "rule_id": "R2",
+      "resource_id": "db-instance-0p5pam",
+      "resource_type": "aws_db_instance",
+      "instance_class": "db.r5.large",
+      "environment": "dev",
+      "verdict": "CPU avg 14.8% over 30d — 'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
+      "severity": "MEDIUM",
+      "action": "DOWNSIZE",
+      "saving_type": "confirmed",
+      "confidence": "MEDIUM",
+      "metrics_summary": {
+        "cpu_utilization_avg": 14.78,
+        "database_connections_avg": 4.75,
+        "period_days": 30
+      },
+      "root_cause": "`db-instance-0p5pam` uses `db.r5.large` (memory-optimized, $175.20/mo) but 30-day average CPU is only 14.8%. Memory-optimized R-family instances are intended for workloads requiring >60% memory pressure; at these utilization levels a general-purpose T or M class instance is sufficient. Recommended replacement: `db.t3.large` ($99.28/mo).",
+      "remediation": "1. Create a snapshot before resizing: `aws rds create-db-snapshot`\n2. Modify instance class in Terraform: `instance_class = \"db.t3.large\"`\n3. Apply during maintenance window: `terraform apply -target=aws_db_instance.db-instance-0p5pam`\n4. Monitor CPU and connection metrics for 7 days after resize to confirm headroom.",
+      "current_instance_class": "db.r5.large",
+      "recommended_instance_class": "db.t3.large",
+      "current_monthly_cost_usd": 350.4,
+      "optimized_monthly_cost_usd": 198.56,
+      "estimated_monthly_saving_usd": 151.84,
+      "estimated_annual_saving_usd": 1822.08
+    },
+    {
+      "rule_id": "R1",
+      "resource_id": "db-instance-fgvel1",
+      "resource_type": "aws_db_instance",
+      "instance_class": "db.r5.large",
+      "environment": "dev",
+      "verdict": "Multi-AZ enabled on 'dev' environment — redundancy unnecessary outside production",
+      "severity": "HIGH",
+      "action": "DISABLE_MULTI_AZ",
+      "saving_type": "confirmed",
+      "confidence": "HIGH",
+      "metrics_summary": {
+        "cpu_utilization_avg": 15.87,
+        "database_connections_avg": 4.81,
+        "period_days": 30
+      },
+      "root_cause": "`db-instance-fgvel1` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ → $350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
+      "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-fgvel1`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-fgvel1`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
+      "current_monthly_cost_usd": 350.4,
+      "optimized_monthly_cost_usd": 175.2,
+      "estimated_monthly_saving_usd": 175.2,
+      "estimated_annual_saving_usd": 2102.4
+    },
+    {
+      "rule_id": "R2",
+      "resource_id": "db-instance-fgvel1",
+      "resource_type": "aws_db_instance",
+      "instance_class": "db.r5.large",
+      "environment": "dev",
+      "verdict": "CPU avg 15.9% over 30d — 'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
+      "severity": "MEDIUM",
+      "action": "DOWNSIZE",
+      "saving_type": "confirmed",
+      "confidence": "MEDIUM",
+      "metrics_summary": {
+        "cpu_utilization_avg": 15.87,
+        "database_connections_avg": 4.81,
+        "period_days": 30
+      },
+      "root_cause": "`db-instance-fgvel1` uses `db.r5.large` (memory-optimized, $175.20/mo) but 30-day average CPU is only 15.9%. Memory-optimized R-family instances are intended for workloads requiring >60% memory pressure; at these utilization levels a general-purpose T or M class instance is sufficient. Recommended replacement: `db.t3.large` ($99.28/mo).",
+      "remediation": "1. Create a snapshot before resizing: `aws rds create-db-snapshot`\n2. Modify instance class in Terraform: `instance_class = \"db.t3.large\"`\n3. Apply during maintenance window: `terraform apply -target=aws_db_instance.db-instance-fgvel1`\n4. Monitor CPU and connection metrics for 7 days after resize to confirm headroom.",
+      "current_instance_class": "db.r5.large",
+      "recommended_instance_class": "db.t3.large",
+      "current_monthly_cost_usd": 350.4,
+      "optimized_monthly_cost_usd": 198.56,
+      "estimated_monthly_saving_usd": 151.84,
+      "estimated_annual_saving_usd": 1822.08
+    }
+  ]
+}

@@ -39,6 +39,8 @@ Map each type to its sub-skill:
 |--------------------|-----------|
 | `aws_lb`, `aws_alb` | `finops-elb` |
 | `aws_db_instance` | `finops-rds` |
+| `aws_ebs_snapshot` | `finops-ebs` |
+| `aws_s3_bucket` | `finops-s3` |
 
 If multiple resource types are found, run the matching sub-skills in sequence.
 

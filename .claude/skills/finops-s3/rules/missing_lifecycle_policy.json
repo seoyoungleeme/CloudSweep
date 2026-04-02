@@ -1,0 +1,39 @@
+{
+  "rule_name": "missing_lifecycle_policy",
+  "description": "S3 Noncurrent Version Accumulation — Versioning-enabled S3 buckets with no lifecycle policy accumulate noncurrent object versions indefinitely, causing unbounded storage cost growth.",
+  "version": "1.0.0",
+  "thresholds": {
+    "noncurrent_version_count_slope_min": 0.1,
+    "evaluation_period_days": 30,
+    "recommended_noncurrent_retention_days_prod": 90,
+    "recommended_noncurrent_retention_days_nonprod": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "s3_standard_per_gb_usd": 0.023,
+    "note": "S3 Standard storage $0.023/GB-month (us-east-1). Noncurrent versions are billed at the same rate as current objects. Lifecycle expiry stops cost accumulation."
+  },
+  "severity_rules": [
+    {
+      "id": "V1",
+      "name": "versioning_no_lifecycle",
+      "condition": "versioning_status == 'Enabled' AND lifecycle_config_exists == false AND noncurrent_version_count_slope > threshold",
+      "severity": "HIGH",
+      "action": "ADD_LIFECYCLE_POLICY",
+      "confidence": "HIGH",
+      "description": "Versioning is enabled but no lifecycle policy expires noncurrent versions. Noncurrent version count is growing, confirming unbounded accumulation."
+    }
+  ],
+  "lifecycle_recommendations": {
+    "prod": {
+      "noncurrent_version_expiration_days": 90,
+      "newer_noncurrent_versions": 5,
+      "abort_incomplete_multipart_upload_days": 7
+    },
+    "nonprod": {
+      "noncurrent_version_expiration_days": 30,
+      "newer_noncurrent_versions": 3,
+      "abort_incomplete_multipart_upload_days": 3
+    }
+  }
+}

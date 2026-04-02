@@ -1,0 +1,26 @@
+{
+  "rule_name": "orphaned_snapshot",
+  "description": "EBS Orphaned Snapshot Detection — Identifies EBS snapshots whose source volume has been deleted, incurring storage cost with no functional value.",
+  "version": "1.0.0",
+  "thresholds": {
+    "orphaned_tag_key": "SourceVolumeStatus",
+    "orphaned_tag_value": "deleted",
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "snapshot_storage_per_gb_usd": 0.05,
+    "note": "EBS snapshot storage is charged at $0.05/GB-month for the actual stored data blocks (us-east-1)."
+  },
+  "severity_rules": [
+    {
+      "id": "S1",
+      "name": "orphaned_snapshot_deleted_volume",
+      "condition": "SourceVolumeStatus tag == 'deleted'",
+      "severity": "HIGH",
+      "action": "DELETE",
+      "confidence": "HIGH",
+      "description": "Snapshot whose source volume no longer exists. Provides no recovery value for an active volume; accumulates storage cost indefinitely."
+    }
+  ]
+}
