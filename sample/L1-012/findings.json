@@ -1,0 +1,114 @@
+{
+  "analyzed_at": "2026-04-02T07:38:15.760085Z",
+  "region": "us-east-1",
+  "s3_price_per_gb_usd": 0.023,
+  "total_resources_checked": 2,
+  "findings_count": 1,
+  "total_estimated_monthly_saving_usd": 230.0,
+  "total_estimated_annual_saving_usd": 2760.0,
+  "cost_summary": {
+    "avg_s3_monthly": 286.94,
+    "avg_total_monthly": 2662.24,
+    "months": [
+      {
+        "month_offset": 5,
+        "label": "M-5",
+        "total_spend_usd": 2819.54,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 330.01
+          }
+        ]
+      },
+      {
+        "month_offset": 4,
+        "label": "M-4",
+        "total_spend_usd": 2740.21,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 273.27
+          }
+        ]
+      },
+      {
+        "month_offset": 3,
+        "label": "M-3",
+        "total_spend_usd": 2781.85,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 287.94
+          }
+        ]
+      },
+      {
+        "month_offset": 2,
+        "label": "M-2",
+        "total_spend_usd": 2501.34,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 273.29
+          }
+        ]
+      },
+      {
+        "month_offset": 1,
+        "label": "M-1",
+        "total_spend_usd": 2468.13,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 250.73
+          }
+        ]
+      },
+      {
+        "month_offset": 0,
+        "label": "M-0",
+        "total_spend_usd": 2662.39,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 306.41
+          }
+        ]
+      }
+    ],
+    "pricing_note": "10 TB noncurrent × $0.023/GB = 10,240 GB × $0.023 ≈ $235 → ~$230/mo",
+    "noncurrent_storage_gb": 10240.0,
+    "noncurrent_cost_usd": 230.0
+  },
+  "findings": [
+    {
+      "rule_id": "V1",
+      "resource_id": "s3-bucket-ow91mn",
+      "resource_type": "aws_s3_bucket",
+      "bucket_name": "app-assets-prod",
+      "environment": "prod",
+      "verdict": "Versioning enabled, no lifecycle configuration — noncurrent versions growing at 1.00/hr (10 → 729 over 30d)",
+      "severity": "HIGH",
+      "action": "ADD_LIFECYCLE_POLICY",
+      "saving_type": "confirmed",
+      "confidence": "HIGH",
+      "metrics_summary": {
+        "noncurrent_version_count_first": 10.0,
+        "noncurrent_version_count_last": 729.0,
+        "noncurrent_version_count_slope": 0.998611,
+        "period_days": 30,
+        "trend": "growing"
+      },
+      "lifecycle_recommendation": {
+        "noncurrent_days": 90,
+        "newer_versions": 5,
+        "multipart_days": 7
+      },
+      "root_cause": "`app-assets-prod` has S3 versioning enabled but no lifecycle configuration. Every object update or delete creates a noncurrent version that is retained forever. Over the last 30 days, noncurrent version count grew from 10 to 729 (slope: 1.00/hr), confirming unbounded accumulation. At $0.023/GB-month (S3 Standard, us-east-1), this grows without limit.",
+      "remediation": "Add an aws_s3_bucket_lifecycle_configuration for `app-assets-prod` with:\n  - noncurrent_version_expiration: 90 days\n  - newer_noncurrent_versions kept: 5\n  - abort_incomplete_multipart_upload: 7 days\nSee Optimized Terraform section for ready-to-apply resource block.",
+      "estimated_monthly_saving_usd": 230.0,
+      "estimated_annual_saving_usd": 2760.0
+    }
+  ]
+}

@@ -183,10 +183,18 @@ def main():
     print(f"[analyzer] Buckets to analyze: {len(tf_resources)}")
 
     # Pre-scan: count buckets that will be flagged (needed for saving split)
+    # Must mirror Rule V1 conditions exactly — including slope threshold —
+    # so that the saving is split only across buckets that are actually flagged.
+    slope_threshold = rules.get("thresholds", {}).get(
+        "noncurrent_version_count_slope_min", 0.1
+    )
     flagged_preview = [
         r for r in tf_resources
         if r.get("versioning_status") == "Enabled"
         and not r.get("lifecycle_has_noncurrent_expiry", False)
+        and metrics.get(r["resource_id"], {}).get(
+            "noncurrent_version_count_slope", 0
+        ) > slope_threshold
     ]
     num_flagged = max(len(flagged_preview), 1)
 

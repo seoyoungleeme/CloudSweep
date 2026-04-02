@@ -1,0 +1,136 @@
+{
+  "region": "us-east-1",
+  "tf_resources": [
+    {
+      "resource_id": "s3-bucket-ow91mn",
+      "bucket_name": "app-assets-prod",
+      "environment": "prod",
+      "name_tag": "app-assets-prod",
+      "versioning_status": "Enabled",
+      "lifecycle_config_exists": false,
+      "lifecycle_has_noncurrent_expiry": false
+    },
+    {
+      "resource_id": "s3-bucket-r6r0ih",
+      "bucket_name": "app-assets-staging",
+      "environment": "staging",
+      "name_tag": "app-assets-staging",
+      "versioning_status": "Enabled",
+      "lifecycle_config_exists": false,
+      "lifecycle_has_noncurrent_expiry": false
+    }
+  ],
+  "metrics": {
+    "s3-bucket-ow91mn": {
+      "resource_id": "s3-bucket-ow91mn",
+      "period_days": 30,
+      "storage_bytes_avg": 369.5,
+      "storage_bytes_max": 729.0,
+      "storage_bytes_min": 10.0,
+      "storage_bytes_slope": 0.998611,
+      "storage_bytes_first": 10.0,
+      "storage_bytes_last": 729.0,
+      "storage_bytes_total_growth": 719.0,
+      "noncurrent_version_count_avg": 369.5,
+      "noncurrent_version_count_max": 729.0,
+      "noncurrent_version_count_min": 10.0,
+      "noncurrent_version_count_slope": 0.998611,
+      "noncurrent_version_count_first": 10.0,
+      "noncurrent_version_count_last": 729.0,
+      "noncurrent_version_count_total_growth": 719.0
+    },
+    "s3-bucket-r6r0ih": {
+      "resource_id": "s3-bucket-r6r0ih",
+      "period_days": 30,
+      "storage_bytes_avg": 50.0,
+      "storage_bytes_max": 50.0,
+      "storage_bytes_min": 50.0,
+      "storage_bytes_slope": 0.0,
+      "storage_bytes_first": 50.0,
+      "storage_bytes_last": 50.0,
+      "storage_bytes_total_growth": 0.0,
+      "noncurrent_version_count_avg": 14456.4527,
+      "noncurrent_version_count_max": 14456.4527,
+      "noncurrent_version_count_min": 14456.4527,
+      "noncurrent_version_count_slope": 0.0,
+      "noncurrent_version_count_first": 14456.4527,
+      "noncurrent_version_count_last": 14456.4527,
+      "noncurrent_version_count_total_growth": 0.0
+    }
+  },
+  "cost_summary": {
+    "avg_s3_monthly": 286.94,
+    "avg_total_monthly": 2662.24,
+    "months": [
+      {
+        "month_offset": 5,
+        "label": "M-5",
+        "total_spend_usd": 2819.54,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 330.01
+          }
+        ]
+      },
+      {
+        "month_offset": 4,
+        "label": "M-4",
+        "total_spend_usd": 2740.21,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 273.27
+          }
+        ]
+      },
+      {
+        "month_offset": 3,
+        "label": "M-3",
+        "total_spend_usd": 2781.85,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 287.94
+          }
+        ]
+      },
+      {
+        "month_offset": 2,
+        "label": "M-2",
+        "total_spend_usd": 2501.34,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 273.29
+          }
+        ]
+      },
+      {
+        "month_offset": 1,
+        "label": "M-1",
+        "total_spend_usd": 2468.13,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 250.73
+          }
+        ]
+      },
+      {
+        "month_offset": 0,
+        "label": "M-0",
+        "total_spend_usd": 2662.39,
+        "services": [
+          {
+            "service": "S3",
+            "spend_usd": 306.41
+          }
+        ]
+      }
+    ],
+    "pricing_note": "10 TB noncurrent × $0.023/GB = 10,240 GB × $0.023 ≈ $235 → ~$230/mo",
+    "noncurrent_storage_gb": 10240.0,
+    "noncurrent_cost_usd": 230.0
+  }
+}
