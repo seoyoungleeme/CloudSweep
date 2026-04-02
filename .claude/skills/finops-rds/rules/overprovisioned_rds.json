@@ -1,0 +1,62 @@
+{
+  "rule_name": "overprovisioned_rds",
+  "description": "RDS Overprovisioning Detection Rules — Identifies waste from Multi-AZ on non-prod environments and chronically under-utilized instance classes",
+  "version": "1.0.0",
+  "thresholds": {
+    "cpu_utilization_avg_max_pct": 20.0,
+    "database_connections_avg_min": 1.0,
+    "evaluation_period_days": 30,
+    "non_prod_env_tags": ["dev", "development", "test", "testing", "staging", "sandbox"]
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "On-Demand pricing per instance class (us-east-1). Multi-AZ doubles the hourly rate.",
+    "instance_classes": {
+      "db.t3.micro":   { "single_az_hourly_usd": 0.017 },
+      "db.t3.small":   { "single_az_hourly_usd": 0.034 },
+      "db.t3.medium":  { "single_az_hourly_usd": 0.068 },
+      "db.t3.large":   { "single_az_hourly_usd": 0.136 },
+      "db.t4g.micro":  { "single_az_hourly_usd": 0.016 },
+      "db.t4g.small":  { "single_az_hourly_usd": 0.032 },
+      "db.t4g.medium": { "single_az_hourly_usd": 0.065 },
+      "db.m5.large":   { "single_az_hourly_usd": 0.171 },
+      "db.m5.xlarge":  { "single_az_hourly_usd": 0.342 },
+      "db.m6g.large":  { "single_az_hourly_usd": 0.153 },
+      "db.r5.large":   { "single_az_hourly_usd": 0.240 },
+      "db.r5.xlarge":  { "single_az_hourly_usd": 0.480 },
+      "db.r6g.large":  { "single_az_hourly_usd": 0.192 }
+    },
+    "hours_per_month": 730,
+    "multi_az_multiplier": 2.0
+  },
+  "severity_rules": [
+    {
+      "id": "R1",
+      "name": "multi_az_non_prod",
+      "condition": "multi_az == true AND environment_tag IN non_prod_env_tags",
+      "severity": "HIGH",
+      "action": "DISABLE_MULTI_AZ",
+      "saving": "single_az_hourly * hours_per_month (i.e., half the current Multi-AZ cost)",
+      "confidence": "HIGH",
+      "description": "Multi-AZ enabled on a non-production instance — redundancy is unnecessary outside production, incurring double the instance cost."
+    },
+    {
+      "id": "R2",
+      "name": "cpu_underutilization",
+      "condition": "cpu_utilization_avg < cpu_utilization_avg_max_pct AND database_connections_avg >= database_connections_avg_min",
+      "severity": "MEDIUM",
+      "action": "DOWNSIZE",
+      "saving": "difference between current and recommended instance class monthly cost",
+      "confidence": "MEDIUM",
+      "description": "30-day average CPU utilization is below 20%, indicating the instance class is larger than required. Downsize to the next smaller class."
+    }
+  ],
+  "downsize_recommendations": {
+    "db.r5.large":   "db.t3.large",
+    "db.r5.xlarge":  "db.r5.large",
+    "db.m5.large":   "db.t3.large",
+    "db.m5.xlarge":  "db.m5.large",
+    "db.r6g.large":  "db.t4g.large",
+    "db.m6g.large":  "db.t4g.large"
+  }
+}
