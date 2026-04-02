@@ -93,31 +93,29 @@ def render_report(data: dict) -> str:
             f"> **{data['findings_count']} snapshots** are orphaned. "
             f"Showing first 5 as examples — see `findings.json` for the full list.",
             "",
-            "| # | Snapshot ID | Storage (GB) | Monthly Cost |",
-            "|---|-------------|--------------|--------------|",
+            "| # | Snapshot ID | Storage (GB) |",
+            "|---|-------------|--------------|",
         ]
         for i, f in enumerate(findings[:5], 1):
-            gb   = f["metrics_summary"]["storage_gb"]
-            cost = f["estimated_monthly_saving_usd"]
-            lines.append(f"| {i} | `{f['resource_id']}` | {gb:.1f} | ${cost:.4f} |")
+            gb = f["metrics_summary"]["storage_gb"]
+            lines.append(f"| {i} | `{f['resource_id']}` | {gb:.1f} |")
         lines += [
-            f"| ... | *({data['findings_count'] - 5} more)* | ... | ... |",
-            f"| **TOTAL** | | **{total_storage:.1f} GB** | **${total_save:.2f}** |",
+            f"| ... | *({data['findings_count'] - 5} more)* | ... |",
+            f"| **TOTAL** | | **{total_storage:.1f} GB** |",
             "",
         ]
     else:
         lines += [
             "## Orphaned Snapshot List",
             "",
-            "| # | Snapshot ID | Storage (GB) | Monthly Cost |",
-            "|---|-------------|--------------|--------------|",
+            "| # | Snapshot ID | Storage (GB) |",
+            "|---|-------------|--------------|",
         ]
         for i, f in enumerate(findings, 1):
-            gb   = f["metrics_summary"]["storage_gb"]
-            cost = f["estimated_monthly_saving_usd"]
-            lines.append(f"| {i} | `{f['resource_id']}` | {gb:.1f} | ${cost:.4f} |")
+            gb = f["metrics_summary"]["storage_gb"]
+            lines.append(f"| {i} | `{f['resource_id']}` | {gb:.1f} |")
         lines += [
-            f"| **TOTAL** | | **{total_storage:.1f} GB** | **${total_save:.2f}** |",
+            f"| **TOTAL** | | **{total_storage:.1f} GB** |",
             "",
         ]
 

@@ -1,0 +1,3044 @@
+{
+  "region": "us-east-1",
+  "tf_resources": [
+    {
+      "resource_id": "ebs-snapshot-v8jz50",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-v8jz50",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-v8jz50"
+    },
+    {
+      "resource_id": "ebs-snapshot-a7v8zb",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-a7v8zb",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-a7v8zb"
+    },
+    {
+      "resource_id": "ebs-snapshot-hnjnbr",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hnjnbr",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hnjnbr"
+    },
+    {
+      "resource_id": "ebs-snapshot-8dn1u8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8dn1u8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8dn1u8"
+    },
+    {
+      "resource_id": "ebs-snapshot-p6eboi",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-p6eboi",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-p6eboi"
+    },
+    {
+      "resource_id": "ebs-snapshot-6yf52z",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6yf52z",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-6yf52z"
+    },
+    {
+      "resource_id": "ebs-snapshot-tblzcm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-tblzcm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-tblzcm"
+    },
+    {
+      "resource_id": "ebs-snapshot-8crg1q",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8crg1q",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8crg1q"
+    },
+    {
+      "resource_id": "ebs-snapshot-kfxfzh",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-kfxfzh",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-kfxfzh"
+    },
+    {
+      "resource_id": "ebs-snapshot-6u65ff",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6u65ff",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-6u65ff"
+    },
+    {
+      "resource_id": "ebs-snapshot-zqcf47",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-zqcf47",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-zqcf47"
+    },
+    {
+      "resource_id": "ebs-snapshot-ztt7wv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ztt7wv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ztt7wv"
+    },
+    {
+      "resource_id": "ebs-snapshot-hhbfbc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hhbfbc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hhbfbc"
+    },
+    {
+      "resource_id": "ebs-snapshot-dkakeo",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-dkakeo",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-dkakeo"
+    },
+    {
+      "resource_id": "ebs-snapshot-nbyp6m",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-nbyp6m",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-nbyp6m"
+    },
+    {
+      "resource_id": "ebs-snapshot-dk90cf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-dk90cf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-dk90cf"
+    },
+    {
+      "resource_id": "ebs-snapshot-uyacnf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-uyacnf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-uyacnf"
+    },
+    {
+      "resource_id": "ebs-snapshot-v25mqi",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-v25mqi",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-v25mqi"
+    },
+    {
+      "resource_id": "ebs-snapshot-rjema3",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rjema3",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rjema3"
+    },
+    {
+      "resource_id": "ebs-snapshot-zcbn0z",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-zcbn0z",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-zcbn0z"
+    },
+    {
+      "resource_id": "ebs-snapshot-9cs3wb",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-9cs3wb",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-9cs3wb"
+    },
+    {
+      "resource_id": "ebs-snapshot-rojhrv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rojhrv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rojhrv"
+    },
+    {
+      "resource_id": "ebs-snapshot-7i7ds0",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-7i7ds0",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-7i7ds0"
+    },
+    {
+      "resource_id": "ebs-snapshot-jslams",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-jslams",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-jslams"
+    },
+    {
+      "resource_id": "ebs-snapshot-oi32cd",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oi32cd",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-oi32cd"
+    },
+    {
+      "resource_id": "ebs-snapshot-azfccm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-azfccm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-azfccm"
+    },
+    {
+      "resource_id": "ebs-snapshot-v1b9of",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-v1b9of",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-v1b9of"
+    },
+    {
+      "resource_id": "ebs-snapshot-omxbep",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-omxbep",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-omxbep"
+    },
+    {
+      "resource_id": "ebs-snapshot-l8p69c",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-l8p69c",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-l8p69c"
+    },
+    {
+      "resource_id": "ebs-snapshot-28xx2g",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-28xx2g",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-28xx2g"
+    },
+    {
+      "resource_id": "ebs-snapshot-dvke19",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-dvke19",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-dvke19"
+    },
+    {
+      "resource_id": "ebs-snapshot-wcr3sc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-wcr3sc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-wcr3sc"
+    },
+    {
+      "resource_id": "ebs-snapshot-lt47yj",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-lt47yj",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-lt47yj"
+    },
+    {
+      "resource_id": "ebs-snapshot-p0j6bp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-p0j6bp",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-p0j6bp"
+    },
+    {
+      "resource_id": "ebs-snapshot-wxd10n",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-wxd10n",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-wxd10n"
+    },
+    {
+      "resource_id": "ebs-snapshot-u9n0uo",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-u9n0uo",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-u9n0uo"
+    },
+    {
+      "resource_id": "ebs-snapshot-8zdosz",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8zdosz",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8zdosz"
+    },
+    {
+      "resource_id": "ebs-snapshot-l5m1qi",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-l5m1qi",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-l5m1qi"
+    },
+    {
+      "resource_id": "ebs-snapshot-68gvh3",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-68gvh3",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-68gvh3"
+    },
+    {
+      "resource_id": "ebs-snapshot-di9ain",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-di9ain",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-di9ain"
+    },
+    {
+      "resource_id": "ebs-snapshot-09s5rv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-09s5rv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-09s5rv"
+    },
+    {
+      "resource_id": "ebs-snapshot-hka7y9",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hka7y9",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hka7y9"
+    },
+    {
+      "resource_id": "ebs-snapshot-zkzflx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-zkzflx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-zkzflx"
+    },
+    {
+      "resource_id": "ebs-snapshot-jl5h3l",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-jl5h3l",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-jl5h3l"
+    },
+    {
+      "resource_id": "ebs-snapshot-g0g8wu",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-g0g8wu",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-g0g8wu"
+    },
+    {
+      "resource_id": "ebs-snapshot-52grmm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-52grmm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-52grmm"
+    },
+    {
+      "resource_id": "ebs-snapshot-3obmeq",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3obmeq",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3obmeq"
+    },
+    {
+      "resource_id": "ebs-snapshot-oy4k5y",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oy4k5y",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-oy4k5y"
+    },
+    {
+      "resource_id": "ebs-snapshot-cm4pvi",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-cm4pvi",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-cm4pvi"
+    },
+    {
+      "resource_id": "ebs-snapshot-mjd068",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-mjd068",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-mjd068"
+    },
+    {
+      "resource_id": "ebs-snapshot-fqg7lh",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fqg7lh",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fqg7lh"
+    },
+    {
+      "resource_id": "ebs-snapshot-2vkrh3",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-2vkrh3",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-2vkrh3"
+    },
+    {
+      "resource_id": "ebs-snapshot-rw6t1q",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rw6t1q",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rw6t1q"
+    },
+    {
+      "resource_id": "ebs-snapshot-5jjr4p",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-5jjr4p",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-5jjr4p"
+    },
+    {
+      "resource_id": "ebs-snapshot-of84w3",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-of84w3",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-of84w3"
+    },
+    {
+      "resource_id": "ebs-snapshot-on0w0c",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-on0w0c",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-on0w0c"
+    },
+    {
+      "resource_id": "ebs-snapshot-gtii1j",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-gtii1j",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-gtii1j"
+    },
+    {
+      "resource_id": "ebs-snapshot-fbbzhl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fbbzhl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fbbzhl"
+    },
+    {
+      "resource_id": "ebs-snapshot-mtqvhw",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-mtqvhw",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-mtqvhw"
+    },
+    {
+      "resource_id": "ebs-snapshot-3dvkrj",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3dvkrj",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3dvkrj"
+    },
+    {
+      "resource_id": "ebs-snapshot-s07chm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-s07chm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-s07chm"
+    },
+    {
+      "resource_id": "ebs-snapshot-oby56p",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oby56p",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-oby56p"
+    },
+    {
+      "resource_id": "ebs-snapshot-fbw7fe",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fbw7fe",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fbw7fe"
+    },
+    {
+      "resource_id": "ebs-snapshot-uhkxns",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-uhkxns",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-uhkxns"
+    },
+    {
+      "resource_id": "ebs-snapshot-j1xt8s",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-j1xt8s",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-j1xt8s"
+    },
+    {
+      "resource_id": "ebs-snapshot-7o2fjv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-7o2fjv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-7o2fjv"
+    },
+    {
+      "resource_id": "ebs-snapshot-n8szqs",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-n8szqs",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-n8szqs"
+    },
+    {
+      "resource_id": "ebs-snapshot-dkmjxb",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-dkmjxb",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-dkmjxb"
+    },
+    {
+      "resource_id": "ebs-snapshot-gi9s7n",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-gi9s7n",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-gi9s7n"
+    },
+    {
+      "resource_id": "ebs-snapshot-5leo7z",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-5leo7z",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-5leo7z"
+    },
+    {
+      "resource_id": "ebs-snapshot-jfg179",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-jfg179",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-jfg179"
+    },
+    {
+      "resource_id": "ebs-snapshot-qgykwp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qgykwp",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qgykwp"
+    },
+    {
+      "resource_id": "ebs-snapshot-slsg3a",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-slsg3a",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-slsg3a"
+    },
+    {
+      "resource_id": "ebs-snapshot-5ca32x",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-5ca32x",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-5ca32x"
+    },
+    {
+      "resource_id": "ebs-snapshot-ew36sg",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ew36sg",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ew36sg"
+    },
+    {
+      "resource_id": "ebs-snapshot-opnpv0",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-opnpv0",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-opnpv0"
+    },
+    {
+      "resource_id": "ebs-snapshot-1bevth",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-1bevth",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-1bevth"
+    },
+    {
+      "resource_id": "ebs-snapshot-kd31qk",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-kd31qk",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-kd31qk"
+    },
+    {
+      "resource_id": "ebs-snapshot-zoqpla",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-zoqpla",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-zoqpla"
+    },
+    {
+      "resource_id": "ebs-snapshot-w2nc72",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-w2nc72",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-w2nc72"
+    },
+    {
+      "resource_id": "ebs-snapshot-x36meq",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-x36meq",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-x36meq"
+    },
+    {
+      "resource_id": "ebs-snapshot-qmh3aw",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qmh3aw",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qmh3aw"
+    },
+    {
+      "resource_id": "ebs-snapshot-mbukbu",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-mbukbu",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-mbukbu"
+    },
+    {
+      "resource_id": "ebs-snapshot-ao9wkc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ao9wkc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ao9wkc"
+    },
+    {
+      "resource_id": "ebs-snapshot-4ffin1",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-4ffin1",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-4ffin1"
+    },
+    {
+      "resource_id": "ebs-snapshot-pfpiiw",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-pfpiiw",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-pfpiiw"
+    },
+    {
+      "resource_id": "ebs-snapshot-l0vt5k",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-l0vt5k",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-l0vt5k"
+    },
+    {
+      "resource_id": "ebs-snapshot-vgozbt",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-vgozbt",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-vgozbt"
+    },
+    {
+      "resource_id": "ebs-snapshot-fycrnn",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fycrnn",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fycrnn"
+    },
+    {
+      "resource_id": "ebs-snapshot-3nwnd2",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3nwnd2",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3nwnd2"
+    },
+    {
+      "resource_id": "ebs-snapshot-jcy8i9",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-jcy8i9",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-jcy8i9"
+    },
+    {
+      "resource_id": "ebs-snapshot-7xsrbl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-7xsrbl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-7xsrbl"
+    },
+    {
+      "resource_id": "ebs-snapshot-6fb053",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6fb053",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-6fb053"
+    },
+    {
+      "resource_id": "ebs-snapshot-qqnspy",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qqnspy",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qqnspy"
+    },
+    {
+      "resource_id": "ebs-snapshot-hdq0ww",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hdq0ww",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hdq0ww"
+    },
+    {
+      "resource_id": "ebs-snapshot-eo9kv5",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-eo9kv5",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-eo9kv5"
+    },
+    {
+      "resource_id": "ebs-snapshot-48l201",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-48l201",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-48l201"
+    },
+    {
+      "resource_id": "ebs-snapshot-boj9vf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-boj9vf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-boj9vf"
+    },
+    {
+      "resource_id": "ebs-snapshot-5839m7",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-5839m7",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-5839m7"
+    },
+    {
+      "resource_id": "ebs-snapshot-1tdr1a",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-1tdr1a",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-1tdr1a"
+    },
+    {
+      "resource_id": "ebs-snapshot-zlflr6",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-zlflr6",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-zlflr6"
+    },
+    {
+      "resource_id": "ebs-snapshot-6po5ie",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6po5ie",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-6po5ie"
+    },
+    {
+      "resource_id": "ebs-snapshot-ziu7vo",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ziu7vo",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ziu7vo"
+    },
+    {
+      "resource_id": "ebs-snapshot-wtxr4i",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-wtxr4i",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-wtxr4i"
+    },
+    {
+      "resource_id": "ebs-snapshot-hmi0tn",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hmi0tn",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hmi0tn"
+    },
+    {
+      "resource_id": "ebs-snapshot-tkr2nx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-tkr2nx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-tkr2nx"
+    },
+    {
+      "resource_id": "ebs-snapshot-vhdy4d",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-vhdy4d",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-vhdy4d"
+    },
+    {
+      "resource_id": "ebs-snapshot-abm977",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-abm977",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-abm977"
+    },
+    {
+      "resource_id": "ebs-snapshot-i3shw6",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-i3shw6",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-i3shw6"
+    },
+    {
+      "resource_id": "ebs-snapshot-oxh087",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oxh087",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-oxh087"
+    },
+    {
+      "resource_id": "ebs-snapshot-fdj2n9",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fdj2n9",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fdj2n9"
+    },
+    {
+      "resource_id": "ebs-snapshot-cj6xth",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-cj6xth",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-cj6xth"
+    },
+    {
+      "resource_id": "ebs-snapshot-tmqoxg",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-tmqoxg",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-tmqoxg"
+    },
+    {
+      "resource_id": "ebs-snapshot-80i9be",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-80i9be",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-80i9be"
+    },
+    {
+      "resource_id": "ebs-snapshot-ob4429",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ob4429",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ob4429"
+    },
+    {
+      "resource_id": "ebs-snapshot-pj761l",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-pj761l",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-pj761l"
+    },
+    {
+      "resource_id": "ebs-snapshot-uvay58",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-uvay58",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-uvay58"
+    },
+    {
+      "resource_id": "ebs-snapshot-axj7i7",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-axj7i7",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-axj7i7"
+    },
+    {
+      "resource_id": "ebs-snapshot-v64thg",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-v64thg",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-v64thg"
+    },
+    {
+      "resource_id": "ebs-snapshot-lu2bba",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-lu2bba",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-lu2bba"
+    },
+    {
+      "resource_id": "ebs-snapshot-qdtpa9",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qdtpa9",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qdtpa9"
+    },
+    {
+      "resource_id": "ebs-snapshot-8irznq",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8irznq",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8irznq"
+    },
+    {
+      "resource_id": "ebs-snapshot-upas0b",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-upas0b",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-upas0b"
+    },
+    {
+      "resource_id": "ebs-snapshot-536ei8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-536ei8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-536ei8"
+    },
+    {
+      "resource_id": "ebs-snapshot-10jomn",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-10jomn",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-10jomn"
+    },
+    {
+      "resource_id": "ebs-snapshot-3p2cw5",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3p2cw5",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3p2cw5"
+    },
+    {
+      "resource_id": "ebs-snapshot-g35ch7",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-g35ch7",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-g35ch7"
+    },
+    {
+      "resource_id": "ebs-snapshot-baiwve",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-baiwve",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-baiwve"
+    },
+    {
+      "resource_id": "ebs-snapshot-qqdw90",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qqdw90",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qqdw90"
+    },
+    {
+      "resource_id": "ebs-snapshot-x9zhl7",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-x9zhl7",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-x9zhl7"
+    },
+    {
+      "resource_id": "ebs-snapshot-99k756",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-99k756",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-99k756"
+    },
+    {
+      "resource_id": "ebs-snapshot-ovk4jx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ovk4jx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ovk4jx"
+    },
+    {
+      "resource_id": "ebs-snapshot-yh2v22",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-yh2v22",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-yh2v22"
+    },
+    {
+      "resource_id": "ebs-snapshot-ukqr7a",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ukqr7a",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ukqr7a"
+    },
+    {
+      "resource_id": "ebs-snapshot-jkcpvf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-jkcpvf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-jkcpvf"
+    },
+    {
+      "resource_id": "ebs-snapshot-c2b1i5",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-c2b1i5",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-c2b1i5"
+    },
+    {
+      "resource_id": "ebs-snapshot-ur7kcp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ur7kcp",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ur7kcp"
+    },
+    {
+      "resource_id": "ebs-snapshot-69qch2",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-69qch2",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-69qch2"
+    },
+    {
+      "resource_id": "ebs-snapshot-b6cdsm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-b6cdsm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-b6cdsm"
+    },
+    {
+      "resource_id": "ebs-snapshot-nr8i8y",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-nr8i8y",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-nr8i8y"
+    },
+    {
+      "resource_id": "ebs-snapshot-v09wi1",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-v09wi1",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-v09wi1"
+    },
+    {
+      "resource_id": "ebs-snapshot-cdd7vq",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-cdd7vq",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-cdd7vq"
+    },
+    {
+      "resource_id": "ebs-snapshot-3r5c0y",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3r5c0y",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3r5c0y"
+    },
+    {
+      "resource_id": "ebs-snapshot-4681z2",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-4681z2",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-4681z2"
+    },
+    {
+      "resource_id": "ebs-snapshot-erw8nf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-erw8nf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-erw8nf"
+    },
+    {
+      "resource_id": "ebs-snapshot-53yy2r",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-53yy2r",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-53yy2r"
+    },
+    {
+      "resource_id": "ebs-snapshot-wzgh07",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-wzgh07",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-wzgh07"
+    },
+    {
+      "resource_id": "ebs-snapshot-lup5p8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-lup5p8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-lup5p8"
+    },
+    {
+      "resource_id": "ebs-snapshot-8bvexa",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8bvexa",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8bvexa"
+    },
+    {
+      "resource_id": "ebs-snapshot-xp38mk",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-xp38mk",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-xp38mk"
+    },
+    {
+      "resource_id": "ebs-snapshot-ixtngl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ixtngl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ixtngl"
+    },
+    {
+      "resource_id": "ebs-snapshot-ppxwel",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ppxwel",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ppxwel"
+    },
+    {
+      "resource_id": "ebs-snapshot-cdljlf",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-cdljlf",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-cdljlf"
+    },
+    {
+      "resource_id": "ebs-snapshot-nvvypk",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-nvvypk",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-nvvypk"
+    },
+    {
+      "resource_id": "ebs-snapshot-gskc3x",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-gskc3x",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-gskc3x"
+    },
+    {
+      "resource_id": "ebs-snapshot-rblu5g",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rblu5g",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rblu5g"
+    },
+    {
+      "resource_id": "ebs-snapshot-avicvc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-avicvc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-avicvc"
+    },
+    {
+      "resource_id": "ebs-snapshot-hwhdz8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hwhdz8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hwhdz8"
+    },
+    {
+      "resource_id": "ebs-snapshot-nssecx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-nssecx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-nssecx"
+    },
+    {
+      "resource_id": "ebs-snapshot-w945gv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-w945gv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-w945gv"
+    },
+    {
+      "resource_id": "ebs-snapshot-332a8d",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-332a8d",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-332a8d"
+    },
+    {
+      "resource_id": "ebs-snapshot-lt5clc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-lt5clc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-lt5clc"
+    },
+    {
+      "resource_id": "ebs-snapshot-05awvm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-05awvm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-05awvm"
+    },
+    {
+      "resource_id": "ebs-snapshot-0oh5je",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-0oh5je",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-0oh5je"
+    },
+    {
+      "resource_id": "ebs-snapshot-uz9cfl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-uz9cfl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-uz9cfl"
+    },
+    {
+      "resource_id": "ebs-snapshot-tml9qv",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-tml9qv",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-tml9qv"
+    },
+    {
+      "resource_id": "ebs-snapshot-gvehd8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-gvehd8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-gvehd8"
+    },
+    {
+      "resource_id": "ebs-snapshot-73t1j5",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-73t1j5",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-73t1j5"
+    },
+    {
+      "resource_id": "ebs-snapshot-diqmdp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-diqmdp",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-diqmdp"
+    },
+    {
+      "resource_id": "ebs-snapshot-gkl1pi",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-gkl1pi",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-gkl1pi"
+    },
+    {
+      "resource_id": "ebs-snapshot-eyoeu0",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-eyoeu0",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-eyoeu0"
+    },
+    {
+      "resource_id": "ebs-snapshot-3tfg0r",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3tfg0r",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3tfg0r"
+    },
+    {
+      "resource_id": "ebs-snapshot-hxsbs8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-hxsbs8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-hxsbs8"
+    },
+    {
+      "resource_id": "ebs-snapshot-1cgezm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-1cgezm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-1cgezm"
+    },
+    {
+      "resource_id": "ebs-snapshot-t32zls",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-t32zls",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-t32zls"
+    },
+    {
+      "resource_id": "ebs-snapshot-b6cyco",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-b6cyco",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-b6cyco"
+    },
+    {
+      "resource_id": "ebs-snapshot-e13pnn",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-e13pnn",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-e13pnn"
+    },
+    {
+      "resource_id": "ebs-snapshot-rm5swx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rm5swx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rm5swx"
+    },
+    {
+      "resource_id": "ebs-snapshot-6bl3bt",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6bl3bt",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-6bl3bt"
+    },
+    {
+      "resource_id": "ebs-snapshot-l4rjg4",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-l4rjg4",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-l4rjg4"
+    },
+    {
+      "resource_id": "ebs-snapshot-16g07n",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-16g07n",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-16g07n"
+    },
+    {
+      "resource_id": "ebs-snapshot-qrgaus",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qrgaus",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-qrgaus"
+    },
+    {
+      "resource_id": "ebs-snapshot-5c9k2b",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-5c9k2b",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-5c9k2b"
+    },
+    {
+      "resource_id": "ebs-snapshot-fwq2zl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-fwq2zl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-fwq2zl"
+    },
+    {
+      "resource_id": "ebs-snapshot-0gvlst",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-0gvlst",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-0gvlst"
+    },
+    {
+      "resource_id": "ebs-snapshot-rsrnvj",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-rsrnvj",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-rsrnvj"
+    },
+    {
+      "resource_id": "ebs-snapshot-4mwhg8",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-4mwhg8",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-4mwhg8"
+    },
+    {
+      "resource_id": "ebs-snapshot-tvn9hb",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-tvn9hb",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-tvn9hb"
+    },
+    {
+      "resource_id": "ebs-snapshot-pbb72z",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-pbb72z",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-pbb72z"
+    },
+    {
+      "resource_id": "ebs-snapshot-nhm9dr",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-nhm9dr",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-nhm9dr"
+    },
+    {
+      "resource_id": "ebs-snapshot-7y058s",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-7y058s",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-7y058s"
+    },
+    {
+      "resource_id": "ebs-snapshot-3086yx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-3086yx",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-3086yx"
+    },
+    {
+      "resource_id": "ebs-snapshot-412i7l",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-412i7l",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-412i7l"
+    },
+    {
+      "resource_id": "ebs-snapshot-x659dm",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-x659dm",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-x659dm"
+    },
+    {
+      "resource_id": "ebs-snapshot-8c1kcc",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-8c1kcc",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-8c1kcc"
+    },
+    {
+      "resource_id": "ebs-snapshot-bftv4o",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-bftv4o",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-bftv4o"
+    },
+    {
+      "resource_id": "ebs-snapshot-g6ldhp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-g6ldhp",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-g6ldhp"
+    },
+    {
+      "resource_id": "ebs-snapshot-ma4oqe",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ma4oqe",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-ma4oqe"
+    },
+    {
+      "resource_id": "ebs-snapshot-oltlsu",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oltlsu",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-oltlsu"
+    },
+    {
+      "resource_id": "ebs-snapshot-f9dsxl",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-f9dsxl",
+      "source_volume_status": "deleted",
+      "name_tag": "ebs-snapshot-f9dsxl"
+    },
+    {
+      "resource_id": "ebs-snapshot-ni4cgp",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-ni4cgp",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-ni4cgp"
+    },
+    {
+      "resource_id": "ebs-snapshot-qf68bu",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-qf68bu",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-qf68bu"
+    },
+    {
+      "resource_id": "ebs-snapshot-h8dmqx",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-h8dmqx",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-h8dmqx"
+    },
+    {
+      "resource_id": "ebs-snapshot-n890mr",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-n890mr",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-n890mr"
+    },
+    {
+      "resource_id": "ebs-snapshot-6fg7mo",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-6fg7mo",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-6fg7mo"
+    },
+    {
+      "resource_id": "ebs-snapshot-oi731n",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-oi731n",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-oi731n"
+    },
+    {
+      "resource_id": "ebs-snapshot-dx2s4q",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-dx2s4q",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-dx2s4q"
+    },
+    {
+      "resource_id": "ebs-snapshot-2g4ec2",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-2g4ec2",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-2g4ec2"
+    },
+    {
+      "resource_id": "ebs-snapshot-t6vdat",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-t6vdat",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-t6vdat"
+    },
+    {
+      "resource_id": "ebs-snapshot-t3g6n3",
+      "volume_id": "vol-placeholder",
+      "description": "Snapshot ebs-snapshot-t3g6n3",
+      "source_volume_status": "exists",
+      "name_tag": "ebs-snapshot-t3g6n3"
+    }
+  ],
+  "metrics": {
+    "ebs-snapshot-v8jz50": {
+      "resource_id": "ebs-snapshot-v8jz50",
+      "period_days": 30,
+      "storage_gb_avg": 2050.3529,
+      "storage_gb_max": 2050.3529,
+      "storage_gb_min": 2050.3529
+    },
+    "ebs-snapshot-a7v8zb": {
+      "resource_id": "ebs-snapshot-a7v8zb",
+      "period_days": 30,
+      "storage_gb_avg": 2029.3621,
+      "storage_gb_max": 2029.3621,
+      "storage_gb_min": 2029.3621
+    },
+    "ebs-snapshot-hnjnbr": {
+      "resource_id": "ebs-snapshot-hnjnbr",
+      "period_days": 30,
+      "storage_gb_avg": 1983.9018,
+      "storage_gb_max": 1983.9018,
+      "storage_gb_min": 1983.9018
+    },
+    "ebs-snapshot-8dn1u8": {
+      "resource_id": "ebs-snapshot-8dn1u8",
+      "period_days": 30,
+      "storage_gb_avg": 2012.957,
+      "storage_gb_max": 2012.957,
+      "storage_gb_min": 2012.957
+    },
+    "ebs-snapshot-p6eboi": {
+      "resource_id": "ebs-snapshot-p6eboi",
+      "period_days": 30,
+      "storage_gb_avg": 1972.8411000000003,
+      "storage_gb_max": 1972.8411,
+      "storage_gb_min": 1972.8411
+    },
+    "ebs-snapshot-6yf52z": {
+      "resource_id": "ebs-snapshot-6yf52z",
+      "period_days": 30,
+      "storage_gb_avg": 2095.4098,
+      "storage_gb_max": 2095.4098,
+      "storage_gb_min": 2095.4098
+    },
+    "ebs-snapshot-tblzcm": {
+      "resource_id": "ebs-snapshot-tblzcm",
+      "period_days": 30,
+      "storage_gb_avg": 1946.8976000000002,
+      "storage_gb_max": 1946.8976,
+      "storage_gb_min": 1946.8976
+    },
+    "ebs-snapshot-8crg1q": {
+      "resource_id": "ebs-snapshot-8crg1q",
+      "period_days": 30,
+      "storage_gb_avg": 1996.8463,
+      "storage_gb_max": 1996.8463,
+      "storage_gb_min": 1996.8463
+    },
+    "ebs-snapshot-kfxfzh": {
+      "resource_id": "ebs-snapshot-kfxfzh",
+      "period_days": 30,
+      "storage_gb_avg": 1993.9955,
+      "storage_gb_max": 1993.9955,
+      "storage_gb_min": 1993.9955
+    },
+    "ebs-snapshot-6u65ff": {
+      "resource_id": "ebs-snapshot-6u65ff",
+      "period_days": 30,
+      "storage_gb_avg": 1932.3267000000003,
+      "storage_gb_max": 1932.3267,
+      "storage_gb_min": 1932.3267
+    },
+    "ebs-snapshot-zqcf47": {
+      "resource_id": "ebs-snapshot-zqcf47",
+      "period_days": 30,
+      "storage_gb_avg": 1927.8538,
+      "storage_gb_max": 1927.8538,
+      "storage_gb_min": 1927.8538
+    },
+    "ebs-snapshot-ztt7wv": {
+      "resource_id": "ebs-snapshot-ztt7wv",
+      "period_days": 30,
+      "storage_gb_avg": 2034.9936,
+      "storage_gb_max": 2034.9936,
+      "storage_gb_min": 2034.9936
+    },
+    "ebs-snapshot-hhbfbc": {
+      "resource_id": "ebs-snapshot-hhbfbc",
+      "period_days": 30,
+      "storage_gb_avg": 2024.1782999999998,
+      "storage_gb_max": 2024.1783,
+      "storage_gb_min": 2024.1783
+    },
+    "ebs-snapshot-dkakeo": {
+      "resource_id": "ebs-snapshot-dkakeo",
+      "period_days": 30,
+      "storage_gb_avg": 1908.119,
+      "storage_gb_max": 1908.119,
+      "storage_gb_min": 1908.119
+    },
+    "ebs-snapshot-nbyp6m": {
+      "resource_id": "ebs-snapshot-nbyp6m",
+      "period_days": 30,
+      "storage_gb_avg": 2088.6756,
+      "storage_gb_max": 2088.6756,
+      "storage_gb_min": 2088.6756
+    },
+    "ebs-snapshot-dk90cf": {
+      "resource_id": "ebs-snapshot-dk90cf",
+      "period_days": 30,
+      "storage_gb_avg": 1909.3537,
+      "storage_gb_max": 1909.3537,
+      "storage_gb_min": 1909.3537
+    },
+    "ebs-snapshot-uyacnf": {
+      "resource_id": "ebs-snapshot-uyacnf",
+      "period_days": 30,
+      "storage_gb_avg": 2059.8496,
+      "storage_gb_max": 2059.8496,
+      "storage_gb_min": 2059.8496
+    },
+    "ebs-snapshot-v25mqi": {
+      "resource_id": "ebs-snapshot-v25mqi",
+      "period_days": 30,
+      "storage_gb_avg": 1944.3941000000002,
+      "storage_gb_max": 1944.3941,
+      "storage_gb_min": 1944.3941
+    },
+    "ebs-snapshot-rjema3": {
+      "resource_id": "ebs-snapshot-rjema3",
+      "period_days": 30,
+      "storage_gb_avg": 2071.4976,
+      "storage_gb_max": 2071.4976,
+      "storage_gb_min": 2071.4976
+    },
+    "ebs-snapshot-zcbn0z": {
+      "resource_id": "ebs-snapshot-zcbn0z",
+      "period_days": 30,
+      "storage_gb_avg": 2090.3414,
+      "storage_gb_max": 2090.3414,
+      "storage_gb_min": 2090.3414
+    },
+    "ebs-snapshot-9cs3wb": {
+      "resource_id": "ebs-snapshot-9cs3wb",
+      "period_days": 30,
+      "storage_gb_avg": 1921.2721,
+      "storage_gb_max": 1921.2721,
+      "storage_gb_min": 1921.2721
+    },
+    "ebs-snapshot-rojhrv": {
+      "resource_id": "ebs-snapshot-rojhrv",
+      "period_days": 30,
+      "storage_gb_avg": 2085.7951,
+      "storage_gb_max": 2085.7951,
+      "storage_gb_min": 2085.7951
+    },
+    "ebs-snapshot-7i7ds0": {
+      "resource_id": "ebs-snapshot-7i7ds0",
+      "period_days": 30,
+      "storage_gb_avg": 2006.5427,
+      "storage_gb_max": 2006.5427,
+      "storage_gb_min": 2006.5427
+    },
+    "ebs-snapshot-jslams": {
+      "resource_id": "ebs-snapshot-jslams",
+      "period_days": 30,
+      "storage_gb_avg": 1995.4911,
+      "storage_gb_max": 1995.4911,
+      "storage_gb_min": 1995.4911
+    },
+    "ebs-snapshot-oi32cd": {
+      "resource_id": "ebs-snapshot-oi32cd",
+      "period_days": 30,
+      "storage_gb_avg": 1927.8947000000003,
+      "storage_gb_max": 1927.8947,
+      "storage_gb_min": 1927.8947
+    },
+    "ebs-snapshot-azfccm": {
+      "resource_id": "ebs-snapshot-azfccm",
+      "period_days": 30,
+      "storage_gb_avg": 1913.2221,
+      "storage_gb_max": 1913.2221,
+      "storage_gb_min": 1913.2221
+    },
+    "ebs-snapshot-v1b9of": {
+      "resource_id": "ebs-snapshot-v1b9of",
+      "period_days": 30,
+      "storage_gb_avg": 2065.2885,
+      "storage_gb_max": 2065.2885,
+      "storage_gb_min": 2065.2885
+    },
+    "ebs-snapshot-omxbep": {
+      "resource_id": "ebs-snapshot-omxbep",
+      "period_days": 30,
+      "storage_gb_avg": 1918.734,
+      "storage_gb_max": 1918.734,
+      "storage_gb_min": 1918.734
+    },
+    "ebs-snapshot-l8p69c": {
+      "resource_id": "ebs-snapshot-l8p69c",
+      "period_days": 30,
+      "storage_gb_avg": 1964.7342,
+      "storage_gb_max": 1964.7342,
+      "storage_gb_min": 1964.7342
+    },
+    "ebs-snapshot-28xx2g": {
+      "resource_id": "ebs-snapshot-28xx2g",
+      "period_days": 30,
+      "storage_gb_avg": 2030.2263,
+      "storage_gb_max": 2030.2263,
+      "storage_gb_min": 2030.2263
+    },
+    "ebs-snapshot-dvke19": {
+      "resource_id": "ebs-snapshot-dvke19",
+      "period_days": 30,
+      "storage_gb_avg": 2027.0059,
+      "storage_gb_max": 2027.0059,
+      "storage_gb_min": 2027.0059
+    },
+    "ebs-snapshot-wcr3sc": {
+      "resource_id": "ebs-snapshot-wcr3sc",
+      "period_days": 30,
+      "storage_gb_avg": 2073.6931,
+      "storage_gb_max": 2073.6931,
+      "storage_gb_min": 2073.6931
+    },
+    "ebs-snapshot-lt47yj": {
+      "resource_id": "ebs-snapshot-lt47yj",
+      "period_days": 30,
+      "storage_gb_avg": 1991.4143,
+      "storage_gb_max": 1991.4143,
+      "storage_gb_min": 1991.4143
+    },
+    "ebs-snapshot-p0j6bp": {
+      "resource_id": "ebs-snapshot-p0j6bp",
+      "period_days": 30,
+      "storage_gb_avg": 2013.7363,
+      "storage_gb_max": 2013.7363,
+      "storage_gb_min": 2013.7363
+    },
+    "ebs-snapshot-wxd10n": {
+      "resource_id": "ebs-snapshot-wxd10n",
+      "period_days": 30,
+      "storage_gb_avg": 2061.7268,
+      "storage_gb_max": 2061.7268,
+      "storage_gb_min": 2061.7268
+    },
+    "ebs-snapshot-u9n0uo": {
+      "resource_id": "ebs-snapshot-u9n0uo",
+      "period_days": 30,
+      "storage_gb_avg": 2099.3043,
+      "storage_gb_max": 2099.3043,
+      "storage_gb_min": 2099.3043
+    },
+    "ebs-snapshot-8zdosz": {
+      "resource_id": "ebs-snapshot-8zdosz",
+      "period_days": 30,
+      "storage_gb_avg": 2005.0813,
+      "storage_gb_max": 2005.0813,
+      "storage_gb_min": 2005.0813
+    },
+    "ebs-snapshot-l5m1qi": {
+      "resource_id": "ebs-snapshot-l5m1qi",
+      "period_days": 30,
+      "storage_gb_avg": 1999.9444,
+      "storage_gb_max": 1999.9444,
+      "storage_gb_min": 1999.9444
+    },
+    "ebs-snapshot-68gvh3": {
+      "resource_id": "ebs-snapshot-68gvh3",
+      "period_days": 30,
+      "storage_gb_avg": 2070.9857,
+      "storage_gb_max": 2070.9857,
+      "storage_gb_min": 2070.9857
+    },
+    "ebs-snapshot-di9ain": {
+      "resource_id": "ebs-snapshot-di9ain",
+      "period_days": 30,
+      "storage_gb_avg": 1951.617,
+      "storage_gb_max": 1951.617,
+      "storage_gb_min": 1951.617
+    },
+    "ebs-snapshot-09s5rv": {
+      "resource_id": "ebs-snapshot-09s5rv",
+      "period_days": 30,
+      "storage_gb_avg": 1947.3042999999998,
+      "storage_gb_max": 1947.3043,
+      "storage_gb_min": 1947.3043
+    },
+    "ebs-snapshot-hka7y9": {
+      "resource_id": "ebs-snapshot-hka7y9",
+      "period_days": 30,
+      "storage_gb_avg": 2091.7674,
+      "storage_gb_max": 2091.7674,
+      "storage_gb_min": 2091.7674
+    },
+    "ebs-snapshot-zkzflx": {
+      "resource_id": "ebs-snapshot-zkzflx",
+      "period_days": 30,
+      "storage_gb_avg": 1986.6307000000002,
+      "storage_gb_max": 1986.6307,
+      "storage_gb_min": 1986.6307
+    },
+    "ebs-snapshot-jl5h3l": {
+      "resource_id": "ebs-snapshot-jl5h3l",
+      "period_days": 30,
+      "storage_gb_avg": 1946.2224999999999,
+      "storage_gb_max": 1946.2225,
+      "storage_gb_min": 1946.2225
+    },
+    "ebs-snapshot-g0g8wu": {
+      "resource_id": "ebs-snapshot-g0g8wu",
+      "period_days": 30,
+      "storage_gb_avg": 1981.7182,
+      "storage_gb_max": 1981.7182,
+      "storage_gb_min": 1981.7182
+    },
+    "ebs-snapshot-52grmm": {
+      "resource_id": "ebs-snapshot-52grmm",
+      "period_days": 30,
+      "storage_gb_avg": 2045.6064000000001,
+      "storage_gb_max": 2045.6064,
+      "storage_gb_min": 2045.6064
+    },
+    "ebs-snapshot-3obmeq": {
+      "resource_id": "ebs-snapshot-3obmeq",
+      "period_days": 30,
+      "storage_gb_avg": 1952.4626000000003,
+      "storage_gb_max": 1952.4626,
+      "storage_gb_min": 1952.4626
+    },
+    "ebs-snapshot-oy4k5y": {
+      "resource_id": "ebs-snapshot-oy4k5y",
+      "period_days": 30,
+      "storage_gb_avg": 2030.249,
+      "storage_gb_max": 2030.249,
+      "storage_gb_min": 2030.249
+    },
+    "ebs-snapshot-cm4pvi": {
+      "resource_id": "ebs-snapshot-cm4pvi",
+      "period_days": 30,
+      "storage_gb_avg": 1935.9449,
+      "storage_gb_max": 1935.9449,
+      "storage_gb_min": 1935.9449
+    },
+    "ebs-snapshot-mjd068": {
+      "resource_id": "ebs-snapshot-mjd068",
+      "period_days": 30,
+      "storage_gb_avg": 1925.2539,
+      "storage_gb_max": 1925.2539,
+      "storage_gb_min": 1925.2539
+    },
+    "ebs-snapshot-fqg7lh": {
+      "resource_id": "ebs-snapshot-fqg7lh",
+      "period_days": 30,
+      "storage_gb_avg": 1949.6926,
+      "storage_gb_max": 1949.6926,
+      "storage_gb_min": 1949.6926
+    },
+    "ebs-snapshot-2vkrh3": {
+      "resource_id": "ebs-snapshot-2vkrh3",
+      "period_days": 30,
+      "storage_gb_avg": 2074.1032,
+      "storage_gb_max": 2074.1032,
+      "storage_gb_min": 2074.1032
+    },
+    "ebs-snapshot-rw6t1q": {
+      "resource_id": "ebs-snapshot-rw6t1q",
+      "period_days": 30,
+      "storage_gb_avg": 1971.4109999999998,
+      "storage_gb_max": 1971.411,
+      "storage_gb_min": 1971.411
+    },
+    "ebs-snapshot-5jjr4p": {
+      "resource_id": "ebs-snapshot-5jjr4p",
+      "period_days": 30,
+      "storage_gb_avg": 2065.7489,
+      "storage_gb_max": 2065.7489,
+      "storage_gb_min": 2065.7489
+    },
+    "ebs-snapshot-of84w3": {
+      "resource_id": "ebs-snapshot-of84w3",
+      "period_days": 30,
+      "storage_gb_avg": 2091.3989,
+      "storage_gb_max": 2091.3989,
+      "storage_gb_min": 2091.3989
+    },
+    "ebs-snapshot-on0w0c": {
+      "resource_id": "ebs-snapshot-on0w0c",
+      "period_days": 30,
+      "storage_gb_avg": 2037.6334,
+      "storage_gb_max": 2037.6334,
+      "storage_gb_min": 2037.6334
+    },
+    "ebs-snapshot-gtii1j": {
+      "resource_id": "ebs-snapshot-gtii1j",
+      "period_days": 30,
+      "storage_gb_avg": 1901.3849,
+      "storage_gb_max": 1901.3849,
+      "storage_gb_min": 1901.3849
+    },
+    "ebs-snapshot-fbbzhl": {
+      "resource_id": "ebs-snapshot-fbbzhl",
+      "period_days": 30,
+      "storage_gb_avg": 1989.6743000000001,
+      "storage_gb_max": 1989.6743,
+      "storage_gb_min": 1989.6743
+    },
+    "ebs-snapshot-mtqvhw": {
+      "resource_id": "ebs-snapshot-mtqvhw",
+      "period_days": 30,
+      "storage_gb_avg": 1931.4668999999997,
+      "storage_gb_max": 1931.4669,
+      "storage_gb_min": 1931.4669
+    },
+    "ebs-snapshot-3dvkrj": {
+      "resource_id": "ebs-snapshot-3dvkrj",
+      "period_days": 30,
+      "storage_gb_avg": 1905.8449,
+      "storage_gb_max": 1905.8449,
+      "storage_gb_min": 1905.8449
+    },
+    "ebs-snapshot-s07chm": {
+      "resource_id": "ebs-snapshot-s07chm",
+      "period_days": 30,
+      "storage_gb_avg": 2057.9392,
+      "storage_gb_max": 2057.9392,
+      "storage_gb_min": 2057.9392
+    },
+    "ebs-snapshot-oby56p": {
+      "resource_id": "ebs-snapshot-oby56p",
+      "period_days": 30,
+      "storage_gb_avg": 1920.7993999999999,
+      "storage_gb_max": 1920.7994,
+      "storage_gb_min": 1920.7994
+    },
+    "ebs-snapshot-fbw7fe": {
+      "resource_id": "ebs-snapshot-fbw7fe",
+      "period_days": 30,
+      "storage_gb_avg": 2004.0242,
+      "storage_gb_max": 2004.0242,
+      "storage_gb_min": 2004.0242
+    },
+    "ebs-snapshot-uhkxns": {
+      "resource_id": "ebs-snapshot-uhkxns",
+      "period_days": 30,
+      "storage_gb_avg": 1982.2255000000002,
+      "storage_gb_max": 1982.2255,
+      "storage_gb_min": 1982.2255
+    },
+    "ebs-snapshot-j1xt8s": {
+      "resource_id": "ebs-snapshot-j1xt8s",
+      "period_days": 30,
+      "storage_gb_avg": 1911.9067,
+      "storage_gb_max": 1911.9067,
+      "storage_gb_min": 1911.9067
+    },
+    "ebs-snapshot-7o2fjv": {
+      "resource_id": "ebs-snapshot-7o2fjv",
+      "period_days": 30,
+      "storage_gb_avg": 2040.0195,
+      "storage_gb_max": 2040.0195,
+      "storage_gb_min": 2040.0195
+    },
+    "ebs-snapshot-n8szqs": {
+      "resource_id": "ebs-snapshot-n8szqs",
+      "period_days": 30,
+      "storage_gb_avg": 1947.484,
+      "storage_gb_max": 1947.484,
+      "storage_gb_min": 1947.484
+    },
+    "ebs-snapshot-dkmjxb": {
+      "resource_id": "ebs-snapshot-dkmjxb",
+      "period_days": 30,
+      "storage_gb_avg": 1913.997,
+      "storage_gb_max": 1913.997,
+      "storage_gb_min": 1913.997
+    },
+    "ebs-snapshot-gi9s7n": {
+      "resource_id": "ebs-snapshot-gi9s7n",
+      "period_days": 30,
+      "storage_gb_avg": 2096.7044,
+      "storage_gb_max": 2096.7044,
+      "storage_gb_min": 2096.7044
+    },
+    "ebs-snapshot-5leo7z": {
+      "resource_id": "ebs-snapshot-5leo7z",
+      "period_days": 30,
+      "storage_gb_avg": 1986.9023,
+      "storage_gb_max": 1986.9023,
+      "storage_gb_min": 1986.9023
+    },
+    "ebs-snapshot-jfg179": {
+      "resource_id": "ebs-snapshot-jfg179",
+      "period_days": 30,
+      "storage_gb_avg": 2037.6451000000002,
+      "storage_gb_max": 2037.6451,
+      "storage_gb_min": 2037.6451
+    },
+    "ebs-snapshot-qgykwp": {
+      "resource_id": "ebs-snapshot-qgykwp",
+      "period_days": 30,
+      "storage_gb_avg": 1921.2411,
+      "storage_gb_max": 1921.2411,
+      "storage_gb_min": 1921.2411
+    },
+    "ebs-snapshot-slsg3a": {
+      "resource_id": "ebs-snapshot-slsg3a",
+      "period_days": 30,
+      "storage_gb_avg": 1975.8652,
+      "storage_gb_max": 1975.8652,
+      "storage_gb_min": 1975.8652
+    },
+    "ebs-snapshot-5ca32x": {
+      "resource_id": "ebs-snapshot-5ca32x",
+      "period_days": 30,
+      "storage_gb_avg": 2070.6491,
+      "storage_gb_max": 2070.6491,
+      "storage_gb_min": 2070.6491
+    },
+    "ebs-snapshot-ew36sg": {
+      "resource_id": "ebs-snapshot-ew36sg",
+      "period_days": 30,
+      "storage_gb_avg": 1922.7672,
+      "storage_gb_max": 1922.7672,
+      "storage_gb_min": 1922.7672
+    },
+    "ebs-snapshot-opnpv0": {
+      "resource_id": "ebs-snapshot-opnpv0",
+      "period_days": 30,
+      "storage_gb_avg": 2010.049,
+      "storage_gb_max": 2010.049,
+      "storage_gb_min": 2010.049
+    },
+    "ebs-snapshot-1bevth": {
+      "resource_id": "ebs-snapshot-1bevth",
+      "period_days": 30,
+      "storage_gb_avg": 2047.2162,
+      "storage_gb_max": 2047.2162,
+      "storage_gb_min": 2047.2162
+    },
+    "ebs-snapshot-kd31qk": {
+      "resource_id": "ebs-snapshot-kd31qk",
+      "period_days": 30,
+      "storage_gb_avg": 2048.1921,
+      "storage_gb_max": 2048.1921,
+      "storage_gb_min": 2048.1921
+    },
+    "ebs-snapshot-zoqpla": {
+      "resource_id": "ebs-snapshot-zoqpla",
+      "period_days": 30,
+      "storage_gb_avg": 1964.7297,
+      "storage_gb_max": 1964.7297,
+      "storage_gb_min": 1964.7297
+    },
+    "ebs-snapshot-w2nc72": {
+      "resource_id": "ebs-snapshot-w2nc72",
+      "period_days": 30,
+      "storage_gb_avg": 1913.668,
+      "storage_gb_max": 1913.668,
+      "storage_gb_min": 1913.668
+    },
+    "ebs-snapshot-x36meq": {
+      "resource_id": "ebs-snapshot-x36meq",
+      "period_days": 30,
+      "storage_gb_avg": 1953.4008,
+      "storage_gb_max": 1953.4008,
+      "storage_gb_min": 1953.4008
+    },
+    "ebs-snapshot-qmh3aw": {
+      "resource_id": "ebs-snapshot-qmh3aw",
+      "period_days": 30,
+      "storage_gb_avg": 1990.8721,
+      "storage_gb_max": 1990.8721,
+      "storage_gb_min": 1990.8721
+    },
+    "ebs-snapshot-mbukbu": {
+      "resource_id": "ebs-snapshot-mbukbu",
+      "period_days": 30,
+      "storage_gb_avg": 2025.6503,
+      "storage_gb_max": 2025.6503,
+      "storage_gb_min": 2025.6503
+    },
+    "ebs-snapshot-ao9wkc": {
+      "resource_id": "ebs-snapshot-ao9wkc",
+      "period_days": 30,
+      "storage_gb_avg": 1932.7759,
+      "storage_gb_max": 1932.7759,
+      "storage_gb_min": 1932.7759
+    },
+    "ebs-snapshot-4ffin1": {
+      "resource_id": "ebs-snapshot-4ffin1",
+      "period_days": 30,
+      "storage_gb_avg": 2061.0826,
+      "storage_gb_max": 2061.0826,
+      "storage_gb_min": 2061.0826
+    },
+    "ebs-snapshot-pfpiiw": {
+      "resource_id": "ebs-snapshot-pfpiiw",
+      "period_days": 30,
+      "storage_gb_avg": 1907.5515,
+      "storage_gb_max": 1907.5515,
+      "storage_gb_min": 1907.5515
+    },
+    "ebs-snapshot-l0vt5k": {
+      "resource_id": "ebs-snapshot-l0vt5k",
+      "period_days": 30,
+      "storage_gb_avg": 2054.336,
+      "storage_gb_max": 2054.336,
+      "storage_gb_min": 2054.336
+    },
+    "ebs-snapshot-vgozbt": {
+      "resource_id": "ebs-snapshot-vgozbt",
+      "period_days": 30,
+      "storage_gb_avg": 2020.9619,
+      "storage_gb_max": 2020.9619,
+      "storage_gb_min": 2020.9619
+    },
+    "ebs-snapshot-fycrnn": {
+      "resource_id": "ebs-snapshot-fycrnn",
+      "period_days": 30,
+      "storage_gb_avg": 2027.0,
+      "storage_gb_max": 2027.0,
+      "storage_gb_min": 2027.0
+    },
+    "ebs-snapshot-3nwnd2": {
+      "resource_id": "ebs-snapshot-3nwnd2",
+      "period_days": 30,
+      "storage_gb_avg": 2059.0779,
+      "storage_gb_max": 2059.0779,
+      "storage_gb_min": 2059.0779
+    },
+    "ebs-snapshot-jcy8i9": {
+      "resource_id": "ebs-snapshot-jcy8i9",
+      "period_days": 30,
+      "storage_gb_avg": 2081.3595,
+      "storage_gb_max": 2081.3595,
+      "storage_gb_min": 2081.3595
+    },
+    "ebs-snapshot-7xsrbl": {
+      "resource_id": "ebs-snapshot-7xsrbl",
+      "period_days": 30,
+      "storage_gb_avg": 2060.2132,
+      "storage_gb_max": 2060.2132,
+      "storage_gb_min": 2060.2132
+    },
+    "ebs-snapshot-6fb053": {
+      "resource_id": "ebs-snapshot-6fb053",
+      "period_days": 30,
+      "storage_gb_avg": 2076.3172,
+      "storage_gb_max": 2076.3172,
+      "storage_gb_min": 2076.3172
+    },
+    "ebs-snapshot-qqnspy": {
+      "resource_id": "ebs-snapshot-qqnspy",
+      "period_days": 30,
+      "storage_gb_avg": 1984.4598,
+      "storage_gb_max": 1984.4598,
+      "storage_gb_min": 1984.4598
+    },
+    "ebs-snapshot-hdq0ww": {
+      "resource_id": "ebs-snapshot-hdq0ww",
+      "period_days": 30,
+      "storage_gb_avg": 1906.5946,
+      "storage_gb_max": 1906.5946,
+      "storage_gb_min": 1906.5946
+    },
+    "ebs-snapshot-eo9kv5": {
+      "resource_id": "ebs-snapshot-eo9kv5",
+      "period_days": 30,
+      "storage_gb_avg": 2095.9986,
+      "storage_gb_max": 2095.9986,
+      "storage_gb_min": 2095.9986
+    },
+    "ebs-snapshot-48l201": {
+      "resource_id": "ebs-snapshot-48l201",
+      "period_days": 30,
+      "storage_gb_avg": 1999.1291999999999,
+      "storage_gb_max": 1999.1292,
+      "storage_gb_min": 1999.1292
+    },
+    "ebs-snapshot-boj9vf": {
+      "resource_id": "ebs-snapshot-boj9vf",
+      "period_days": 30,
+      "storage_gb_avg": 2078.3315,
+      "storage_gb_max": 2078.3315,
+      "storage_gb_min": 2078.3315
+    },
+    "ebs-snapshot-5839m7": {
+      "resource_id": "ebs-snapshot-5839m7",
+      "period_days": 30,
+      "storage_gb_avg": 1984.1547,
+      "storage_gb_max": 1984.1547,
+      "storage_gb_min": 1984.1547
+    },
+    "ebs-snapshot-1tdr1a": {
+      "resource_id": "ebs-snapshot-1tdr1a",
+      "period_days": 30,
+      "storage_gb_avg": 2054.4354,
+      "storage_gb_max": 2054.4354,
+      "storage_gb_min": 2054.4354
+    },
+    "ebs-snapshot-zlflr6": {
+      "resource_id": "ebs-snapshot-zlflr6",
+      "period_days": 30,
+      "storage_gb_avg": 2014.6546000000003,
+      "storage_gb_max": 2014.6546,
+      "storage_gb_min": 2014.6546
+    },
+    "ebs-snapshot-6po5ie": {
+      "resource_id": "ebs-snapshot-6po5ie",
+      "period_days": 30,
+      "storage_gb_avg": 1903.8593,
+      "storage_gb_max": 1903.8593,
+      "storage_gb_min": 1903.8593
+    },
+    "ebs-snapshot-ziu7vo": {
+      "resource_id": "ebs-snapshot-ziu7vo",
+      "period_days": 30,
+      "storage_gb_avg": 2023.0731,
+      "storage_gb_max": 2023.0731,
+      "storage_gb_min": 2023.0731
+    },
+    "ebs-snapshot-wtxr4i": {
+      "resource_id": "ebs-snapshot-wtxr4i",
+      "period_days": 30,
+      "storage_gb_avg": 1992.9836,
+      "storage_gb_max": 1992.9836,
+      "storage_gb_min": 1992.9836
+    },
+    "ebs-snapshot-hmi0tn": {
+      "resource_id": "ebs-snapshot-hmi0tn",
+      "period_days": 30,
+      "storage_gb_avg": 1947.4885,
+      "storage_gb_max": 1947.4885,
+      "storage_gb_min": 1947.4885
+    },
+    "ebs-snapshot-tkr2nx": {
+      "resource_id": "ebs-snapshot-tkr2nx",
+      "period_days": 30,
+      "storage_gb_avg": 1922.1553,
+      "storage_gb_max": 1922.1553,
+      "storage_gb_min": 1922.1553
+    },
+    "ebs-snapshot-vhdy4d": {
+      "resource_id": "ebs-snapshot-vhdy4d",
+      "period_days": 30,
+      "storage_gb_avg": 2050.1091,
+      "storage_gb_max": 2050.1091,
+      "storage_gb_min": 2050.1091
+    },
+    "ebs-snapshot-abm977": {
+      "resource_id": "ebs-snapshot-abm977",
+      "period_days": 30,
+      "storage_gb_avg": 1930.9465999999998,
+      "storage_gb_max": 1930.9466,
+      "storage_gb_min": 1930.9466
+    },
+    "ebs-snapshot-i3shw6": {
+      "resource_id": "ebs-snapshot-i3shw6",
+      "period_days": 30,
+      "storage_gb_avg": 2012.9067,
+      "storage_gb_max": 2012.9067,
+      "storage_gb_min": 2012.9067
+    },
+    "ebs-snapshot-oxh087": {
+      "resource_id": "ebs-snapshot-oxh087",
+      "period_days": 30,
+      "storage_gb_avg": 1978.9763,
+      "storage_gb_max": 1978.9763,
+      "storage_gb_min": 1978.9763
+    },
+    "ebs-snapshot-fdj2n9": {
+      "resource_id": "ebs-snapshot-fdj2n9",
+      "period_days": 30,
+      "storage_gb_avg": 1917.3823,
+      "storage_gb_max": 1917.3823,
+      "storage_gb_min": 1917.3823
+    },
+    "ebs-snapshot-cj6xth": {
+      "resource_id": "ebs-snapshot-cj6xth",
+      "period_days": 30,
+      "storage_gb_avg": 1958.5759,
+      "storage_gb_max": 1958.5759,
+      "storage_gb_min": 1958.5759
+    },
+    "ebs-snapshot-tmqoxg": {
+      "resource_id": "ebs-snapshot-tmqoxg",
+      "period_days": 30,
+      "storage_gb_avg": 2072.01,
+      "storage_gb_max": 2072.01,
+      "storage_gb_min": 2072.01
+    },
+    "ebs-snapshot-80i9be": {
+      "resource_id": "ebs-snapshot-80i9be",
+      "period_days": 30,
+      "storage_gb_avg": 2055.972,
+      "storage_gb_max": 2055.972,
+      "storage_gb_min": 2055.972
+    },
+    "ebs-snapshot-ob4429": {
+      "resource_id": "ebs-snapshot-ob4429",
+      "period_days": 30,
+      "storage_gb_avg": 2047.8893,
+      "storage_gb_max": 2047.8893,
+      "storage_gb_min": 2047.8893
+    },
+    "ebs-snapshot-pj761l": {
+      "resource_id": "ebs-snapshot-pj761l",
+      "period_days": 30,
+      "storage_gb_avg": 2016.127,
+      "storage_gb_max": 2016.127,
+      "storage_gb_min": 2016.127
+    },
+    "ebs-snapshot-uvay58": {
+      "resource_id": "ebs-snapshot-uvay58",
+      "period_days": 30,
+      "storage_gb_avg": 1990.7357,
+      "storage_gb_max": 1990.7357,
+      "storage_gb_min": 1990.7357
+    },
+    "ebs-snapshot-axj7i7": {
+      "resource_id": "ebs-snapshot-axj7i7",
+      "period_days": 30,
+      "storage_gb_avg": 1981.3724,
+      "storage_gb_max": 1981.3724,
+      "storage_gb_min": 1981.3724
+    },
+    "ebs-snapshot-v64thg": {
+      "resource_id": "ebs-snapshot-v64thg",
+      "period_days": 30,
+      "storage_gb_avg": 1917.4974,
+      "storage_gb_max": 1917.4974,
+      "storage_gb_min": 1917.4974
+    },
+    "ebs-snapshot-lu2bba": {
+      "resource_id": "ebs-snapshot-lu2bba",
+      "period_days": 30,
+      "storage_gb_avg": 2045.4559999999997,
+      "storage_gb_max": 2045.456,
+      "storage_gb_min": 2045.456
+    },
+    "ebs-snapshot-qdtpa9": {
+      "resource_id": "ebs-snapshot-qdtpa9",
+      "period_days": 30,
+      "storage_gb_avg": 1914.4664,
+      "storage_gb_max": 1914.4664,
+      "storage_gb_min": 1914.4664
+    },
+    "ebs-snapshot-8irznq": {
+      "resource_id": "ebs-snapshot-8irznq",
+      "period_days": 30,
+      "storage_gb_avg": 1916.7304000000001,
+      "storage_gb_max": 1916.7304,
+      "storage_gb_min": 1916.7304
+    },
+    "ebs-snapshot-upas0b": {
+      "resource_id": "ebs-snapshot-upas0b",
+      "period_days": 30,
+      "storage_gb_avg": 1968.1099,
+      "storage_gb_max": 1968.1099,
+      "storage_gb_min": 1968.1099
+    },
+    "ebs-snapshot-536ei8": {
+      "resource_id": "ebs-snapshot-536ei8",
+      "period_days": 30,
+      "storage_gb_avg": 1932.9576000000002,
+      "storage_gb_max": 1932.9576,
+      "storage_gb_min": 1932.9576
+    },
+    "ebs-snapshot-10jomn": {
+      "resource_id": "ebs-snapshot-10jomn",
+      "period_days": 30,
+      "storage_gb_avg": 1954.4419,
+      "storage_gb_max": 1954.4419,
+      "storage_gb_min": 1954.4419
+    },
+    "ebs-snapshot-3p2cw5": {
+      "resource_id": "ebs-snapshot-3p2cw5",
+      "period_days": 30,
+      "storage_gb_avg": 1901.5086999999999,
+      "storage_gb_max": 1901.5087,
+      "storage_gb_min": 1901.5087
+    },
+    "ebs-snapshot-g35ch7": {
+      "resource_id": "ebs-snapshot-g35ch7",
+      "period_days": 30,
+      "storage_gb_avg": 2040.4618,
+      "storage_gb_max": 2040.4618,
+      "storage_gb_min": 2040.4618
+    },
+    "ebs-snapshot-baiwve": {
+      "resource_id": "ebs-snapshot-baiwve",
+      "period_days": 30,
+      "storage_gb_avg": 1986.3823,
+      "storage_gb_max": 1986.3823,
+      "storage_gb_min": 1986.3823
+    },
+    "ebs-snapshot-qqdw90": {
+      "resource_id": "ebs-snapshot-qqdw90",
+      "period_days": 30,
+      "storage_gb_avg": 1920.0773,
+      "storage_gb_max": 1920.0773,
+      "storage_gb_min": 1920.0773
+    },
+    "ebs-snapshot-x9zhl7": {
+      "resource_id": "ebs-snapshot-x9zhl7",
+      "period_days": 30,
+      "storage_gb_avg": 2020.4257,
+      "storage_gb_max": 2020.4257,
+      "storage_gb_min": 2020.4257
+    },
+    "ebs-snapshot-99k756": {
+      "resource_id": "ebs-snapshot-99k756",
+      "period_days": 30,
+      "storage_gb_avg": 1909.8988,
+      "storage_gb_max": 1909.8988,
+      "storage_gb_min": 1909.8988
+    },
+    "ebs-snapshot-ovk4jx": {
+      "resource_id": "ebs-snapshot-ovk4jx",
+      "period_days": 30,
+      "storage_gb_avg": 2065.4352,
+      "storage_gb_max": 2065.4352,
+      "storage_gb_min": 2065.4352
+    },
+    "ebs-snapshot-yh2v22": {
+      "resource_id": "ebs-snapshot-yh2v22",
+      "period_days": 30,
+      "storage_gb_avg": 2048.5744,
+      "storage_gb_max": 2048.5744,
+      "storage_gb_min": 2048.5744
+    },
+    "ebs-snapshot-ukqr7a": {
+      "resource_id": "ebs-snapshot-ukqr7a",
+      "period_days": 30,
+      "storage_gb_avg": 2003.176,
+      "storage_gb_max": 2003.176,
+      "storage_gb_min": 2003.176
+    },
+    "ebs-snapshot-jkcpvf": {
+      "resource_id": "ebs-snapshot-jkcpvf",
+      "period_days": 30,
+      "storage_gb_avg": 2027.5204,
+      "storage_gb_max": 2027.5204,
+      "storage_gb_min": 2027.5204
+    },
+    "ebs-snapshot-c2b1i5": {
+      "resource_id": "ebs-snapshot-c2b1i5",
+      "period_days": 30,
+      "storage_gb_avg": 1996.6271,
+      "storage_gb_max": 1996.6271,
+      "storage_gb_min": 1996.6271
+    },
+    "ebs-snapshot-ur7kcp": {
+      "resource_id": "ebs-snapshot-ur7kcp",
+      "period_days": 30,
+      "storage_gb_avg": 1909.6054000000001,
+      "storage_gb_max": 1909.6054,
+      "storage_gb_min": 1909.6054
+    },
+    "ebs-snapshot-69qch2": {
+      "resource_id": "ebs-snapshot-69qch2",
+      "period_days": 30,
+      "storage_gb_avg": 2025.4478,
+      "storage_gb_max": 2025.4478,
+      "storage_gb_min": 2025.4478
+    },
+    "ebs-snapshot-b6cdsm": {
+      "resource_id": "ebs-snapshot-b6cdsm",
+      "period_days": 30,
+      "storage_gb_avg": 2092.8169,
+      "storage_gb_max": 2092.8169,
+      "storage_gb_min": 2092.8169
+    },
+    "ebs-snapshot-nr8i8y": {
+      "resource_id": "ebs-snapshot-nr8i8y",
+      "period_days": 30,
+      "storage_gb_avg": 1926.6588999999997,
+      "storage_gb_max": 1926.6589,
+      "storage_gb_min": 1926.6589
+    },
+    "ebs-snapshot-v09wi1": {
+      "resource_id": "ebs-snapshot-v09wi1",
+      "period_days": 30,
+      "storage_gb_avg": 2083.4614,
+      "storage_gb_max": 2083.4614,
+      "storage_gb_min": 2083.4614
+    },
+    "ebs-snapshot-cdd7vq": {
+      "resource_id": "ebs-snapshot-cdd7vq",
+      "period_days": 30,
+      "storage_gb_avg": 1977.1099,
+      "storage_gb_max": 1977.1099,
+      "storage_gb_min": 1977.1099
+    },
+    "ebs-snapshot-3r5c0y": {
+      "resource_id": "ebs-snapshot-3r5c0y",
+      "period_days": 30,
+      "storage_gb_avg": 2061.7639,
+      "storage_gb_max": 2061.7639,
+      "storage_gb_min": 2061.7639
+    },
+    "ebs-snapshot-4681z2": {
+      "resource_id": "ebs-snapshot-4681z2",
+      "period_days": 30,
+      "storage_gb_avg": 2046.0973,
+      "storage_gb_max": 2046.0973,
+      "storage_gb_min": 2046.0973
+    },
+    "ebs-snapshot-erw8nf": {
+      "resource_id": "ebs-snapshot-erw8nf",
+      "period_days": 30,
+      "storage_gb_avg": 1900.665,
+      "storage_gb_max": 1900.665,
+      "storage_gb_min": 1900.665
+    },
+    "ebs-snapshot-53yy2r": {
+      "resource_id": "ebs-snapshot-53yy2r",
+      "period_days": 30,
+      "storage_gb_avg": 1988.9710000000002,
+      "storage_gb_max": 1988.971,
+      "storage_gb_min": 1988.971
+    },
+    "ebs-snapshot-wzgh07": {
+      "resource_id": "ebs-snapshot-wzgh07",
+      "period_days": 30,
+      "storage_gb_avg": 2084.5692,
+      "storage_gb_max": 2084.5692,
+      "storage_gb_min": 2084.5692
+    },
+    "ebs-snapshot-lup5p8": {
+      "resource_id": "ebs-snapshot-lup5p8",
+      "period_days": 30,
+      "storage_gb_avg": 1989.5696,
+      "storage_gb_max": 1989.5696,
+      "storage_gb_min": 1989.5696
+    },
+    "ebs-snapshot-8bvexa": {
+      "resource_id": "ebs-snapshot-8bvexa",
+      "period_days": 30,
+      "storage_gb_avg": 2071.1537,
+      "storage_gb_max": 2071.1537,
+      "storage_gb_min": 2071.1537
+    },
+    "ebs-snapshot-xp38mk": {
+      "resource_id": "ebs-snapshot-xp38mk",
+      "period_days": 30,
+      "storage_gb_avg": 2099.0946,
+      "storage_gb_max": 2099.0946,
+      "storage_gb_min": 2099.0946
+    },
+    "ebs-snapshot-ixtngl": {
+      "resource_id": "ebs-snapshot-ixtngl",
+      "period_days": 30,
+      "storage_gb_avg": 2062.6123,
+      "storage_gb_max": 2062.6123,
+      "storage_gb_min": 2062.6123
+    },
+    "ebs-snapshot-ppxwel": {
+      "resource_id": "ebs-snapshot-ppxwel",
+      "period_days": 30,
+      "storage_gb_avg": 1918.2916,
+      "storage_gb_max": 1918.2916,
+      "storage_gb_min": 1918.2916
+    },
+    "ebs-snapshot-cdljlf": {
+      "resource_id": "ebs-snapshot-cdljlf",
+      "period_days": 30,
+      "storage_gb_avg": 2011.3801999999998,
+      "storage_gb_max": 2011.3802,
+      "storage_gb_min": 2011.3802
+    },
+    "ebs-snapshot-nvvypk": {
+      "resource_id": "ebs-snapshot-nvvypk",
+      "period_days": 30,
+      "storage_gb_avg": 1971.7424000000003,
+      "storage_gb_max": 1971.7424,
+      "storage_gb_min": 1971.7424
+    },
+    "ebs-snapshot-gskc3x": {
+      "resource_id": "ebs-snapshot-gskc3x",
+      "period_days": 30,
+      "storage_gb_avg": 1920.9435,
+      "storage_gb_max": 1920.9435,
+      "storage_gb_min": 1920.9435
+    },
+    "ebs-snapshot-rblu5g": {
+      "resource_id": "ebs-snapshot-rblu5g",
+      "period_days": 30,
+      "storage_gb_avg": 2090.6827,
+      "storage_gb_max": 2090.6827,
+      "storage_gb_min": 2090.6827
+    },
+    "ebs-snapshot-avicvc": {
+      "resource_id": "ebs-snapshot-avicvc",
+      "period_days": 30,
+      "storage_gb_avg": 1900.9015000000002,
+      "storage_gb_max": 1900.9015,
+      "storage_gb_min": 1900.9015
+    },
+    "ebs-snapshot-hwhdz8": {
+      "resource_id": "ebs-snapshot-hwhdz8",
+      "period_days": 30,
+      "storage_gb_avg": 2082.5696,
+      "storage_gb_max": 2082.5696,
+      "storage_gb_min": 2082.5696
+    },
+    "ebs-snapshot-nssecx": {
+      "resource_id": "ebs-snapshot-nssecx",
+      "period_days": 30,
+      "storage_gb_avg": 2049.5781,
+      "storage_gb_max": 2049.5781,
+      "storage_gb_min": 2049.5781
+    },
+    "ebs-snapshot-w945gv": {
+      "resource_id": "ebs-snapshot-w945gv",
+      "period_days": 30,
+      "storage_gb_avg": 2040.9934000000003,
+      "storage_gb_max": 2040.9934,
+      "storage_gb_min": 2040.9934
+    },
+    "ebs-snapshot-332a8d": {
+      "resource_id": "ebs-snapshot-332a8d",
+      "period_days": 30,
+      "storage_gb_avg": 2078.4368,
+      "storage_gb_max": 2078.4368,
+      "storage_gb_min": 2078.4368
+    },
+    "ebs-snapshot-lt5clc": {
+      "resource_id": "ebs-snapshot-lt5clc",
+      "period_days": 30,
+      "storage_gb_avg": 1904.8329,
+      "storage_gb_max": 1904.8329,
+      "storage_gb_min": 1904.8329
+    },
+    "ebs-snapshot-05awvm": {
+      "resource_id": "ebs-snapshot-05awvm",
+      "period_days": 30,
+      "storage_gb_avg": 1963.9053,
+      "storage_gb_max": 1963.9053,
+      "storage_gb_min": 1963.9053
+    },
+    "ebs-snapshot-0oh5je": {
+      "resource_id": "ebs-snapshot-0oh5je",
+      "period_days": 30,
+      "storage_gb_avg": 2080.4869,
+      "storage_gb_max": 2080.4869,
+      "storage_gb_min": 2080.4869
+    },
+    "ebs-snapshot-uz9cfl": {
+      "resource_id": "ebs-snapshot-uz9cfl",
+      "period_days": 30,
+      "storage_gb_avg": 2033.7465,
+      "storage_gb_max": 2033.7465,
+      "storage_gb_min": 2033.7465
+    },
+    "ebs-snapshot-tml9qv": {
+      "resource_id": "ebs-snapshot-tml9qv",
+      "period_days": 30,
+      "storage_gb_avg": 2073.0304,
+      "storage_gb_max": 2073.0304,
+      "storage_gb_min": 2073.0304
+    },
+    "ebs-snapshot-gvehd8": {
+      "resource_id": "ebs-snapshot-gvehd8",
+      "period_days": 30,
+      "storage_gb_avg": 2065.7045,
+      "storage_gb_max": 2065.7045,
+      "storage_gb_min": 2065.7045
+    },
+    "ebs-snapshot-73t1j5": {
+      "resource_id": "ebs-snapshot-73t1j5",
+      "period_days": 30,
+      "storage_gb_avg": 1962.3928,
+      "storage_gb_max": 1962.3928,
+      "storage_gb_min": 1962.3928
+    },
+    "ebs-snapshot-diqmdp": {
+      "resource_id": "ebs-snapshot-diqmdp",
+      "period_days": 30,
+      "storage_gb_avg": 2047.0609,
+      "storage_gb_max": 2047.0609,
+      "storage_gb_min": 2047.0609
+    },
+    "ebs-snapshot-gkl1pi": {
+      "resource_id": "ebs-snapshot-gkl1pi",
+      "period_days": 30,
+      "storage_gb_avg": 2067.53,
+      "storage_gb_max": 2067.53,
+      "storage_gb_min": 2067.53
+    },
+    "ebs-snapshot-eyoeu0": {
+      "resource_id": "ebs-snapshot-eyoeu0",
+      "period_days": 30,
+      "storage_gb_avg": 1951.5198,
+      "storage_gb_max": 1951.5198,
+      "storage_gb_min": 1951.5198
+    },
+    "ebs-snapshot-3tfg0r": {
+      "resource_id": "ebs-snapshot-3tfg0r",
+      "period_days": 30,
+      "storage_gb_avg": 1988.7919000000002,
+      "storage_gb_max": 1988.7919,
+      "storage_gb_min": 1988.7919
+    },
+    "ebs-snapshot-hxsbs8": {
+      "resource_id": "ebs-snapshot-hxsbs8",
+      "period_days": 30,
+      "storage_gb_avg": 1977.9098,
+      "storage_gb_max": 1977.9098,
+      "storage_gb_min": 1977.9098
+    },
+    "ebs-snapshot-1cgezm": {
+      "resource_id": "ebs-snapshot-1cgezm",
+      "period_days": 30,
+      "storage_gb_avg": 1931.6202999999998,
+      "storage_gb_max": 1931.6203,
+      "storage_gb_min": 1931.6203
+    },
+    "ebs-snapshot-t32zls": {
+      "resource_id": "ebs-snapshot-t32zls",
+      "period_days": 30,
+      "storage_gb_avg": 2084.7447,
+      "storage_gb_max": 2084.7447,
+      "storage_gb_min": 2084.7447
+    },
+    "ebs-snapshot-b6cyco": {
+      "resource_id": "ebs-snapshot-b6cyco",
+      "period_days": 30,
+      "storage_gb_avg": 2071.5155,
+      "storage_gb_max": 2071.5155,
+      "storage_gb_min": 2071.5155
+    },
+    "ebs-snapshot-e13pnn": {
+      "resource_id": "ebs-snapshot-e13pnn",
+      "period_days": 30,
+      "storage_gb_avg": 2028.109,
+      "storage_gb_max": 2028.109,
+      "storage_gb_min": 2028.109
+    },
+    "ebs-snapshot-rm5swx": {
+      "resource_id": "ebs-snapshot-rm5swx",
+      "period_days": 30,
+      "storage_gb_avg": 1922.7104,
+      "storage_gb_max": 1922.7104,
+      "storage_gb_min": 1922.7104
+    },
+    "ebs-snapshot-6bl3bt": {
+      "resource_id": "ebs-snapshot-6bl3bt",
+      "period_days": 30,
+      "storage_gb_avg": 1983.438,
+      "storage_gb_max": 1983.438,
+      "storage_gb_min": 1983.438
+    },
+    "ebs-snapshot-l4rjg4": {
+      "resource_id": "ebs-snapshot-l4rjg4",
+      "period_days": 30,
+      "storage_gb_avg": 1983.8334,
+      "storage_gb_max": 1983.8334,
+      "storage_gb_min": 1983.8334
+    },
+    "ebs-snapshot-16g07n": {
+      "resource_id": "ebs-snapshot-16g07n",
+      "period_days": 30,
+      "storage_gb_avg": 1924.2687000000003,
+      "storage_gb_max": 1924.2687,
+      "storage_gb_min": 1924.2687
+    },
+    "ebs-snapshot-qrgaus": {
+      "resource_id": "ebs-snapshot-qrgaus",
+      "period_days": 30,
+      "storage_gb_avg": 1941.2161000000003,
+      "storage_gb_max": 1941.2161,
+      "storage_gb_min": 1941.2161
+    },
+    "ebs-snapshot-5c9k2b": {
+      "resource_id": "ebs-snapshot-5c9k2b",
+      "period_days": 30,
+      "storage_gb_avg": 2060.0,
+      "storage_gb_max": 2060.0,
+      "storage_gb_min": 2060.0
+    },
+    "ebs-snapshot-fwq2zl": {
+      "resource_id": "ebs-snapshot-fwq2zl",
+      "period_days": 30,
+      "storage_gb_avg": 1931.5552,
+      "storage_gb_max": 1931.5552,
+      "storage_gb_min": 1931.5552
+    },
+    "ebs-snapshot-0gvlst": {
+      "resource_id": "ebs-snapshot-0gvlst",
+      "period_days": 30,
+      "storage_gb_avg": 1995.1533,
+      "storage_gb_max": 1995.1533,
+      "storage_gb_min": 1995.1533
+    },
+    "ebs-snapshot-rsrnvj": {
+      "resource_id": "ebs-snapshot-rsrnvj",
+      "period_days": 30,
+      "storage_gb_avg": 2093.3739,
+      "storage_gb_max": 2093.3739,
+      "storage_gb_min": 2093.3739
+    },
+    "ebs-snapshot-4mwhg8": {
+      "resource_id": "ebs-snapshot-4mwhg8",
+      "period_days": 30,
+      "storage_gb_avg": 2038.679,
+      "storage_gb_max": 2038.679,
+      "storage_gb_min": 2038.679
+    },
+    "ebs-snapshot-tvn9hb": {
+      "resource_id": "ebs-snapshot-tvn9hb",
+      "period_days": 30,
+      "storage_gb_avg": 1965.4493,
+      "storage_gb_max": 1965.4493,
+      "storage_gb_min": 1965.4493
+    },
+    "ebs-snapshot-pbb72z": {
+      "resource_id": "ebs-snapshot-pbb72z",
+      "period_days": 30,
+      "storage_gb_avg": 1910.9934000000003,
+      "storage_gb_max": 1910.9934,
+      "storage_gb_min": 1910.9934
+    },
+    "ebs-snapshot-nhm9dr": {
+      "resource_id": "ebs-snapshot-nhm9dr",
+      "period_days": 30,
+      "storage_gb_avg": 1971.7723,
+      "storage_gb_max": 1971.7723,
+      "storage_gb_min": 1971.7723
+    },
+    "ebs-snapshot-7y058s": {
+      "resource_id": "ebs-snapshot-7y058s",
+      "period_days": 30,
+      "storage_gb_avg": 2025.0795,
+      "storage_gb_max": 2025.0795,
+      "storage_gb_min": 2025.0795
+    },
+    "ebs-snapshot-3086yx": {
+      "resource_id": "ebs-snapshot-3086yx",
+      "period_days": 30,
+      "storage_gb_avg": 1913.4796,
+      "storage_gb_max": 1913.4796,
+      "storage_gb_min": 1913.4796
+    },
+    "ebs-snapshot-412i7l": {
+      "resource_id": "ebs-snapshot-412i7l",
+      "period_days": 30,
+      "storage_gb_avg": 1987.9163999999998,
+      "storage_gb_max": 1987.9164,
+      "storage_gb_min": 1987.9164
+    },
+    "ebs-snapshot-x659dm": {
+      "resource_id": "ebs-snapshot-x659dm",
+      "period_days": 30,
+      "storage_gb_avg": 2027.4651,
+      "storage_gb_max": 2027.4651,
+      "storage_gb_min": 2027.4651
+    },
+    "ebs-snapshot-8c1kcc": {
+      "resource_id": "ebs-snapshot-8c1kcc",
+      "period_days": 30,
+      "storage_gb_avg": 1900.7511,
+      "storage_gb_max": 1900.7511,
+      "storage_gb_min": 1900.7511
+    },
+    "ebs-snapshot-bftv4o": {
+      "resource_id": "ebs-snapshot-bftv4o",
+      "period_days": 30,
+      "storage_gb_avg": 1963.8711,
+      "storage_gb_max": 1963.8711,
+      "storage_gb_min": 1963.8711
+    },
+    "ebs-snapshot-g6ldhp": {
+      "resource_id": "ebs-snapshot-g6ldhp",
+      "period_days": 30,
+      "storage_gb_avg": 1969.7858,
+      "storage_gb_max": 1969.7858,
+      "storage_gb_min": 1969.7858
+    },
+    "ebs-snapshot-ma4oqe": {
+      "resource_id": "ebs-snapshot-ma4oqe",
+      "period_days": 30,
+      "storage_gb_avg": 2080.347,
+      "storage_gb_max": 2080.347,
+      "storage_gb_min": 2080.347
+    },
+    "ebs-snapshot-oltlsu": {
+      "resource_id": "ebs-snapshot-oltlsu",
+      "period_days": 30,
+      "storage_gb_avg": 1979.6979,
+      "storage_gb_max": 1979.6979,
+      "storage_gb_min": 1979.6979
+    },
+    "ebs-snapshot-f9dsxl": {
+      "resource_id": "ebs-snapshot-f9dsxl",
+      "period_days": 30,
+      "storage_gb_avg": 1926.8819,
+      "storage_gb_max": 1926.8819,
+      "storage_gb_min": 1926.8819
+    },
+    "ebs-snapshot-ni4cgp": {
+      "resource_id": "ebs-snapshot-ni4cgp",
+      "period_days": 30,
+      "storage_gb_avg": 49.94140000000001,
+      "storage_gb_max": 49.9414,
+      "storage_gb_min": 49.9414
+    },
+    "ebs-snapshot-qf68bu": {
+      "resource_id": "ebs-snapshot-qf68bu",
+      "period_days": 30,
+      "storage_gb_avg": 51.8009,
+      "storage_gb_max": 51.8009,
+      "storage_gb_min": 51.8009
+    },
+    "ebs-snapshot-h8dmqx": {
+      "resource_id": "ebs-snapshot-h8dmqx",
+      "period_days": 30,
+      "storage_gb_avg": 49.3367,
+      "storage_gb_max": 49.3367,
+      "storage_gb_min": 49.3367
+    },
+    "ebs-snapshot-n890mr": {
+      "resource_id": "ebs-snapshot-n890mr",
+      "period_days": 30,
+      "storage_gb_avg": 49.99860000000001,
+      "storage_gb_max": 49.9986,
+      "storage_gb_min": 49.9986
+    },
+    "ebs-snapshot-6fg7mo": {
+      "resource_id": "ebs-snapshot-6fg7mo",
+      "period_days": 30,
+      "storage_gb_avg": 50.5619,
+      "storage_gb_max": 50.5619,
+      "storage_gb_min": 50.5619
+    },
+    "ebs-snapshot-oi731n": {
+      "resource_id": "ebs-snapshot-oi731n",
+      "period_days": 30,
+      "storage_gb_avg": 50.862700000000004,
+      "storage_gb_max": 50.8627,
+      "storage_gb_min": 50.8627
+    },
+    "ebs-snapshot-dx2s4q": {
+      "resource_id": "ebs-snapshot-dx2s4q",
+      "period_days": 30,
+      "storage_gb_avg": 48.8601,
+      "storage_gb_max": 48.8601,
+      "storage_gb_min": 48.8601
+    },
+    "ebs-snapshot-2g4ec2": {
+      "resource_id": "ebs-snapshot-2g4ec2",
+      "period_days": 30,
+      "storage_gb_avg": 48.967,
+      "storage_gb_max": 48.967,
+      "storage_gb_min": 48.967
+    },
+    "ebs-snapshot-t6vdat": {
+      "resource_id": "ebs-snapshot-t6vdat",
+      "period_days": 30,
+      "storage_gb_avg": 50.6319,
+      "storage_gb_max": 50.6319,
+      "storage_gb_min": 50.6319
+    },
+    "ebs-snapshot-t3g6n3": {
+      "resource_id": "ebs-snapshot-t3g6n3",
+      "period_days": 30,
+      "storage_gb_avg": 50.3765,
+      "storage_gb_max": 50.3765,
+      "storage_gb_min": 50.3765
+    }
+  },
+  "cost_summary": {
+    "avg_ebs_monthly": 126.68,
+    "avg_total_monthly": 884.06,
+    "months": [
+      {
+        "month_offset": 5,
+        "label": "M-5",
+        "total_spend_usd": 889.0,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 128.94
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 760.06
+          }
+        ]
+      },
+      {
+        "month_offset": 4,
+        "label": "M-4",
+        "total_spend_usd": 927.67,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 111.19
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 816.48
+          }
+        ]
+      },
+      {
+        "month_offset": 3,
+        "label": "M-3",
+        "total_spend_usd": 910.52,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 146.74
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 763.78
+          }
+        ]
+      },
+      {
+        "month_offset": 2,
+        "label": "M-2",
+        "total_spend_usd": 853.93,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 125.5
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 728.43
+          }
+        ]
+      },
+      {
+        "month_offset": 1,
+        "label": "M-1",
+        "total_spend_usd": 873.79,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 145.36
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 728.43
+          }
+        ]
+      },
+      {
+        "month_offset": 0,
+        "label": "M-0",
+        "total_spend_usd": 849.46,
+        "services": [
+          {
+            "service": "EBS",
+            "spend_usd": 102.33
+          },
+          {
+            "service": "EC2",
+            "spend_usd": 747.13
+          }
+        ]
+      }
+    ],
+    "pricing_note": "EBS 스냅샷: 2TB × $0.05/GB = $100/mo"
+  }
+}

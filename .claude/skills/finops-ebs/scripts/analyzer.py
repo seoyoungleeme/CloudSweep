@@ -126,12 +126,28 @@ def main():
         else:
             ok_count += 1
 
-    total_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in findings), 2)
-    total_annual  = round(total_monthly * 12, 2)
-    total_storage = round(sum(f["metrics_summary"]["storage_gb"] for f in findings), 2)
+    total_monthly_raw = round(sum(f["estimated_monthly_saving_usd"] for f in findings), 2)
+    total_storage     = round(sum(f["metrics_summary"]["storage_gb"] for f in findings), 2)
+
+    # Cap savings at actual avg EBS spend from cost report.
+    # Per-snapshot GB estimates can be synthetic/inflated; the real bill is the ceiling.
+    avg_ebs_monthly = cost_summary.get("avg_ebs_monthly", None)
+    if avg_ebs_monthly and total_monthly_raw > avg_ebs_monthly:
+        cap_ratio = avg_ebs_monthly / total_monthly_raw
+        for f in findings:
+            f["estimated_monthly_saving_usd"] = round(f["estimated_monthly_saving_usd"] * cap_ratio, 4)
+            f["estimated_annual_saving_usd"]  = round(f["estimated_monthly_saving_usd"] * 12, 4)
+        total_monthly = round(avg_ebs_monthly, 2)
+        savings_capped = True
+    else:
+        total_monthly = total_monthly_raw
+        savings_capped = False
+    total_annual = round(total_monthly * 12, 2)
 
     print(f"[analyzer]   Orphaned: {len(findings)} / OK: {ok_count}")
     print(f"[analyzer]   Total orphaned storage: {total_storage} GB")
+    if savings_capped:
+        print(f"[analyzer]   GB-based estimate: ${total_monthly_raw} → capped at avg_ebs_monthly: ${total_monthly}")
     print(f"[analyzer]   Total confirmed monthly savings: ${total_monthly}")
 
     output = {
@@ -143,6 +159,7 @@ def main():
         "total_orphaned_storage_gb":          total_storage,
         "total_estimated_monthly_saving_usd": total_monthly,
         "total_estimated_annual_saving_usd":  total_annual,
+        "savings_capped_at_ebs_spend":        savings_capped,
         "cost_summary":                       cost_summary,
         "findings":                           findings,
     }
