@@ -140,26 +140,41 @@ def parse_cost_report(cost_path: str) -> dict:
     """
     Reads cost_report.json and computes summary statistics.
     Expected structure:
-      { "monthly": [ {"month": "M-5", "total": 214.44, "waste": 32.73}, ... ] }
+      { "monthly_data": [ {"total_spend_usd": 214.44, "waste_usd": 32.73,
+                           "services": [{"service": "ELB", "spend_usd": 45.64}]}, ... ],
+        "summary": {"pricing_note": "...", "avg_monthly_waste": 33.21} }
     """
     raw = json.loads(Path(cost_path).read_text(encoding="utf-8"))
     months = raw if isinstance(raw, list) else raw.get("monthly", raw.get("months", raw.get("monthly_data", [])))
 
     if not months:
-        return {"avg_total": 0, "avg_waste": 0, "avg_waste_pct": 0, "months": []}
+        return {"avg_total": 0, "avg_waste": 0, "avg_waste_pct": 0,
+                "avg_elb_monthly": 0, "pricing_note": "", "months": []}
 
-    totals = [m.get("total", m.get("total_cost", m.get("total_spend_usd", 0))) for m in months]
-    wastes = [m.get("waste", m.get("waste_cost", m.get("waste_usd", 0))) for m in months]
+    totals     = [m.get("total", m.get("total_cost", m.get("total_spend_usd", 0))) for m in months]
+    wastes     = [m.get("waste", m.get("waste_cost", m.get("waste_usd", 0)))       for m in months]
 
-    avg_total = sum(totals) / len(totals)
-    avg_waste = sum(wastes) / len(wastes)
-    avg_waste_pct = (avg_waste / avg_total * 100) if avg_total else 0
+    # Extract per-service ELB spend from each month's services array
+    elb_spends = []
+    for m in months:
+        for svc in m.get("services", []):
+            if svc.get("service", "").upper() in ("ELB", "ELASTICLOADBALANCING"):
+                elb_spends.append(svc.get("spend_usd", 0))
+
+    avg_total       = sum(totals)      / len(totals)
+    avg_waste       = sum(wastes)      / len(wastes)
+    avg_waste_pct   = (avg_waste / avg_total * 100) if avg_total else 0
+    avg_elb_monthly = sum(elb_spends)  / len(elb_spends) if elb_spends else 0
+
+    pricing_note = raw.get("summary", {}).get("pricing_note", "")
 
     return {
-        "avg_total": round(avg_total, 2),
-        "avg_waste": round(avg_waste, 2),
-        "avg_waste_pct": round(avg_waste_pct, 1),
-        "months": months,
+        "avg_total":        round(avg_total, 2),
+        "avg_waste":        round(avg_waste, 2),
+        "avg_waste_pct":    round(avg_waste_pct, 1),
+        "avg_elb_monthly":  round(avg_elb_monthly, 2),
+        "pricing_note":     pricing_note,
+        "months":           months,
     }
 
 
@@ -185,7 +200,7 @@ def main():
 
     print(f"[parser] Cost report→ {args.cost}")
     cost = parse_cost_report(args.cost)
-    print(f"[parser]   Avg Monthly Cost ${cost['avg_total']} / Avg Monthly Waste ${cost['avg_waste']}")
+    print(f"[parser]   Avg Monthly Cost ${cost['avg_total']} / Avg Monthly Waste ${cost['avg_waste']} / Avg ELB Spend ${cost['avg_elb_monthly']}")
 
     output = {
         "region": region,

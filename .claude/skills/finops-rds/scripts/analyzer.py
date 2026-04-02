@@ -72,6 +72,8 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
     conn_min       = thresholds.get("database_connections_avg_min", 1.0)
 
     hourly_single  = get_hourly(region, instance_cls)
+    if hourly_single == 0.0:
+        print(f"[analyzer]   WARNING: '{instance_cls}' not in pricing table for {region} — savings will be $0", file=sys.stderr)
     monthly_single = round(hourly_single * HOURS_PER_MONTH, 2)
     monthly_multi  = round(monthly_single * 2, 2)
 
@@ -208,6 +210,20 @@ def main():
     total_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in confirmed), 2)
     total_annual  = round(total_monthly * 12, 2)
 
+    # Cap total savings at avg_rds_monthly from cost report.
+    # Cannot save more than the entire RDS bill.
+    savings_capped   = False
+    avg_rds_monthly  = cost_summary.get("avg_rds_monthly", 0)
+    if avg_rds_monthly > 0 and total_monthly > avg_rds_monthly:
+        cap_ratio = avg_rds_monthly / total_monthly
+        for f in confirmed:
+            f["estimated_monthly_saving_usd"] = round(f["estimated_monthly_saving_usd"] * cap_ratio, 2)
+            f["estimated_annual_saving_usd"]  = round(f["estimated_monthly_saving_usd"] * 12, 2)
+        total_monthly  = round(avg_rds_monthly, 2)
+        total_annual   = round(total_monthly * 12, 2)
+        savings_capped = True
+        print(f"[analyzer]   Savings capped at avg_rds_monthly: ${avg_rds_monthly}")
+
     output = {
         "analyzed_at":                        datetime.utcnow().isoformat() + "Z",
         "region":                             region,
@@ -215,6 +231,7 @@ def main():
         "findings_count":                     len(all_findings),
         "total_estimated_monthly_saving_usd": total_monthly,
         "total_estimated_annual_saving_usd":  total_annual,
+        "savings_capped_at_rds_spend":        savings_capped,
         "cost_summary":                       cost_summary,
         "findings":                           all_findings,
     }

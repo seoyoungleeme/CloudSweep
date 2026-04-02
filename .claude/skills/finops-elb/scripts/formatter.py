@@ -39,6 +39,8 @@ def render_report(data: dict) -> str:
     ]
 
     # ── Executive Summary ─────────────────────────────────────
+    avg_elb_monthly = cost_summary.get("avg_elb_monthly", "N/A")
+    pricing_note    = cost_summary.get("pricing_note", "")
     lines += [
         "## Executive Summary",
         "",
@@ -49,10 +51,13 @@ def render_report(data: dict) -> str:
         f"| Confirmed Monthly Savings (DELETE) | **${total_save:.2f}** |",
         f"| Potential Monthly Savings (MONITOR) | ${total_potential:.2f} |",
         f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
+        f"| Average Monthly ELB Spend | ${avg_elb_monthly} |",
         f"| Average Monthly Cloud Cost | ${cost_summary.get('avg_total', 'N/A')} |",
         f"| Average Monthly Wasted Cost | ${cost_summary.get('avg_waste', 'N/A')} ({cost_summary.get('avg_waste_pct', 'N/A')}%) |",
         "",
     ]
+    if pricing_note:
+        lines += [f"> **Cost Evidence**: {pricing_note}", ""]
 
     if not findings:
         lines += ["> ✅ No FinOps cost issues were found.", ""]

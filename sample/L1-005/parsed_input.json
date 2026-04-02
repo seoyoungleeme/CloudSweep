@@ -62,6 +62,8 @@
     "avg_total": 213.97,
     "avg_waste": 33.21,
     "avg_waste_pct": 15.5,
+    "avg_elb_monthly": 44.12,
+    "pricing_note": "ALB 고정 비용: $0.0225/hr × 730hr × 2 = $32.85/mo (LCU 비용 제외, 트래픽 0)",
     "months": [
       {
         "month_offset": 5,

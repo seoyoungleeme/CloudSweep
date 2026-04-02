@@ -207,14 +207,24 @@ def parse_cost_report(cost_path: str) -> dict:
     avg_s3    = sum(s3_spends)   / len(s3_spends)   if s3_spends   else 0
     avg_total = sum(total_spends) / len(total_spends) if total_spends else 0
 
-    # Try to extract noncurrent storage GB and cost from pricing_note
+    # Try to extract noncurrent storage GB and cost from pricing_note.
+    # Handles formats like:
+    #   "10 TB noncurrent × $0.023/GB = 10,240 GB × $0.023 ≈ $235 → ~$230/mo"
+    #   "5,120 GB × $0.023 ≈ $117/mo"
     pricing_note = raw.get("summary", {}).get("pricing_note", "")
     noncurrent_gb   = None
     noncurrent_cost = None
-    m_gb   = re.search(r'([\d,]+)\s*GB', pricing_note)
-    m_cost = re.search(r'\$\s*([\d.]+)\s*/?\s*mo', pricing_note)
+
+    # GB: prefer explicit GB figure; fall back to TB × 1024
+    m_gb = re.search(r'([\d,]+)\s*GB', pricing_note)
+    m_tb = re.search(r'([\d.]+)\s*TB', pricing_note)
     if m_gb:
         noncurrent_gb = float(m_gb.group(1).replace(",", ""))
+    elif m_tb:
+        noncurrent_gb = round(float(m_tb.group(1)) * 1024, 2)
+
+    # Cost: handles ~$230/mo, ≈$235/mo, → ~$230/mo, $230/mo
+    m_cost = re.search(r'[~≈→\s]*\$\s*([\d.]+)\s*/?\s*mo', pricing_note)
     if m_cost:
         noncurrent_cost = float(m_cost.group(1))
 

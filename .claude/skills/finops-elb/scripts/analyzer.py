@@ -211,6 +211,20 @@ def main():
     total_potential_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in potential), 2)
     total_confirmed_annual  = round(total_confirmed_monthly * 12, 2)
 
+    # ── Cap savings at actual ELB service spend from cost report ────
+    # Cannot save more than what is actually billed for ELB.
+    savings_capped = False
+    avg_elb_monthly = cost_summary.get("avg_elb_monthly", 0)
+    if avg_elb_monthly > 0 and total_confirmed_monthly > avg_elb_monthly:
+        cap_ratio = avg_elb_monthly / total_confirmed_monthly
+        for f in confirmed:
+            f["estimated_monthly_saving_usd"] = round(f["estimated_monthly_saving_usd"] * cap_ratio, 2)
+            f["estimated_annual_saving_usd"]  = round(f["estimated_monthly_saving_usd"] * 12, 2)
+        total_confirmed_monthly = round(avg_elb_monthly, 2)
+        total_confirmed_annual  = round(total_confirmed_monthly * 12, 2)
+        savings_capped = True
+        print(f"[analyzer]   Savings capped at avg_elb_monthly: ${avg_elb_monthly}")
+
     output = {
         "analyzed_at":                         datetime.utcnow().isoformat() + "Z",
         "region":                              region,
@@ -220,6 +234,7 @@ def main():
         "total_estimated_monthly_saving_usd": total_confirmed_monthly,
         "total_potential_monthly_saving_usd": total_potential_monthly,
         "total_estimated_annual_saving_usd":  total_confirmed_annual,
+        "savings_capped_at_elb_spend":        savings_capped,
         "cost_summary":                        cost_summary,
         "findings":                            findings,
     }

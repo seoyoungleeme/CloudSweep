@@ -1,5 +1,5 @@
 {
-  "analyzed_at": "2026-04-02T08:03:33.105377Z",
+  "analyzed_at": "2026-04-02T10:01:23.378078Z",
   "region": "us-east-1",
   "alb_monthly_cost_usd": 16.425,
   "total_resources_checked": 3,
@@ -7,10 +7,13 @@
   "total_estimated_monthly_saving_usd": 32.86,
   "total_potential_monthly_saving_usd": 0,
   "total_estimated_annual_saving_usd": 394.32,
+  "savings_capped_at_elb_spend": false,
   "cost_summary": {
     "avg_total": 213.97,
     "avg_waste": 33.21,
     "avg_waste_pct": 15.5,
+    "avg_elb_monthly": 44.12,
+    "pricing_note": "ALB 고정 비용: $0.0225/hr × 730hr × 2 = $32.85/mo (LCU 비용 제외, 트래픽 0)",
     "months": [
       {
         "month_offset": 5,

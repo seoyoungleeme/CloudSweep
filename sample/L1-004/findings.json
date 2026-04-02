@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-04-02T08:05:04.680586Z",
+  "analyzed_at": "2026-04-02T10:01:24.501908Z",
   "region": "us-east-1",
   "total_resources_checked": 3,
   "findings_count": 4,
-  "total_estimated_monthly_saving_usd": 502.24,
-  "total_estimated_annual_saving_usd": 6026.88,
+  "total_estimated_monthly_saving_usd": 428.46,
+  "total_estimated_annual_saving_usd": 5141.52,
+  "savings_capped_at_rds_spend": true,
   "cost_summary": {
     "avg_rds_monthly": 428.46,
     "avg_total_monthly": 3135.41,
@@ -99,8 +100,8 @@
       "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-0p5pam`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-0p5pam`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
       "current_monthly_cost_usd": 350.4,
       "optimized_monthly_cost_usd": 175.2,
-      "estimated_monthly_saving_usd": 175.2,
-      "estimated_annual_saving_usd": 2102.4
+      "estimated_monthly_saving_usd": 149.46,
+      "estimated_annual_saving_usd": 1793.52
     },
     {
       "rule_id": "R2",
@@ -125,8 +126,8 @@
       "r2_assumes_single_az": true,
       "current_monthly_cost_usd": 175.2,
       "optimized_monthly_cost_usd": 99.28,
-      "estimated_monthly_saving_usd": 75.92,
-      "estimated_annual_saving_usd": 911.04
+      "estimated_monthly_saving_usd": 64.77,
+      "estimated_annual_saving_usd": 777.24
     },
     {
       "rule_id": "R1",
@@ -148,8 +149,8 @@
       "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-fgvel1`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-fgvel1`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
       "current_monthly_cost_usd": 350.4,
       "optimized_monthly_cost_usd": 175.2,
-      "estimated_monthly_saving_usd": 175.2,
-      "estimated_annual_saving_usd": 2102.4
+      "estimated_monthly_saving_usd": 149.46,
+      "estimated_annual_saving_usd": 1793.52
     },
     {
       "rule_id": "R2",
@@ -174,8 +175,8 @@
       "r2_assumes_single_az": true,
       "current_monthly_cost_usd": 175.2,
       "optimized_monthly_cost_usd": 99.28,
-      "estimated_monthly_saving_usd": 75.92,
-      "estimated_annual_saving_usd": 911.04
+      "estimated_monthly_saving_usd": 64.77,
+      "estimated_annual_saving_usd": 777.24
     }
   ]
 }
