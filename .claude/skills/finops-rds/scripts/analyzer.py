@@ -114,6 +114,9 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
         })
 
     # ── Rule R2: CPU underutilization ─────────────────────────────────
+    # Check if R1 was already emitted for this instance (Multi-AZ will be disabled).
+    r1_emitted = any(f["rule_id"] == "R1" and f["resource_id"] == rid for f in findings)
+
     if cpu_avg is not None and cpu_avg < cpu_threshold:
         # Only flag if the DB is actually in use (has some connections)
         db_in_use = conn_avg is None or conn_avg >= conn_min
@@ -122,8 +125,9 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
             if recommended_cls:
                 hourly_recommended  = get_hourly(region, recommended_cls)
                 monthly_recommended = round(hourly_recommended * HOURS_PER_MONTH, 2)
-                # If Multi-AZ, cost is doubled for both current and recommended
-                az_mult = 2 if multi_az else 1
+                # If R1 disables Multi-AZ, R2 savings should assume single-AZ
+                # to avoid double-counting the AZ cost already saved by R1.
+                az_mult = 1 if r1_emitted else (2 if multi_az else 1)
                 saving_monthly = round((monthly_single - monthly_recommended) * az_mult, 2)
                 saving_annual  = round(saving_monthly * 12, 2)
 
@@ -162,6 +166,7 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
                         ),
                         "current_instance_class":      instance_cls,
                         "recommended_instance_class":  recommended_cls,
+                        "r2_assumes_single_az":        r1_emitted,
                         "current_monthly_cost_usd":    round(monthly_single * az_mult, 2),
                         "optimized_monthly_cost_usd":  round(monthly_recommended * az_mult, 2),
                         "estimated_monthly_saving_usd": saving_monthly,

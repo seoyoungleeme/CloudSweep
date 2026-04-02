@@ -1,10 +1,10 @@
 {
-  "analyzed_at": "2026-04-02T05:02:44.920149Z",
+  "analyzed_at": "2026-04-02T08:05:04.680586Z",
   "region": "us-east-1",
   "total_resources_checked": 3,
   "findings_count": 4,
-  "total_estimated_monthly_saving_usd": 654.08,
-  "total_estimated_annual_saving_usd": 7848.96,
+  "total_estimated_monthly_saving_usd": 502.24,
+  "total_estimated_annual_saving_usd": 6026.88,
   "cost_summary": {
     "avg_rds_monthly": 428.46,
     "avg_total_monthly": 3135.41,
@@ -122,10 +122,11 @@
       "remediation": "1. Create a snapshot before resizing: `aws rds create-db-snapshot`\n2. Modify instance class in Terraform: `instance_class = \"db.t3.large\"`\n3. Apply during maintenance window: `terraform apply -target=aws_db_instance.db-instance-0p5pam`\n4. Monitor CPU and connection metrics for 7 days after resize to confirm headroom.",
       "current_instance_class": "db.r5.large",
       "recommended_instance_class": "db.t3.large",
-      "current_monthly_cost_usd": 350.4,
-      "optimized_monthly_cost_usd": 198.56,
-      "estimated_monthly_saving_usd": 151.84,
-      "estimated_annual_saving_usd": 1822.08
+      "r2_assumes_single_az": true,
+      "current_monthly_cost_usd": 175.2,
+      "optimized_monthly_cost_usd": 99.28,
+      "estimated_monthly_saving_usd": 75.92,
+      "estimated_annual_saving_usd": 911.04
     },
     {
       "rule_id": "R1",
@@ -170,10 +171,11 @@
       "remediation": "1. Create a snapshot before resizing: `aws rds create-db-snapshot`\n2. Modify instance class in Terraform: `instance_class = \"db.t3.large\"`\n3. Apply during maintenance window: `terraform apply -target=aws_db_instance.db-instance-fgvel1`\n4. Monitor CPU and connection metrics for 7 days after resize to confirm headroom.",
       "current_instance_class": "db.r5.large",
       "recommended_instance_class": "db.t3.large",
-      "current_monthly_cost_usd": 350.4,
-      "optimized_monthly_cost_usd": 198.56,
-      "estimated_monthly_saving_usd": 151.84,
-      "estimated_annual_saving_usd": 1822.08
+      "r2_assumes_single_az": true,
+      "current_monthly_cost_usd": 175.2,
+      "optimized_monthly_cost_usd": 99.28,
+      "estimated_monthly_saving_usd": 75.92,
+      "estimated_annual_saving_usd": 911.04
     }
   ]
 }
