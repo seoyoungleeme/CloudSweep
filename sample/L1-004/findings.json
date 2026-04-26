@@ -1,4 +1,4 @@
-{
+﻿{
   "analyzed_at": "2026-04-02T10:01:24.501908Z",
   "region": "us-east-1",
   "total_resources_checked": 3,
@@ -77,7 +77,7 @@
         ]
       }
     ],
-    "pricing_note": "Multi-AZ 추가 비용: 2 × $0.24/hr × 730hr = $350.4/mo (Single-AZ 전환 시 절감액)"
+    "pricing_note": "Additional Multi-AZ cost: 2 x $0.24/hr x 730hr = $350.4/mo (savings when switching to Single-AZ)"
   },
   "findings": [
     {
@@ -86,7 +86,7 @@
       "resource_type": "aws_db_instance",
       "instance_class": "db.r5.large",
       "environment": "dev",
-      "verdict": "Multi-AZ enabled on 'dev' environment — redundancy unnecessary outside production",
+      "verdict": "Multi-AZ enabled on 'dev' environment ??redundancy unnecessary outside production",
       "severity": "HIGH",
       "action": "DISABLE_MULTI_AZ",
       "saving_type": "confirmed",
@@ -96,7 +96,7 @@
         "database_connections_avg": 4.75,
         "period_days": 30
       },
-      "root_cause": "`db-instance-0p5pam` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ → $350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
+      "root_cause": "`db-instance-0p5pam` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ ??$350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
       "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-0p5pam`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-0p5pam`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
       "current_monthly_cost_usd": 350.4,
       "optimized_monthly_cost_usd": 175.2,
@@ -109,7 +109,7 @@
       "resource_type": "aws_db_instance",
       "instance_class": "db.r5.large",
       "environment": "dev",
-      "verdict": "CPU avg 14.8% over 30d — 'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
+      "verdict": "CPU avg 14.8% over 30d ??'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
       "severity": "MEDIUM",
       "action": "DOWNSIZE",
       "saving_type": "confirmed",
@@ -135,7 +135,7 @@
       "resource_type": "aws_db_instance",
       "instance_class": "db.r5.large",
       "environment": "dev",
-      "verdict": "Multi-AZ enabled on 'dev' environment — redundancy unnecessary outside production",
+      "verdict": "Multi-AZ enabled on 'dev' environment ??redundancy unnecessary outside production",
       "severity": "HIGH",
       "action": "DISABLE_MULTI_AZ",
       "saving_type": "confirmed",
@@ -145,7 +145,7 @@
         "database_connections_avg": 4.81,
         "period_days": 30
       },
-      "root_cause": "`db-instance-fgvel1` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ → $350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
+      "root_cause": "`db-instance-fgvel1` is tagged Environment='dev' but has `multi_az = true`. Multi-AZ doubles the instance cost ($175.20/mo single-AZ ??$350.40/mo multi-AZ). Development and test environments do not require cross-AZ failover; enabling it here is a configuration oversight that silently doubles RDS spend.",
       "remediation": "1. Set `multi_az = false` in Terraform for `aws_db_instance.db-instance-fgvel1`\n2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.db-instance-fgvel1`\n3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances.",
       "current_monthly_cost_usd": 350.4,
       "optimized_monthly_cost_usd": 175.2,
@@ -158,7 +158,7 @@
       "resource_type": "aws_db_instance",
       "instance_class": "db.r5.large",
       "environment": "dev",
-      "verdict": "CPU avg 15.9% over 30d — 'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
+      "verdict": "CPU avg 15.9% over 30d ??'db.r5.large' is overprovisioned; downsize to 'db.t3.large'",
       "severity": "MEDIUM",
       "action": "DOWNSIZE",
       "saving_type": "confirmed",

@@ -1,0 +1,31 @@
+{
+  "rule_name": "consolidated_billing",
+  "description": "AWS Organizations Consolidated Billing Detection — Identifies member accounts operating independently (consolidated_billing=false) while an aws_organization resource exists, missing volume discounts and cross-account RI/SP pooling.",
+  "version": "1.0.0",
+  "thresholds": {
+    "max_acceptable_on_demand_pct": 40.0,
+    "min_accounts_to_flag": 1,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "note": "AWS Organizations consolidated billing provides: (1) volume pricing tiers applied to combined usage across all member accounts, (2) RI/SP coverage shared across accounts — unused reservations in one account cover on-demand in another. Savings scale with total spend and on-demand percentage.",
+    "estimated_savings_source": "aws_organization.estimated_savings_percent field, or pricing_note in cost_report.json"
+  },
+  "severity_rules": [
+    {
+      "id": "O1",
+      "name": "accounts_not_consolidated",
+      "condition": "aws_organization exists AND any aws_account has consolidated_billing == false",
+      "severity": "HIGH",
+      "action": "ENABLE_CONSOLIDATED_BILLING",
+      "saving": "total_monthly_spend_usd * (estimated_savings_percent / 100)",
+      "confidence": "HIGH",
+      "description": "One or more AWS accounts are not enrolled in consolidated billing under the existing AWS Organization. Each account's RI/SP purchases benefit only that account, and volume usage tiers are computed per-account rather than in aggregate. Enabling consolidated billing pools all accounts' compute usage for volume discounts and allows unused RIs/SPs from any account to reduce on-demand charges in others."
+    }
+  ],
+  "savings_calculation_priority": [
+    "1. Use aws_organization.estimated_savings_percent * total_monthly_spend_usd from main.tf",
+    "2. Use pricing_note dollar amount from cost_report.json summary",
+    "3. Use ri_sp_coverage.json potential_savings.with_1yr_ri.monthly_savings_usd as lower bound"
+  ]
+}

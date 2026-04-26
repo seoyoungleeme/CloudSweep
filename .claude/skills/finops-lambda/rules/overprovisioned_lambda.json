@@ -1,0 +1,55 @@
+{
+  "rule_name": "overprovisioned_lambda",
+  "description": "Lambda Overprovisioning Detection Rules — Identifies waste from over-allocated memory and dangerously high timeouts that amplify error costs",
+  "version": "1.0.0",
+  "thresholds": {
+    "memory_utilization_ratio_max": 0.5,
+    "memory_headroom_multiplier": 1.5,
+    "timeout_oversize_ratio_max": 0.1,
+    "timeout_reduce_threshold_sec": 300,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "Lambda duration billed in 1ms increments at $0.0000166667 per GB-second. Request cost $0.20 per 1M requests (first 1M free). Memory allocation directly scales duration cost.",
+    "price_per_gb_second_usd": 0.0000166667,
+    "price_per_million_requests_usd": 0.20,
+    "hours_per_month": 730,
+    "valid_memory_sizes_mb": [128, 256, 512, 1024, 1536, 2048, 3008, 4096, 6144, 8192, 10240]
+  },
+  "severity_rules": [
+    {
+      "id": "M1",
+      "name": "memory_overprovisioning",
+      "metric_required": "memory_used_mb",
+      "condition": "memory_used_mb_avg / memory_size_mb < memory_utilization_ratio_max, then refine scope with pricing_note: if pricing_note names a source->target memory tier (for example 3008MB -> 512MB), only functions on the named source tier are findings",
+      "severity": "HIGH",
+      "action": "DOWNSIZE_MEMORY",
+      "saving": "((current_memory_mb - recommended_memory_mb) / current_memory_mb) * monthly_lambda_spend_for_function",
+      "confidence": "HIGH",
+      "description": "30-day average actual memory usage is below 50% of the allocated memory_size. Lambda bills for allocated memory, not used memory — over-allocation directly inflates duration costs. If cost_report pricing_note explicitly narrows the waste to a specific current tier and target tier, do not extrapolate that finding to functions already at the target tier or below."
+    },
+    {
+      "id": "M2",
+      "name": "timeout_misconfiguration",
+      "metric_required": "duration_ms",
+      "condition": "timeout_sec >= timeout_reduce_threshold_sec AND duration_ms_avg < timeout_sec * 1000 * timeout_oversize_ratio_max",
+      "severity": "HIGH",
+      "action": "REDUCE_TIMEOUT",
+      "saving": "parse from pricing_note in cost_report.json summary, or: error_rate * invocations_per_month * (timeout_sec - recommended_timeout_sec) * (memory_size_mb / 1024) * price_per_gb_second_usd",
+      "confidence": "HIGH",
+      "description": "Function timeout is set far above actual p99 execution time. On error, Lambda charges for the full timeout duration. Reducing timeout to ~3× p99 cuts error-path billing by up to 99%."
+    }
+  ],
+  "memory_downsize_map": {
+    "note": "Recommended memory = next valid Lambda size above (max_memory_used_mb * headroom_multiplier). Use headroom_multiplier = 1.5. If pricing_note explicitly names a current tier and target tier for the scenario, treat that target as authoritative for matching functions.",
+    "examples": {
+      "used_100mb_provisioned_3008mb": "recommend 256mb",
+      "used_300mb_provisioned_1024mb": "recommend 512mb",
+      "used_600mb_provisioned_3008mb": "recommend 1024mb"
+    }
+  },
+  "timeout_recommendation": {
+    "note": "Recommended timeout = ceil(duration_ms_p99 / 1000) * 3, minimum 10 seconds. If pricing_note specifies a target, use that instead."
+  }
+}

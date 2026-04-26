@@ -1,135 +1,64 @@
----
+﻿---
 name: finops
 description: >
-  FinOps Orchestrator — Inspects input files and routes to the appropriate
-  resource-specific FinOps skill. Invoke for any FinOps cost analysis request
-  when the specific resource type is unknown or mixed.
-  Keywords: "FinOps", "cloud cost", "cost analysis", "AWS waste", "비용 분석".
-user_invocable: true
+  FinOps orchestrator skill for AWS cloud cost analysis. Routes work to the
+  relevant service-specific skill based on Terraform resources, metrics, and
+  cost report evidence. Keywords: "FinOps", "cloud cost", "cost analysis",
+  "AWS waste".
+user_invocable: false
 ---
 
 # FinOps Orchestrator Skill
 
-This skill inspects the provided input files, determines which AWS resource
-types are involved, and delegates to the appropriate sub-skill.
+## Purpose
 
----
+Use this skill when a workspace contains AWS infrastructure files and the user asks for cloud cost, waste, or FinOps analysis. The orchestrator inspects available files, identifies the AWS services in scope, and delegates the analysis pattern to the matching service skill.
 
-## Step 1 — Locate Input Files
+## Inputs
 
-Search for input files in `WORK_DIR`, then `WORK_DIR/sample/`.
-Accept any combination of the following:
+Look for these files anywhere under the working directory:
 
-| File | Description |
-|------|-------------|
-| `main.tf` | Terraform resource definitions |
-| `metrics.json` | CloudWatch metrics per resource |
-| `cost_report.json` | Monthly cost/waste totals |
+| File | Purpose |
+|------|---------|
+| `main.tf` | Terraform infrastructure definition |
+| `metrics.json` | CloudWatch or scenario metrics |
+| `cost_report.json` | Monthly cost and waste evidence |
+| `findings.json` | Existing analyzer output, when available |
+| `parsed_input.json` | Existing parser output, when available |
 
-If no files are found, ask the user for the paths.
+If required evidence is missing, state exactly what is unavailable and avoid guessing.
 
----
+## Routing
 
-## Step 2 — Detect Resource Types
+Choose the most specific service skill based on Terraform resources and cost evidence:
 
-Read `main.tf` and identify which `resource "aws_*"` types are present.
-Map each type to its sub-skill:
-
-| Terraform Resource | Sub-skill |
-|--------------------|-----------|
-| `aws_lb`, `aws_alb` | `finops-elb` |
-| `aws_db_instance` | `finops-rds` |
+| Resource or Evidence | Skill |
+|----------------------|-------|
+| `aws_lb`, ALB, ELB | `finops-elb` |
 | `aws_ebs_snapshot` | `finops-ebs` |
-| `aws_s3_bucket` | `finops-s3` |
+| `aws_db_instance`, RDS | `finops-rds` |
+| `aws_s3_bucket`, lifecycle/versioning | `finops-s3` |
+| `aws_lambda_function` | `finops-lambda` |
+| `aws_elasticache_replication_group` | `finops-elasticache` |
+| `aws_sqs_queue` | `finops-sqs` |
+| `aws_kinesis_stream` | `finops-kinesis` |
+| `aws_nat_gateway`, VPC endpoints | `finops-nat` |
+| AWS Organizations, RI/SP pooling | `finops-organizations` |
 
-If multiple resource types are found, run the matching sub-skills in sequence.
+## Analysis Rules
 
-If no matching sub-skill exists for a detected resource type, note it in the
-report as "not yet supported" and continue with the types that are supported.
+- Base conclusions on cross-file evidence from the workspace.
+- Mark missing facts as `Not available in the provided data; verify in the real environment`.
+- Do not claim live AWS state unless it is explicitly present in the files.
+- Keep Terraform changes scoped to the affected resources.
+- Preserve real resource names and avoid placeholders.
 
----
+## Outputs
 
-## Step 3 — Delegate to Sub-skill(s)
+When enough evidence is present, produce:
 
-Each sub-skill always writes to fixed filenames (`findings.json`, `parsed_input.json`,
-`finops_report.md`, `main_optimized.tf`). The orchestrator must snapshot these files
-between sub-skill runs to prevent overwriting.
+1. `finops_report.md` with problem identification, evidence, root cause, solution, and savings.
+2. `main_optimized.tf` when Terraform changes are appropriate.
+3. A concise final summary with changed files and any verification gaps.
 
-### Per sub-skill execution loop
-
-For each matched sub-skill `<SKILL>` (e.g. `elb`, `rds`):
-
-**a. Execute the sub-skill** by reading and following its SKILL.md at
-   `.claude/skills/finops-<SKILL>/SKILL.md`. Pass the same `WORK_DIR` and input file paths.
-
-**b. After it completes**, use the Bash tool to snapshot its output files:
-
-```bash
-cp WORK_DIR/findings.json       WORK_DIR/findings_<SKILL>.json
-cp WORK_DIR/parsed_input.json   WORK_DIR/parsed_input_<SKILL>.json
-cp WORK_DIR/finops_report.md    WORK_DIR/finops_report_<SKILL>.md
-# main_optimized.tf is written by the agent (Write tool), not the scripts —
-# read it and remember its content for the merge step, or copy:
-cp WORK_DIR/main_optimized.tf   WORK_DIR/main_optimized_<SKILL>.tf
-```
-
-Proceed to the next sub-skill. The next sub-skill will overwrite the base filenames,
-which is expected — the snapshots preserve each skill's output.
-
----
-
-## Step 4 — Summarize and Merge
-
-**If only ONE sub-skill ran**: the base output files (`finops_report.md`,
-`main_optimized.tf`) are already the final combined outputs. No merge needed.
-
-**If MORE THAN ONE sub-skill ran**, produce merged final outputs using the Write tool:
-
-### 4a. Merge `WORK_DIR/finops_report.md`
-
-Read each `finops_report_<SKILL>.md` in order. Write a single `WORK_DIR/finops_report.md` that:
-
-1. Combined header:
-   ```
-   # FinOps Combined Analysis Report
-   - Sub-skills run: finops-elb, finops-rds, ...
-   - Total resources checked: N
-   - Total issues found: N
-   ```
-
-2. Each sub-skill's full report content under its own heading:
-   ```
-   ## ELB Analysis (finops-elb)
-   <full content of finops_report_elb.md>
-
-   ## RDS Analysis (finops-rds)
-   <full content of finops_report_rds.md>
-   ```
-
-3. Unified savings table at the bottom:
-   ```
-   ## Total Savings Summary
-   | Sub-skill  | Issues | Monthly Savings | Annual Savings |
-   |------------|--------|-----------------|----------------|
-   | finops-elb | N      | $X              | $Y             |
-   | finops-rds | N      | $X              | $Y             |
-   | **TOTAL**  | **N**  | **$X**          | **$Y**         |
-   ```
-
-### 4b. Merge `WORK_DIR/main_optimized.tf`
-
-Read each `main_optimized_<SKILL>.tf` in order. Write a single `WORK_DIR/main_optimized.tf` that:
-
-1. Shared `terraform {}` and `provider "aws" {}` blocks — included **once** (from any sub-skill)
-2. Each sub-skill's resource blocks in sequence, preceded by a section comment:
-   ```hcl
-   # ══════════════════════════════════════════
-   # ELB changes — finops-elb
-   # ══════════════════════════════════════════
-   <resource blocks from main_optimized_elb.tf>
-
-   # ══════════════════════════════════════════
-   # RDS changes — finops-rds
-   # ══════════════════════════════════════════
-   <resource blocks from main_optimized_rds.tf>
-   ```
+Generated by: finops orchestrator skill - Claude Code

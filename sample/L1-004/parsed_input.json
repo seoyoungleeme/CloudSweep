@@ -1,4 +1,4 @@
-{
+﻿{
   "region": "us-east-1",
   "tf_resources": [
     {
@@ -150,6 +150,6 @@
         ]
       }
     ],
-    "pricing_note": "Multi-AZ 추가 비용: 2 × $0.24/hr × 730hr = $350.4/mo (Single-AZ 전환 시 절감액)"
+    "pricing_note": "Additional Multi-AZ cost: 2 x $0.24/hr x 730hr = $350.4/mo (savings when switching to Single-AZ)"
   }
 }

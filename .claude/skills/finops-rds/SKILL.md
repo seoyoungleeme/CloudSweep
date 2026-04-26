@@ -1,12 +1,9 @@
----
+﻿---
 name: finops-rds
 description: >
-  FinOps Analysis Skill — Detects cost waste in AWS RDS instances.
-  Covers two categories: (R1) Multi-AZ enabled on non-production environments,
-  and (R2) chronically under-utilized instance classes.
-  Automatically executes when given a Terraform configuration (main.tf),
-  CloudWatch metrics (metrics.json), and an AWS cost report (cost_report.json).
-  Keywords: "RDS cost", "RDS overprovisioning", "Multi-AZ dev", "database optimization", "FinOps RDS".
+  FinOps RDS Analysis Skill. Detects overprovisioned or nonessential rds cost in AWS RDS databases using Terraform,
+  CloudWatch metrics, and AWS cost reports. Automatically executes when given a
+  Terraform configuration (main.tf), metrics.json, and cost_report.json.
 user_invocable: false
 ---
 
@@ -16,178 +13,108 @@ user_invocable: false
 
 | Variable | Path | Purpose |
 |----------|------|---------|
-| `SKILL_DIR` | Base directory of this skill (e.g. `.claude/skills/finops-rds`) | Contains `scripts/` and `rules/` |
-| `WORK_DIR` | Current working directory | Contains the input data files to analyze |
+| SKILL_DIR | Base directory of this skill | Contains optional scripts/ and ules/ assets |
+| WORK_DIR | Current working directory | Contains input files to analyze |
 
----
+## Step 1 - Locate Input Files
 
-## Step 1 — Locate Input Files
+Recursively scan WORK_DIR and list every available file before analysis.
 
-`WORK_DIR` 전체를 재귀 스캔하여 존재하는 파일을 모두 확인한다.
-
-```bash
+`ash
 find WORK_DIR -type f | sort
-```
+`
 
-스캔 결과에서 아래 파일들을 찾는다. 파일명이 일치하면 경로에 관계없이 사용한다:
+Use files by name regardless of their directory:
 
-| File | Description | 없을 때 |
-|------|-------------|---------|
-| `main.tf` | Terraform — `aws_db_instance` resource definitions | 분석 불가 — 사용자에게 경로 요청 |
-| `metrics.json` | CloudWatch metrics per resource (cpu_utilization, database_connections) | 해당 섹션 "제공된 데이터에서 확인 불가 — 실제 환경 검증 필요"로 표시 |
-| `cost_report.json` | Monthly RDS cost history | 해당 섹션 "제공된 데이터에서 확인 불가 — 실제 환경 검증 필요"로 표시 |
+| File | Description | If Missing |
+|------|-------------|------------|
+| main.tf | Terraform definitions for $(System.Collections.Hashtable.Resource) | Analysis cannot continue; ask the user for the path |
+| metrics.json | CloudWatch metrics: CPU, connections, storage, Multi-AZ usage, and cost history | Mark the metrics section as Not available in the provided data; verify in the real environment |
+| cost_report.json | Monthly cost history | Mark the cost section as Not available in the provided data; verify in the real environment |
 
-스캔 후 발견된 파일 목록과 각 파일의 경로를 명시적으로 출력한 뒤 다음 단계로 진행한다.
+After scanning, report the discovered file paths and continue.
 
----
+## Step 2 - Analyze Evidence
 
-## Step 2 — Run Pipeline Scripts
+Read main.tf, metrics.json, and cost_report.json. Apply this detection rule:
 
-Use the Bash tool to run the three scripts from `SKILL_DIR/scripts/`.
+Flag databases where size, Multi-AZ, or storage choices exceed observed requirements.
 
-```bash
-# 1. Parse
-python SKILL_DIR/scripts/parser.py \
-  --tf      <main.tf path> \
-  --metrics <metrics.json path> \
-  --cost    <cost_report.json path> \
-  --out     WORK_DIR/parsed_input.json
+Base every conclusion on cross-file evidence. If a fact is not present in the files, write:
+Not available in the provided data; verify in the real environment.
 
-# 2. Analyze
-python SKILL_DIR/scripts/analyzer.py \
-  --input WORK_DIR/parsed_input.json \
-  --rules SKILL_DIR/rules/overprovisioned_rds.json \
-  --out   WORK_DIR/findings.json
+Do not describe real AWS console state, live infrastructure state, or external systems beyond what the files show.
 
-# 3. Format
-python SKILL_DIR/scripts/formatter.py \
-  --findings WORK_DIR/findings.json \
-  --out      WORK_DIR/finops_report.md
-```
+## Step 3 - Deep Architectural Analysis
 
-If `python` is not found, try `python3`. If Python is unavailable, fall back to Step 2-alt.
+Cover these sections in the final report:
 
----
+1. Infrastructure evidence from Terraform, including total resources and affected resources.
+2. Metric evidence over the provided observation period, with a concise table.
+3. Cost evidence from the monthly report, including any pricing_note and average monthly spend.
+4. Root cause, framed as an architecture or configuration issue.
+5. Proposed remediation and validation steps.
 
-## Step 2-alt — Fallback (No Python)
+Waste type: Overprovisioned or nonessential RDS cost
 
-If Python is unavailable, read all three input files with the Read tool and apply the rules below manually.
+Recommended fix: Right-size instances, evaluate Single-AZ for nonproduction, and monitor availability and performance risk.
 
-**Metrics to compute per resource** (from `metrics.json`):
-- `cpu_utilization_avg` = mean of all datapoints
-- `database_connections_avg` = mean of all datapoints
+## Step 4 - Optimized Terraform
 
-**Terraform fields to read** (from `main.tf` per `aws_db_instance`):
-- `instance_class`
-- `multi_az`
-- `tags.Environment`
+Create WORK_DIR/main_optimized.tf from the actual main.tf content when a Terraform change is appropriate.
 
-**Rules:**
+Rules:
 
-| Rule | Condition | Severity | Action |
-|------|-----------|----------|--------|
-| R1 | `multi_az = true` AND `Environment` tag ∈ {dev, test, staging, sandbox} | HIGH | DISABLE_MULTI_AZ |
-| R2 | `cpu_utilization_avg < 20%` AND DB has connections | MEDIUM | DOWNSIZE |
+- Do not use placeholders such as <resource-name>.
+- Preserve real resource names and unchanged resources.
+- Include short inline comments only where they explain a cost-control change.
+- Modify flagged aws_db_instance resources in the real main.tf with conservative sizing or availability changes and inline reasons.
 
-**Savings calculation:**
-- R1: `single_az_hourly × 730hr` (the cost of the redundant AZ eliminated)
-- R2: `(current_hourly − recommended_hourly) × 730hr × az_multiplier`
-  - `az_multiplier` = 2 if multi_az else 1
-- `db.r5.large` us-east-1: $0.24/hr single-AZ → $175.20/mo; Multi-AZ → $350.40/mo
-- Downsize `db.r5.large` → `db.t3.large` ($0.136/hr → $99.28/mo)
+## Step 5 - Write Final Report
 
----
+Save WORK_DIR/finops_report.md and include the report in the response.
 
-## Step 3 — Deep Architectural Analysis
+Report format:
 
-### 분석 원칙 (반드시 준수)
-
-- **교차 증거 원칙**: 결론은 반드시 발견된 파일들의 교차 증거에만 기반할 것.
-- **불확실성 명시 원칙**: 제공된 파일에 없는 정보는 **"제공된 데이터에서 확인 불가 — 실제 환경 검증 필요"** 로 표시한다.
-- **범위 제한 원칙**: 파일에서 확인된 것 이상으로 서술하지 않는다.
-
-Use the Read tool to read `main.tf` and `WORK_DIR/findings.json`. For each finding, analyze:
-
-**3.1 Evidence from Infrastructure (Terraform)**
-- 총 aws_db_instance 수, 문제 리소스 수
-- 각 인스턴스의 `instance_class`, `multi_az`, `Environment` 태그 요약
-- 운영/개발 구분 현황
-
-**3.2 Evidence from Metrics (30 days)**
-- 리소스별 CPU 평균, DB Connection 평균 비교표
-- 이상 패턴 서술
-
-**3.3 Evidence from Cost Report (6 months)**
-- 월별 RDS 비용 추세
-- `pricing_note` 등 메타 정보 활용
-
-**3.4 Root Cause**
-- 아키텍처/운영 프로세스 관점에서 왜 이 낭비가 발생했는지 설명
-
-**Proposed Solution**
-- Immediate Actions (즉시 실행 가능)
-- Preventive Actions (재발 방지)
-- Optimized Terraform 코드 포함
-
-**Optimized Terraform 생성 규칙**:
-- 입력으로 받은 실제 `main.tf` 파일을 기반으로 수정된 버전을 생성한다.
-- 플레이스홀더(`<resource-name>` 등)를 사용하지 말 것. 실제 리소스명, 실제 값을 그대로 사용한다.
-- R1(Multi-AZ 비활성화): `multi_az = false` 로 변경하고, 변경 이유를 인라인 주석으로 명시한다.
-- R2(인스턴스 다운사이즈): `instance_class`를 권장 클래스로 변경하고, 변경 이유를 인라인 주석으로 명시한다.
-- 변경이 없는 리소스는 원본 그대로 유지한다.
-- 완성된 코드는 Write 툴로 `WORK_DIR/main_optimized.tf`로 저장하고 리포트에도 포함한다.
-
----
-
-## Step 4 — Write Final Report
-
-Use the Write tool to save `WORK_DIR/finops_report.md`, then output the full report in the response.
-
-> **주의**: `finops_report.md`와 `main_optimized.tf` 두 파일 모두 Write 툴로 저장해야 한다.
-
-### Report format:
-
-```
-# FinOps RDS Deep Analysis Report — <Scenario ID>
+`markdown
+# FinOps RDS Analysis Skill Report - <Scenario ID>
 
 ## Problem Identification
 | Category | Details |
 |----------|---------|
-| Waste Types | Multi-AZ on Dev, CPU Overprovisioning |
-| Affected Resources | X of Y aws_db_instance |
+| Waste Type | Overprovisioned or nonessential RDS cost |
+| Affected Resources | X of Y |
 | Monthly Waste | $XX |
 
+## Evidence
+
+### Infrastructure
+<analysis>
+
+### Metrics
+<analysis table>
+
+### Cost Report
+<cost table and pricing note>
+
 ## Root Cause
-
-### 3.1 Evidence from Infrastructure (Terraform)
-<분석 내용>
-
-### 3.2 Evidence from Metrics (CloudWatch — 30 days)
-| Resource | CPU Avg | DB Connections Avg | Issue |
-|----------|---------|-------------------|-------|
-
-### 3.3 Evidence from Cost Report (6 months)
-| Month | RDS Spend | Total Spend |
-|-------|-----------|-------------|
-
-### 3.4 Root Cause
-<아키텍처 기반 원인>
+<architecture-based cause>
 
 ## Proposed Solution
 
-### Immediate Actions (Week 1)
+### Immediate Actions
 1. ...
 
-### Preventive Actions (Week 2-4)
+### Preventive Actions
 1. ...
 
-## Estimated Monthly Savings (USD)
+## Estimated Monthly Savings
 $XX.XX
 
 ## Optimized Terraform
-<실제 리소스명 기반 수정본>
-```
+<real resource-based optimized Terraform>
+`
 
 ---
 
-*Generated by: finops-rds skill — Claude Code*
+Generated by: finops-rds skill - Claude Code

@@ -1,42 +1,40 @@
-# FinOps 시뮬레이션 시나리오
+﻿# FinOps Simulation Scenario
 
-## 회사 정보
+## Company Information
 
-| 항목 | 내용 |
-|------|------|
-| 회사명 | CargoNet |
-| 업종 | 물류/배송 |
-| 직원 수 | 35명 |
-| 성장 단계 | 성장기 |
-| 클라우드 성숙도 | medium |
-| FinOps 전담팀 | 없음 |
-| 월 클라우드 비용 | $18,277.69 |
+| Item | Details |
+|------|---------|
+| Company Name | CargoNet |
+| Industry | Logistics/Delivery |
+| Employee Count | 35 |
+| Growth Stage | Growth |
+| Cloud Maturity | medium |
+| Dedicated FinOps Team | No |
+| Monthly Cloud Cost | $18,277.69 |
 
-## 배경
+## Background
 
-매출이 빠르게 증가하면서 클라우드 비용도 급등하기 시작하는 단계
+A stage where cloud costs begin rising sharply as revenue grows quickly.
 
-최근 클라우드 비용이 예상보다 빠르게 증가하고 있어, 인프라 전반의 비용 최적화 검토를 요청받았습니다.
+Cloud costs have recently been increasing faster than expected, so a cost optimization review across the infrastructure has been requested.
 
-## 과제
+## Task
 
-아래 제공된 자료를 분석하여 비용 낭비 요소를 찾고, 구체적인 개선 방안과 예상 절감액을 제시하세요.
+Analyze the provided materials to identify cost waste, then propose specific improvements and estimated savings.
 
-### 제공 자료
+### Provided Materials
 
-1. **Terraform 설정** (`main.tf`) — 현재 인프라 구성
-2. **메트릭 데이터** (`metrics/metrics.json`) — 30일간 CloudWatch 메트릭
-3. **비용 리포트** (`cost_report.json`) — 6개월 비용 히스토리
+1. **Terraform Configuration** (main.tf) - Current infrastructure configuration
+2. **Metrics Data** (metrics/metrics.json) - 30 days of CloudWatch metrics
+3. **Cost Report** (cost_report.json) - 6-month cost history
 
-### 기대 산출물
+### Expected Deliverables
 
-1. 발견된 비용 문제와 근거
-2. 근본 원인 분석
-3. 구체적인 해결 방안
-4. 월간 예상 절감액
+1. Identified cost issues and supporting evidence
+2. Root cause analysis
+3. Specific remediation plan
+4. Estimated monthly savings
 
----
-
-| 난이도 | 관련 서비스 | 카테고리 |
-|--------|-----------|----------|
-| L1 | RDS | overprovisioning |
+| Difficulty | Related Services | Category |
+|------------|------------------|----------|
+| L1 | RDS | Overprovisioning |

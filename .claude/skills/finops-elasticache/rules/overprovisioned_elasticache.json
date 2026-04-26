@@ -1,0 +1,43 @@
+{
+  "rule_name": "overprovisioned_elasticache",
+  "description": "ElastiCache Overprovisioning Detection Rules — Identifies waste from excess replica/shard nodes in clusters whose cache hit rate shows no memory pressure",
+  "version": "1.0.0",
+  "thresholds": {
+    "cache_hit_rate_pct_min": 99.0,
+    "min_cache_clusters_for_ha": 2,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "ElastiCache On-Demand pricing per node per hour (us-east-1). Each node in a replication group is billed independently.",
+    "node_types": {
+      "cache.t3.micro":   { "hourly_usd": 0.017 },
+      "cache.t3.small":   { "hourly_usd": 0.034 },
+      "cache.t3.medium":  { "hourly_usd": 0.068 },
+      "cache.t4g.micro":  { "hourly_usd": 0.016 },
+      "cache.t4g.small":  { "hourly_usd": 0.032 },
+      "cache.t4g.medium": { "hourly_usd": 0.065 },
+      "cache.r6g.large":  { "hourly_usd": 0.192 },
+      "cache.r6g.xlarge": { "hourly_usd": 0.384 },
+      "cache.r5.large":   { "hourly_usd": 0.228 },
+      "cache.r5.xlarge":  { "hourly_usd": 0.456 },
+      "cache.m6g.large":  { "hourly_usd": 0.154 },
+      "cache.m5.large":   { "hourly_usd": 0.169 }
+    },
+    "hours_per_month": 730
+  },
+  "severity_rules": [
+    {
+      "id": "E1",
+      "name": "excess_node_count",
+      "metric_required": "cache_hit_rate_pct",
+      "condition": "cache_hit_rate_pct_avg >= cache_hit_rate_pct_min AND num_cache_clusters > min_cache_clusters_for_ha",
+      "severity": "HIGH",
+      "action": "REDUCE_NODE_COUNT",
+      "recommended_num_cache_clusters": 2,
+      "saving": "(num_cache_clusters - 2) * node_type_hourly_usd * hours_per_month",
+      "confidence": "HIGH",
+      "description": "30-day average cache hit rate is at or above 99% with more than 2 nodes. A high hit rate under excess node count indicates no memory pressure — the cluster can serve traffic with 2 nodes (minimum for automatic_failover_enabled), eliminating redundant nodes."
+    }
+  ]
+}

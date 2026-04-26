@@ -1,0 +1,31 @@
+{
+  "rule_name": "s3_nat_bypass",
+  "description": "NAT Gateway S3 Traffic Detection — Identifies EC2 instances routing S3 traffic through a paid NAT Gateway when a free S3 Gateway VPC Endpoint should be used instead. Also detects existing VPC endpoints configured for the wrong region.",
+  "version": "1.0.0",
+  "thresholds": {
+    "nat_bytes_out_mb_per_hr_min": 1.0,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "NAT Gateway charges $0.045/hr (fixed) + $0.045/GB of data processed. S3 Gateway VPC Endpoint is completely FREE — no hourly charge, no data processing charge. Replacing NAT with Gateway Endpoint eliminates 100% of the per-GB NAT processing cost for S3 traffic.",
+    "nat_gateway_hourly_usd": 0.045,
+    "nat_gateway_per_gb_usd": 0.045,
+    "s3_gateway_endpoint_cost_usd": 0.0
+  },
+  "severity_rules": [
+    {
+      "id": "N1",
+      "name": "s3_traffic_via_nat",
+      "metric_required": "nat_bytes_out_mb_per_hr",
+      "condition": "nat_bytes_out_mb_per_hr_avg > nat_bytes_out_mb_per_hr_min AND (no aws_vpc_endpoint for same-region S3 exists OR existing endpoint service_name region != provider region)",
+      "severity": "HIGH",
+      "action": "ADD_S3_GATEWAY_ENDPOINT",
+      "saving": "nat_bytes_out_total_gb_per_month * nat_gateway_per_gb_usd",
+      "confidence": "HIGH",
+      "description": "EC2 instances are sending traffic to S3 through a NAT Gateway, incurring $0.045/GB data processing fees. An S3 Gateway VPC Endpoint routes this traffic directly within AWS's network at zero cost. If an existing aws_vpc_endpoint is present but its service_name references a different region than the provider, it is ineffective and the correct-region endpoint must be added."
+    }
+  ],
+  "endpoint_service_name_pattern": "com.amazonaws.<region>.s3",
+  "endpoint_type": "Gateway"
+}

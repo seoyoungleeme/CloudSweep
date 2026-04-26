@@ -1,0 +1,31 @@
+{
+  "rule_name": "short_polling_sqs",
+  "description": "SQS Short Polling Detection Rules — Identifies waste from queues using short polling (receive_wait_time_seconds=0) that generate excessive empty ReceiveMessage API calls",
+  "version": "1.0.0",
+  "thresholds": {
+    "empty_receives_per_hour_min": 50,
+    "empty_receives_per_day_min": 1200,
+    "recommended_wait_time_seconds": 20,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "SQS Standard Queue pricing: $0.40 per 1 million API calls. Every ReceiveMessage call counts — including empty responses from short polling.",
+    "price_per_million_api_calls_usd": 0.40,
+    "free_tier_million_requests_per_month": 1
+  },
+  "severity_rules": [
+    {
+      "id": "Q1",
+      "name": "short_polling_empty_receives",
+      "metric_required": "number_of_empty_receives",
+      "condition": "receive_wait_time_seconds == 0 AND (number_of_empty_receives_avg_per_hour >= empty_receives_per_hour_min OR empty_receives_per_day >= empty_receives_per_day_min)",
+      "severity": "HIGH",
+      "action": "ENABLE_LONG_POLLING",
+      "recommended_receive_wait_time_seconds": 20,
+      "saving": "If empty_receives_per_day is present in Terraform, use (empty_receives_per_day * 30 / 1_000_000) * price_per_million_api_calls_usd; otherwise use (number_of_empty_receives_avg_per_hour * 720 / 1_000_000) * price_per_million_api_calls_usd",
+      "confidence": "HIGH",
+      "description": "Queue is configured with receive_wait_time_seconds=0 (short polling) and generating high volumes of empty ReceiveMessage responses. When Terraform includes scenario-level empty_receives_per_day, use that as the authoritative scale for monthly waste. Long polling (wait_time=20s) should reduce empty receives by orders of magnitude versus short polling, even if sampled CloudWatch points are not literally near-zero."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-{
+﻿{
   "region": "us-east-1",
   "tf_resources": [
     {
@@ -3039,6 +3039,6 @@
         ]
       }
     ],
-    "pricing_note": "EBS 스냅샷: 2TB × $0.05/GB = $100/mo"
+    "pricing_note": "EBS snapshots: 2TB x $0.05/GB = $100/mo"
   }
 }

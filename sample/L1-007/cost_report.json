@@ -1,4 +1,4 @@
-{
+﻿{
   "scenario_id": "L1-007",
   "currency": "USD",
   "period_months": 6,
@@ -96,6 +96,6 @@
   ],
   "summary": {
     "avg_monthly_total": 884.06,
-    "pricing_note": "EBS 스냅샷: 2TB × $0.05/GB = $100/mo"
+    "pricing_note": "EBS snapshots: 2TB x $0.05/GB = $100/mo"
   }
 }

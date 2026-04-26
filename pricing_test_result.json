@@ -1,0 +1,51 @@
+{
+  "pricing_test_results": [
+    {
+      "region": "ap-northeast-2",
+      "service": "AmazonEC2",
+      "resource": "t3.micro Linux On-Demand",
+      "usage_type": "BoxUsage:t3.micro",
+      "unit": "Hrs",
+      "price_per_unit": 0.013,
+      "currency": "USD",
+      "conditions": {
+        "instanceType": "t3.micro",
+        "operatingSystem": "Linux",
+        "tenancy": "Shared",
+        "location": "Asia Pacific (Seoul)"
+      }
+    },
+    {
+      "region": "ap-northeast-2",
+      "service": "AmazonEC2",
+      "resource": "gp3 EBS GB-month",
+      "usage_type": "EBS:VolumeUsage.gp3",
+      "unit": "GB-Mo",
+      "price_per_unit": 0.0912,
+      "currency": "USD",
+      "conditions": {
+        "volumeApiName": "gp3",
+        "productFamily": "Storage",
+        "location": "Asia Pacific (Seoul)"
+      }
+    },
+    {
+      "region": "ap-northeast-2",
+      "service": "AmazonEC2",
+      "resource": "ALB hourly (base)",
+      "usage_type": "LoadBalancerUsage",
+      "unit": "Hrs",
+      "price_per_unit": 0.0225,
+      "currency": "USD",
+      "conditions": {
+        "productFamily": "Load Balancer-Application",
+        "group": "ELB:Balancer",
+        "unit": "Hrs",
+        "location": "Asia Pacific (Seoul)"
+      }
+    }
+  ],
+  "queried_via": "AWS Pricing API (us-east-1 global endpoint)",
+  "region_under_test": "ap-northeast-2",
+  "note": "ALB entry is base hourly fee (unit=Hrs); LCU fee is separate"
+}

@@ -1,0 +1,39 @@
+{
+  "rule_name": "efo_waste",
+  "description": "Kinesis Enhanced Fan-Out Waste Detection — Identifies streams paying the EFO premium (dedicated throughput + data retrieval fees) when their processing interval proves no sub-second latency requirement exists",
+  "version": "1.0.0",
+  "thresholds": {
+    "processing_interval_minutes_min": 5,
+    "iterator_age_ms_max_for_latency_sensitive": 1000,
+    "evaluation_period_days": 30
+  },
+  "cost": {
+    "region": "us-east-1",
+    "note": "Standard Kinesis: $0.015/shard-hour + $0.014/GB ingested. Enhanced Fan-Out ADDS: $0.015/shard-hour (dedicated throughput per consumer-shard) + $0.013/GB retrieved via EFO. Standard GetRecords retrieval is free.",
+    "standard_shard_hour_usd": 0.015,
+    "efo_shard_hour_usd": 0.015,
+    "efo_data_retrieval_per_gb_usd": 0.013,
+    "hours_per_month": 730
+  },
+  "severity_rules": [
+    {
+      "id": "K1",
+      "name": "unnecessary_enhanced_fan_out",
+      "metrics_used": ["iterator_age_ms"],
+      "condition": "enhanced_fan_out == true AND processing_interval_minutes >= processing_interval_minutes_min",
+      "severity": "HIGH",
+      "action": "DISABLE_ENHANCED_FAN_OUT",
+      "saving": "(shard_count * efo_shard_hour_usd * hours_per_month) + (data_read_gb_per_day * num_efo_consumers * 30 * efo_data_retrieval_per_gb_usd)",
+      "confidence": "HIGH",
+      "description": "Stream has Enhanced Fan-Out enabled but its processing_interval_minutes shows batch processing — no sub-second delivery requirement. EFO adds a per-shard-hour charge and per-GB retrieval fee on top of standard Kinesis pricing. Switching consumers to standard GetRecords polling eliminates these charges entirely with no functional impact on batch workloads."
+    }
+  ],
+  "efo_justification_criteria": {
+    "note": "EFO is only justified when ALL of the following are true",
+    "criteria": [
+      "processing_interval_minutes < 1 (near-real-time or streaming consumer)",
+      "number of concurrent consumers > 5 (competing for standard 2MB/s/shard read throughput)",
+      "iterator_age_ms consistently < 500ms is required by the business SLA"
+    ]
+  }
+}
