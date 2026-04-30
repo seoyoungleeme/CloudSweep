@@ -1,26 +1,90 @@
 {
-  "rule_name": "orphaned_snapshot",
-  "description": "EBS Orphaned Snapshot Detection — Identifies EBS snapshots whose source volume has been deleted, incurring storage cost with no functional value.",
-  "version": "1.0.0",
+  "rule_name": "ebs_snapshot_lifecycle_policy",
+  "description": "Identifies EBS snapshots that are potentially orphaned, stale, over-retained, archive candidates, or missing lifecycle governance. Destructive deletion requires dependency and retention validation.",
+  "version": "1.1.0",
   "thresholds": {
     "orphaned_tag_key": "SourceVolumeStatus",
     "orphaned_tag_value": "deleted",
-    "evaluation_period_days": 30
+    "evaluation_period_days": 30,
+    "archive_candidate_age_days": 90,
+    "stale_snapshot_age_days": 180,
+    "require_owner_approval_for_delete": true,
+    "require_ami_reference_check": true,
+    "require_backup_policy_check": true,
+    "require_legal_hold_check": true
   },
   "cost": {
     "region": "us-east-1",
-    "snapshot_storage_per_gb_usd": 0.05,
-    "note": "EBS snapshot storage is charged at $0.05/GB-month for the actual stored data blocks (us-east-1)."
+    "snapshot_standard_storage_per_gb_month_usd": 0.05,
+    "snapshot_archive_storage_per_gb_month_usd": 0.0125,
+    "hours_per_month": 730,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
+    "note": "EBS snapshots are billed for stored snapshot data. Archive tier can reduce long-term storage cost but has restore charges and minimum archive duration considerations."
   },
   "severity_rules": [
     {
       "id": "S1",
-      "name": "orphaned_snapshot_deleted_volume",
-      "condition": "SourceVolumeStatus tag == 'deleted'",
+      "name": "potential_orphaned_snapshot_deleted_volume",
+      "condition": "SourceVolumeStatus tag == 'deleted' AND no dependency evidence is present",
       "severity": "HIGH",
-      "action": "DELETE",
+      "action": "REVIEW_DELETE",
+      "confidence": "MEDIUM",
+      "description": "Snapshot source volume appears deleted. Treat as a strong cleanup candidate, but verify AMI, launch template, AWS Backup, DLM, legal hold, compliance, and owner dependencies before deletion."
+    },
+    {
+      "id": "S2",
+      "name": "snapshot_dependency_or_retention_blocker",
+      "condition": "snapshot referenced by AMI, launch template, AWS Backup, DLM, legal hold, audit, compliance, or DR tag",
+      "severity": "INFO",
+      "action": "DO_NOT_DELETE",
       "confidence": "HIGH",
-      "description": "Snapshot whose source volume no longer exists. Provides no recovery value for an active volume; accumulates storage cost indefinitely."
+      "description": "Snapshot has dependency or retention evidence. Do not delete for cost optimization unless the dependency or retention requirement is explicitly removed."
+    },
+    {
+      "id": "S3",
+      "name": "archive_candidate",
+      "condition": "snapshot_age_days >= archive_candidate_age_days AND retained_for_long_term_backup == true AND restore_frequency_low == true",
+      "severity": "MEDIUM",
+      "action": "CONSIDER_ARCHIVE",
+      "confidence": "MEDIUM",
+      "description": "Snapshot appears to be retained long term. Model archive storage, restore charges, restore time, and minimum duration before moving to archive tier."
+    },
+    {
+      "id": "S4",
+      "name": "fast_snapshot_restore_review",
+      "condition": "fast_snapshot_restore_enabled == true AND no recent restore or launch requirement evidence",
+      "severity": "MEDIUM",
+      "action": "REVIEW_FSR_DISABLE",
+      "confidence": "MEDIUM",
+      "description": "Fast Snapshot Restore can add cost. Disable it when low-latency restore is not required."
+    },
+    {
+      "id": "S5",
+      "name": "missing_lifecycle_governance_tags",
+      "condition": "missing Owner OR Purpose OR RetentionDays OR BackupPolicy tags",
+      "severity": "MEDIUM",
+      "action": "ADD_GOVERNANCE_TAGS",
+      "confidence": "HIGH",
+      "description": "Snapshot lacks lifecycle governance tags, which makes safe cleanup and retention policy enforcement difficult."
     }
-  ]
+  ],
+  "policy_controls": {
+    "validation_before_delete": [
+      "Check AMI references with describe-images.",
+      "Check launch templates, autoscaling groups, image pipelines, and golden image workflows.",
+      "Check AWS Backup recovery points and DLM policy ownership.",
+      "Check legal hold, audit, compliance, disaster recovery, and retention tags.",
+      "Require owner approval for destructive cleanup."
+    ],
+    "prevention": [
+      "Use AWS Data Lifecycle Manager or AWS Backup lifecycle expiration.",
+      "Require Owner, Environment, Purpose, RetentionDays, BackupPolicy, and CostCenter tags.",
+      "Review archive candidates and Fast Snapshot Restore usage monthly."
+    ],
+    "reporting": [
+      "Separate confirmed deletion savings, potential deletion savings, archive-tier savings, and FSR savings.",
+      "Use region-specific pricing when available.",
+      "Report confidence based on dependency evidence and retention evidence."
+    ]
+  }
 }

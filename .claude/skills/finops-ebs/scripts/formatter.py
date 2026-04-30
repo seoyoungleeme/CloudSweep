@@ -14,7 +14,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-# When findings exceed this count, switch to compact bulk-delete mode
+# When findings exceed this count, switch to compact review-candidate mode.
 BULK_THRESHOLD = 10
 
 
@@ -54,10 +54,10 @@ def render_report(data: dict) -> str:
         "|--------|-------|",
         f"| Region | {region} |",
         f"| Total Snapshots | {total_checked} |",
-        f"| Orphaned (DELETE) | **{data['findings_count']}** |",
+        f"| Cleanup Candidates | **{data['findings_count']}** |",
         f"| Total Orphaned Storage | {total_storage:.1f} GB |",
-        f"| Confirmed Monthly Savings | **${total_save:.2f}** |",
-        f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
+        f"| Potential Monthly Savings | **${total_save:.2f}** |",
+        f"| Potential Annual Savings | **${annual_save:.2f}** |",
         f"| Avg Monthly EBS Spend | ${avg_ebs_monthly} |",
         f"| Snapshot Price | ${price_per_gb}/GB-month ({region}) |",
         "",
@@ -75,12 +75,12 @@ def render_report(data: dict) -> str:
         "",
         "| Category | Details |",
         "|----------|---------|",
-        f"| Waste Type | Orphaned EBS Snapshots (source volume deleted) |",
+        f"| Waste Type | Potential orphaned EBS snapshots (source volume deleted) |",
         f"| Affected Resources | {data['findings_count']} of {total_checked} `aws_ebs_snapshot` |",
         f"| Detection Signal | `SourceVolumeStatus = \"deleted\"` tag |",
-        f"| Monthly Waste | **${total_save:.2f}** |",
-        f"| Annual Waste | **${annual_save:.2f}** |",
-        f"| Confidence | HIGH |",
+        f"| Monthly Waste | **${total_save:.2f} potential** |",
+        f"| Annual Waste | **${annual_save:.2f} potential** |",
+        f"| Confidence | MEDIUM until dependency and retention checks pass |",
         "",
     ]
 
@@ -90,7 +90,7 @@ def render_report(data: dict) -> str:
         lines += [
             "## Orphaned Snapshot List",
             "",
-            f"> **{data['findings_count']} snapshots** are orphaned. "
+            f"> **{data['findings_count']} snapshots** are cleanup candidates. "
             f"Showing first 5 as examples — see `findings.json` for the full list.",
             "",
             "| # | Snapshot ID | Storage (GB) |",
@@ -127,14 +127,16 @@ def render_report(data: dict) -> str:
         "",
         f"All {data['findings_count']} `aws_ebs_snapshot` resources carry the tag "
         "`SourceVolumeStatus = \"deleted\"`, confirming their source EBS volumes have been "
-        "terminated. In AWS, deleting an EC2 instance or EBS volume does **not** automatically "
-        "delete associated snapshots — they persist indefinitely and accrue storage charges.",
+        "terminated. This is a strong cleanup signal, but deleting an EC2 instance or EBS "
+        "volume does **not** prove the snapshot has no remaining AMI, launch template, "
+        "AWS Backup, DLM, legal hold, compliance, or DR dependency.",
         "",
         "### Root Cause",
         "",
-        "No snapshot lifecycle policy (AWS Data Lifecycle Manager) is in place, and there is "
-        "no Terraform automation to clean up snapshots after volume deletion. "
-        "Over time, snapshot accumulation has become a significant hidden cost.",
+        "Snapshot lifecycle governance is incomplete. Source volumes were deleted, but the "
+        "provided evidence does not fully prove whether each snapshot is still required for "
+        "images, backup retention, DR, or compliance. Over time, unreviewed snapshots can "
+        "become a significant hidden cost.",
         "",
     ]
 
@@ -143,9 +145,9 @@ def render_report(data: dict) -> str:
     lines += [
         "## Remediation Strategy",
         "",
-        "### Immediate Actions (Week 1) — Bulk Delete",
+        "### Immediate Actions (Week 1) — Verify, Then Delete or Retain",
         "",
-        "**Step 1**: Verify no AMI depends on these snapshots (safety check):",
+        "**Step 1**: Verify no AMI depends on each snapshot:",
         "```bash",
         "# Run for each snapshot before deleting",
         "aws ec2 describe-images \\",
@@ -153,17 +155,18 @@ def render_report(data: dict) -> str:
         "  --query 'Images[*].{ID:ImageId,Name:Name}'",
         "```",
         "",
-        "**Step 2**: Bulk delete all orphaned snapshots via AWS CLI:",
+        "**Step 2**: Verify launch templates, AWS Backup/DLM ownership, legal hold, compliance tags, and owner approval.",
+        "",
+        "**Step 3**: Delete only snapshots that pass all dependency checks:",
         "```bash",
-        "# Delete all snapshots whose source volume is deleted",
+        "# Review candidates first; delete only approved snapshot IDs",
         "aws ec2 describe-snapshots --owner-ids self \\",
         "  --filters Name=tag:SourceVolumeStatus,Values=deleted \\",
-        "  --query 'Snapshots[*].SnapshotId' --output text | \\",
-        "  tr '\\t' '\\n' | \\",
-        "  xargs -I{} aws ec2 delete-snapshot --snapshot-id {}",
+        "  --query 'Snapshots[*].SnapshotId' --output text",
+        "# aws ec2 delete-snapshot --snapshot-id <approved-snapshot-id>",
         "```",
         "",
-        "**Step 3**: Remove all `aws_ebs_snapshot` resources from Terraform state:",
+        "**Step 4**: Remove Terraform-managed deleted snapshots from state only after deletion:",
         "```bash",
         "# Remove all orphaned snapshots from Terraform state in bulk",
         "terraform state list | grep aws_ebs_snapshot | \\",
@@ -174,8 +177,8 @@ def render_report(data: dict) -> str:
         "",
         "1. **AWS Data Lifecycle Manager**: Create a DLM policy to automatically expire snapshots "
         "after a retention period (e.g. 30 days for dev, 90 days for prod).",
-        "2. **Lambda cleanup**: Schedule a Lambda function to scan for snapshots with deleted "
-        "source volumes and delete them weekly.",
+        "2. **Lambda cleanup review**: Schedule a Lambda function to scan for snapshots with deleted "
+        "source volumes and open review tickets before deletion.",
         "3. **Tagging policy**: Enforce `SourceVolumeStatus` tag updates via EventBridge rule "
         "on `DeleteVolume` API call.",
         "",
@@ -220,11 +223,11 @@ def render_report(data: dict) -> str:
         "",
         f"| Metric | Value |",
         f"|--------|-------|",
-        f"| Orphaned Snapshots | {data['findings_count']} |",
-        f"| Total Storage to Reclaim | {total_storage:.1f} GB |",
+        f"| Cleanup Candidate Snapshots | {data['findings_count']} |",
+        f"| Potential Storage to Reclaim | {total_storage:.1f} GB |",
         f"| Price per GB | ${price_per_gb}/GB-month |",
-        f"| **Monthly Savings** | **${total_save:.2f}** |",
-        f"| **Annual Savings** | **${annual_save:.2f}** |",
+        f"| **Potential Monthly Savings** | **${total_save:.2f}** |",
+        f"| **Potential Annual Savings** | **${annual_save:.2f}** |",
         "",
     ]
 

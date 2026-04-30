@@ -1,0 +1,73 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L2-022",
+  "skill": "finops-kinesis",
+  "rule_set": "efo_waste v1.0.0",
+  "region": "us-east-1",
+  "total_resources_checked": 4,
+  "findings_count": 1,
+  "findings": [
+    {
+      "resource_id": "kinesis-stream-th5ftu",
+      "rule_id": "K1",
+      "rule_name": "unnecessary_enhanced_fan_out",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "condition_met": {
+        "enhanced_fan_out": true,
+        "processing_interval_minutes": 5,
+        "num_efo_consumers": 2,
+        "consumer_ids": [
+          "kinesis-stream-consumer-zcd0bk",
+          "kinesis-stream-consumer-t865bp"
+        ],
+        "shard_count": 20,
+        "iterator_age_ms_avg": 100,
+        "iterator_age_ms_max": 100,
+        "read_provisioned_throughput_exceeded_sum": 0,
+        "efo_justification_check": {
+          "processing_interval_lt_1min": false,
+          "concurrent_consumers_gt_5": false,
+          "iterator_age_lt_500ms_observed": true,
+          "justified": false,
+          "note": "EFO requires ALL three criteria. Fails on processing_interval (5 min ≥ 1 min threshold) and concurrent_consumers (2 ≤ 5 threshold)."
+        }
+      },
+      "action": "DISABLE_ENHANCED_FAN_OUT",
+      "recommended_change": {
+        "remove_resources": [
+          "aws_kinesis_stream_consumer.kinesis-stream-consumer-zcd0bk",
+          "aws_kinesis_stream_consumer.kinesis-stream-consumer-t865bp"
+        ],
+        "consumer_migration": "Switch consumer applications from SubscribeToShard (EFO) to GetRecords (standard) API",
+        "monitor_after": "Watch ReadProvisionedThroughputExceeded for 7 days post-migration to confirm no throttling"
+      },
+      "estimated_monthly_savings_usd": 437.00,
+      "estimated_annual_savings_usd": 5244.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative): EFO shard-hours $0.015 × 20 shards × 730h = $219 + data retrieval 15TB × $0.013/GB = $195 + consumer overhead = $437/mo total"
+    }
+  ],
+  "compliant": [
+    {
+      "resource_id": "kinesis-stream-b0395y",
+      "enhanced_fan_out": false,
+      "processing_interval_minutes": 1,
+      "note": "Enhanced Fan-Out not enabled. Standard GetRecords polling at 1-minute interval. No action required."
+    },
+    {
+      "resource_id": "kinesis-stream-consumer-zcd0bk",
+      "note": "Will be removed — no compliant state after EFO migration; consumer deregistered."
+    },
+    {
+      "resource_id": "kinesis-stream-consumer-t865bp",
+      "note": "Will be removed — no compliant state after EFO migration; consumer deregistered."
+    }
+  ],
+  "cost_summary": {
+    "avg_monthly_kinesis_spend_usd": 500.87,
+    "authoritative_monthly_waste_usd": 437.00,
+    "authoritative_annual_waste_usd": 5244.00,
+    "estimated_monthly_after_fix_usd": 63.87,
+    "efo_pct_of_kinesis_bill": 87.2
+  }
+}

@@ -3,7 +3,7 @@
 analyzer.py — FinOps EBS Skill
 Applies orphaned snapshot rules to parsed_input.json → findings.json.
 
-Rule S1: aws_ebs_snapshot with SourceVolumeStatus=deleted → orphaned → DELETE
+Rule S1: aws_ebs_snapshot with SourceVolumeStatus=deleted → cleanup candidate → REVIEW_DELETE
 """
 import argparse
 import json
@@ -51,7 +51,7 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, price_per_gb: f
     orphan_tag_key       = thresholds.get("orphaned_tag_key", "SourceVolumeStatus")
     orphan_tag_value     = thresholds.get("orphaned_tag_value", "deleted").lower()
 
-    # Rule S1: source volume deleted → orphaned snapshot
+    # Rule S1: source volume deleted → snapshot cleanup review candidate.
     if source_vol_status != orphan_tag_value:
         return None
 
@@ -66,30 +66,32 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, price_per_gb: f
         "rule_id":       "S1",
         "resource_id":   rid,
         "resource_type": "aws_ebs_snapshot",
-        "verdict":       f"Orphaned snapshot — source volume is deleted, storing {storage_gb:.1f} GB with no active purpose",
+        "verdict":       f"Potential orphaned snapshot — source volume is deleted, storing {storage_gb:.1f} GB pending dependency review",
         "severity":      "HIGH",
-        "action":        "DELETE",
-        "saving_type":   "confirmed",
-        "confidence":    "HIGH",
+        "action":        "REVIEW_DELETE",
+        "saving_type":   "potential",
+        "confidence":    "MEDIUM",
         "metrics_summary": {
             "storage_gb":   round(storage_gb, 2),
             "period_days":  period_days,
         },
         "root_cause": (
             f"`{rid}` has `SourceVolumeStatus = deleted`. "
-            "The EBS volume this snapshot was created from has been terminated, "
-            "but the snapshot was never cleaned up. "
-            f"It is storing {storage_gb:.1f} GB of data for a non-existent volume, "
-            f"costing ${monthly_cost:.4f}/month with zero operational value."
+            "The EBS volume this snapshot was created from has been terminated. "
+            "That is a strong cleanup signal, but the snapshot may still be referenced "
+            "by AMIs, launch templates, AWS Backup, DLM, legal hold, or compliance retention. "
+            f"It is storing {storage_gb:.1f} GB of data, with potential savings of "
+            f"${monthly_cost:.4f}/month after dependency validation."
         ),
         "remediation": (
             f"1. Verify no AMI references this snapshot:\n"
             f"   aws ec2 describe-images --filters Name=block-device-mapping.snapshot-id,Values=<snapshot-id>\n"
-            f"2. Delete via AWS CLI:\n"
+            f"2. Verify launch templates, AWS Backup/DLM ownership, legal hold, compliance tags, and owner approval.\n"
+            f"3. Delete only after validation via AWS CLI:\n"
             f"   aws ec2 delete-snapshot --snapshot-id <snapshot-id>\n"
-            f"3. Or remove from Terraform state and run terraform apply:\n"
+            f"4. Or remove from Terraform state and run terraform apply when Terraform owns the resource:\n"
             f"   terraform state rm aws_ebs_snapshot.{rid}\n"
-            f"4. Automate: enable AWS Data Lifecycle Manager or use a Lambda to clean up\n"
+            f"5. Automate: enable AWS Data Lifecycle Manager or use a Lambda to review\n"
             f"   snapshots whose source volumes no longer exist."
         ),
         "source_volume_id":              resource.get("volume_id", "unknown"),

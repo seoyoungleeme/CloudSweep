@@ -1,43 +1,101 @@
 {
-  "rule_name": "overprovisioned_elasticache",
-  "description": "ElastiCache Overprovisioning Detection Rules — Identifies waste from excess replica/shard nodes in clusters whose cache hit rate shows no memory pressure",
-  "version": "1.0.0",
+  "rule_name": "elasticache_topology_and_node_rightsizing_policy",
+  "description": "Identifies ElastiCache cost waste from excessive replicas, excessive shards, oversized node types, or missing reserved node coverage while protecting availability and performance.",
+  "version": "1.1.0",
   "thresholds": {
     "cache_hit_rate_pct_min": 99.0,
-    "min_cache_clusters_for_ha": 2,
-    "evaluation_period_days": 30
+    "database_memory_usage_pct_avg_max": 50.0,
+    "database_memory_usage_pct_p95_max": 65.0,
+    "cpu_utilization_pct_p95_max": 50.0,
+    "evictions_max": 0,
+    "replication_lag_seconds_p95_max": 1.0,
+    "network_utilization_pct_p95_max": 50.0,
+    "connection_utilization_pct_p95_max": 50.0,
+    "min_replicas_per_shard_for_ha": 1,
+    "evaluation_period_days": 30,
+    "require_memory_metric_for_downsize": true,
+    "require_eviction_metric_for_downsize": true,
+    "require_ha_preservation": true
   },
   "cost": {
     "region": "us-east-1",
-    "note": "ElastiCache On-Demand pricing per node per hour (us-east-1). Each node in a replication group is billed independently.",
+    "hours_per_month": 730,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
+    "note": "ElastiCache nodes are billed per node-hour. Pricing varies by engine, node type, region, reserved node coverage, and serverless/node-based deployment model.",
     "node_types": {
-      "cache.t3.micro":   { "hourly_usd": 0.017 },
-      "cache.t3.small":   { "hourly_usd": 0.034 },
-      "cache.t3.medium":  { "hourly_usd": 0.068 },
-      "cache.t4g.micro":  { "hourly_usd": 0.016 },
-      "cache.t4g.small":  { "hourly_usd": 0.032 },
+      "cache.t3.micro": { "hourly_usd": 0.017 },
+      "cache.t3.small": { "hourly_usd": 0.034 },
+      "cache.t3.medium": { "hourly_usd": 0.068 },
+      "cache.t4g.micro": { "hourly_usd": 0.016 },
+      "cache.t4g.small": { "hourly_usd": 0.032 },
       "cache.t4g.medium": { "hourly_usd": 0.065 },
-      "cache.r6g.large":  { "hourly_usd": 0.192 },
+      "cache.r6g.large": { "hourly_usd": 0.192 },
       "cache.r6g.xlarge": { "hourly_usd": 0.384 },
-      "cache.r5.large":   { "hourly_usd": 0.228 },
-      "cache.r5.xlarge":  { "hourly_usd": 0.456 },
-      "cache.m6g.large":  { "hourly_usd": 0.154 },
-      "cache.m5.large":   { "hourly_usd": 0.169 }
-    },
-    "hours_per_month": 730
+      "cache.r5.large": { "hourly_usd": 0.228 },
+      "cache.r5.xlarge": { "hourly_usd": 0.456 },
+      "cache.m6g.large": { "hourly_usd": 0.154 },
+      "cache.m5.large": { "hourly_usd": 0.169 }
+    }
   },
   "severity_rules": [
     {
-      "id": "E1",
-      "name": "excess_node_count",
-      "metric_required": "cache_hit_rate_pct",
-      "condition": "cache_hit_rate_pct_avg >= cache_hit_rate_pct_min AND num_cache_clusters > min_cache_clusters_for_ha",
+      "id": "EC1",
+      "name": "excess_replicas_with_safe_headroom",
+      "condition": "replicas_per_shard > min_replicas_per_shard_for_ha AND cache_hit_rate_pct_avg >= cache_hit_rate_pct_min AND memory_p95 <= database_memory_usage_pct_p95_max AND evictions == 0 AND cpu_p95 <= cpu_utilization_pct_p95_max AND replication_lag_p95 <= replication_lag_seconds_p95_max",
       "severity": "HIGH",
-      "action": "REDUCE_NODE_COUNT",
-      "recommended_num_cache_clusters": 2,
-      "saving": "(num_cache_clusters - 2) * node_type_hourly_usd * hours_per_month",
+      "action": "REDUCE_REPLICAS",
       "confidence": "HIGH",
-      "description": "30-day average cache hit rate is at or above 99% with more than 2 nodes. A high hit rate under excess node count indicates no memory pressure — the cluster can serve traffic with 2 nodes (minimum for automatic_failover_enabled), eliminating redundant nodes."
+      "description": "Replica count appears higher than required while memory, eviction, CPU, and replication metrics show safe headroom. Preserve at least one replica per shard when HA/failover is required."
+    },
+    {
+      "id": "EC2",
+      "name": "oversized_node_type",
+      "condition": "memory_p95 <= database_memory_usage_pct_p95_max AND cpu_p95 <= cpu_utilization_pct_p95_max AND network_p95 <= network_utilization_pct_p95_max AND evictions == 0",
+      "severity": "HIGH",
+      "action": "DOWNSIZE_NODE_TYPE",
+      "confidence": "MEDIUM",
+      "description": "Node type may be larger than required. Downsize only after validating memory, CPU, network, connection headroom, and rollback plan."
+    },
+    {
+      "id": "EC3",
+      "name": "excess_shard_count_review",
+      "condition": "cluster_mode_enabled == true AND per_shard_memory_p95_low == true AND per_shard_cpu_p95_low == true AND traffic_pattern_is_steady == true",
+      "severity": "MEDIUM",
+      "action": "REVIEW_SHARD_COUNT",
+      "confidence": "MEDIUM",
+      "description": "Shard count may exceed workload needs. Reducing shards is higher risk than reducing replicas and requires key distribution and migration review."
+    },
+    {
+      "id": "EC4",
+      "name": "reserved_node_coverage_candidate",
+      "condition": "retained_baseline_nodes_are_steady == true AND reserved_node_coverage_missing == true",
+      "severity": "LOW",
+      "action": "CONSIDER_RESERVED_NODES",
+      "confidence": "MEDIUM",
+      "description": "Steady retained ElastiCache capacity may benefit from reserved node coverage. Model commitments before purchase."
+    },
+    {
+      "id": "EC5",
+      "name": "performance_risk_blocks_downsize",
+      "condition": "evictions > 0 OR memory_p95 > database_memory_usage_pct_p95_max OR cpu_p95 > cpu_utilization_pct_p95_max OR replication_lag_p95 > replication_lag_seconds_p95_max",
+      "severity": "INFO",
+      "action": "DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE",
+      "confidence": "HIGH",
+      "description": "Performance or capacity risk evidence exists. Do not downsize until memory pressure, evictions, CPU, network, and replication lag are reviewed."
     }
-  ]
+  ],
+  "policy_controls": {
+    "validation_before_downsize": [
+      "Check memory average, p95, max, and fragmentation where available.",
+      "Check evictions, CPU, network, current connections, and replication lag.",
+      "Preserve Multi-AZ and automatic failover requirements.",
+      "Check reserved node coverage before changing node family or count.",
+      "Prepare rollback and post-change monitoring."
+    ],
+    "reporting": [
+      "Separate node-hour savings from reserved node purchase recommendations.",
+      "Use region-specific pricing when available.",
+      "Report confidence based on metric coverage and HA evidence."
+    ]
+  }
 }

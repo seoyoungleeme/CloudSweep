@@ -1,33 +1,87 @@
 {
-  "rule_name": "unused_elb",
-  "description": "ALB/ELB Unused Detection Rule — Identifies waste if request_count and active_connection_count stay continuously below threshold",
-  "version": "1.0.0",
+  "rule_name": "elb_idle_load_balancer_policy",
+  "description": "Identifies idle or potentially unused load balancers while requiring traffic, DNS, listener, target, and owner validation before deletion.",
+  "version": "1.1.0",
   "thresholds": {
-    "request_count_avg_max": 0,
-    "active_connection_count_avg_max": 0,
+    "request_count_sum_max": 0,
+    "active_connection_count_max": 0,
+    "new_connection_count_sum_max": 0,
+    "processed_bytes_sum_max": 0,
+    "consumed_lcu_hours_sum_max": 0,
     "min_zero_days": 28,
-    "evaluation_period_days": 30
+    "evaluation_period_days": 30,
+    "require_full_datapoint_coverage": true,
+    "require_dns_dependency_check": true,
+    "require_listener_target_check": true,
+    "require_owner_approval_for_delete": true
   },
   "cost": {
     "region": "us-east-1",
     "alb_hourly_usd": 0.0225,
+    "alb_lcu_hourly_usd": 0.008,
     "hours_per_month": 730,
     "alb_monthly_usd": 16.425,
-    "lcu_hourly_usd": 0.008,
-    "note": "LCU cost is zero when there is no traffic. Monthly cost = hourly × 730hr (AWS standard average month)."
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
+    "note": "ALB cost includes load balancer hours plus LCU usage. Truly idle ALBs may still incur fixed hourly cost while LCU cost is zero or near zero."
   },
   "severity_rules": [
     {
-      "condition": "request_count_avg == 0 AND active_connection_count_avg == 0 AND zero_days >= 28",
+      "id": "LB1",
+      "name": "idle_load_balancer_review_delete",
+      "condition": "request_count_sum == 0 AND active_connection_count_max == 0 AND new_connection_count_sum == 0 AND processed_bytes_sum == 0 AND zero_days >= min_zero_days AND dependency_checks_clear == true",
       "severity": "HIGH",
-      "action": "DELETE",
-      "confidence": "HIGH"
+      "action": "REVIEW_DELETE",
+      "confidence": "HIGH",
+      "description": "Load balancer appears idle for the full observation window and dependency checks are clear. Delete only after owner approval and controlled traffic drain."
     },
     {
-      "condition": "request_count_avg == 0 AND active_connection_count_avg > 0",
+      "id": "LB2",
+      "name": "zero_requests_with_dependency_signal",
+      "condition": "request_count_sum == 0 AND (active_connection_count_max > 0 OR healthy_host_count_max > 0 OR dns_dependency_present == true OR listener_dependency_present == true)",
       "severity": "MEDIUM",
-      "action": "MONITOR",
-      "confidence": "MEDIUM"
+      "action": "INVESTIGATE",
+      "confidence": "MEDIUM",
+      "description": "No request traffic is visible, but dependency signals exist. Investigate health checks, private traffic, migration state, DNS, and listeners before cleanup."
+    },
+    {
+      "id": "LB3",
+      "name": "low_traffic_variable_cost_optimization",
+      "condition": "request_count_sum > 0 AND low_utilization == true",
+      "severity": "LOW",
+      "action": "OPTIMIZE_OR_SHARE",
+      "confidence": "LOW",
+      "description": "Load balancer has low but nonzero traffic. Consider consolidation, listener sharing, or architecture cleanup instead of deletion."
+    },
+    {
+      "id": "LB4",
+      "name": "missing_governance_tags",
+      "condition": "missing Owner OR Environment OR Purpose tags",
+      "severity": "MEDIUM",
+      "action": "ADD_GOVERNANCE_TAGS",
+      "confidence": "HIGH",
+      "description": "Missing ownership tags make safe cleanup difficult."
+    },
+    {
+      "id": "LB5",
+      "name": "deletion_blocker_present",
+      "condition": "deletion_protection_enabled == true OR dr_role_present == true OR blue_green_role_present == true",
+      "severity": "INFO",
+      "action": "DO_NOT_DELETE_WITHOUT_OWNER",
+      "confidence": "HIGH",
+      "description": "A deletion blocker or special role is present. Do not remove without owner and architecture approval."
     }
-  ]
+  ],
+  "policy_controls": {
+    "validation_before_delete": [
+      "Check Route 53, CNAME, CloudFront origin, API Gateway VPC Link, PrivateLink, service discovery, and external DNS.",
+      "Check listeners, listener rules, certificates, WAF associations, target groups, healthy hosts, access logs, and security groups.",
+      "Check blue/green, canary, migration, disaster recovery, internal/private, and maintenance roles.",
+      "Require owner approval and a controlled drain period."
+    ],
+    "reporting": [
+      "Separate fixed load balancer-hour savings from LCU/NLCU/GLCU savings.",
+      "Use type-appropriate metrics for ALB, NLB, GWLB, and CLB.",
+      "Use region-specific pricing when available."
+    ]
+  }
 }

@@ -84,16 +84,16 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, alb_monthly_cos
     is_conn_zero       = conn_avg <= conn_threshold
     is_persistent_zero = req_zeros >= min_zero_days
 
-    # ── Rule A: both zero, persistent → DELETE ─────────────────────
+    # ── Rule A: both zero, persistent → REVIEW_DELETE ───────────────
     if is_req_zero and is_conn_zero and is_persistent_zero:
         severity_score = 95
-        action         = "DELETE"
+        action         = "REVIEW_DELETE"
         saving_type    = "confirmed"
-        verdict        = "Unused ALB — Immediate deletion recommended"
+        verdict        = "Unused ALB — deletion candidate after dependency review"
         # Downgrade confidence when connection data is absent (can't fully confirm)
         if conn_data_missing:
             confidence = "MEDIUM"
-            verdict    = "Unused ALB — Deletion recommended (verify: active_connection data unavailable)"
+            verdict    = "Unused ALB — deletion review candidate (active_connection data unavailable)"
         else:
             confidence = "HIGH"   # may be re-validated in main() via cost alignment
         root_cause = (
@@ -103,9 +103,10 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, alb_monthly_cos
             "Suspected incomplete cleanup of test/old environments or unremoved resources after service termination."
         )
         remediation = (
-            "1. Check Route 53 / CNAME references before deletion\n"
-            f"2. Terraform: Run `terraform destroy -target=aws_lb.{rid}`\n"
-            "3. Or AWS CLI: `aws elbv2 delete-load-balancer --load-balancer-arn <ARN>`"
+            "1. Check Route 53, CNAME, CloudFront, PrivateLink/VPC Link, and external DNS references\n"
+            "2. Check listeners, target groups, certificates, WAF, access logs, security groups, and owner approval\n"
+            f"3. After traffic drain and approval, Terraform: `terraform destroy -target=aws_lb.{rid}`\n"
+            "4. Or AWS CLI after approval: `aws elbv2 delete-load-balancer --load-balancer-arn <ARN>`"
         )
 
     # ── Rule B: requests zero but connections non-zero → MONITOR ───
@@ -188,22 +189,22 @@ def main():
         else:
             print(f"[analyzer]   [OK]  {resource['resource_id']} - Normal")
 
-    # ── Post-process: re-validate confidence using actual HIGH DELETE count ─
-    # Compares reported avg waste to expected cost of all HIGH DELETE findings.
+    # ── Post-process: re-validate confidence using actual HIGH REVIEW_DELETE count ─
+    # Compares reported avg waste to expected cost of all HIGH REVIEW_DELETE findings.
     # Only upgrades findings where active_connection data was actually measured.
     high_delete_count = sum(
         1 for f in findings
-        if f["severity"] == "HIGH" and f["action"] == "DELETE"
+        if f["severity"] == "HIGH" and f["action"] == "REVIEW_DELETE"
     )
     avg_waste = cost_summary.get("avg_waste", 0)
     if high_delete_count > 0 and abs(avg_waste - alb_monthly_cost * high_delete_count) < 5.0:
         for f in findings:
             if (f["severity"] == "HIGH"
-                    and f["action"] == "DELETE"
+                    and f["action"] == "REVIEW_DELETE"
                     and not f["metrics_summary"].get("active_connection_data_missing")):
                 f["confidence"] = "HIGH"
 
-    # ── Totals: confirmed (DELETE) vs potential (MONITOR) ───────────
+    # ── Totals: confirmed (reviewed deletion candidates) vs potential (MONITOR) ──
     confirmed = [f for f in findings if f["saving_type"] == "confirmed"]
     potential = [f for f in findings if f["saving_type"] == "potential"]
 

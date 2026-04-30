@@ -1,0 +1,74 @@
+{
+  "scenario_id": "L2-022",
+  "work_dir": "sample/L2-022",
+  "skill": "finops-kinesis",
+  "resource_type": "aws_kinesis_stream",
+  "region": "us-east-1",
+  "total_streams": 2,
+  "total_consumers": 2,
+  "streams": [
+    {
+      "name": "kinesis-stream-th5ftu",
+      "shard_count": 20,
+      "retention_period_hours": 24,
+      "enhanced_fan_out": true,
+      "processing_interval_minutes": 5,
+      "consumers": [
+        {
+          "name": "kinesis-stream-consumer-zcd0bk",
+          "consumer_type": "enhanced_fan_out",
+          "data_read_gb_per_day": 250
+        },
+        {
+          "name": "kinesis-stream-consumer-t865bp",
+          "consumer_type": "enhanced_fan_out",
+          "data_read_gb_per_day": 250
+        }
+      ],
+      "metrics": {
+        "iterator_age_ms_avg": 100,
+        "iterator_age_ms_p95": 100,
+        "iterator_age_ms_max": 100,
+        "incoming_bytes_avg": 100,
+        "read_provisioned_throughput_exceeded_sum": 0,
+        "observation_days": 30,
+        "efo_justification_check": {
+          "processing_interval_lt_1min": false,
+          "concurrent_consumers_gt_5": false,
+          "iterator_age_lt_500ms_observed": true,
+          "justified": false,
+          "note": "EFO requires ALL criteria to pass. Fails on interval (5 min) and consumer count (2)."
+        }
+      },
+      "status": "affected",
+      "rules_fired": ["K1"]
+    },
+    {
+      "name": "kinesis-stream-b0395y",
+      "shard_count": 5,
+      "retention_period_hours": 24,
+      "enhanced_fan_out": false,
+      "processing_interval_minutes": 1,
+      "consumers": [],
+      "metrics": {
+        "iterator_age_ms_avg": 100,
+        "iterator_age_ms_p95": 100,
+        "iterator_age_ms_max": 100,
+        "incoming_bytes_avg": 100,
+        "observation_days": 30
+      },
+      "status": "compliant",
+      "rules_fired": []
+    }
+  ],
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "monthly_kinesis_spend": [506.83, 591.54, 574.11, 430.14, 466.84, 435.75],
+    "avg_monthly_kinesis_spend_usd": 500.87,
+    "pricing_note": "Enhanced Fan-Out additional cost: shard-hours $0.015 x 20 shards x 730h = $219 + data retrieval 15TB x $0.013/GB = $195 + consumer hours = $437/mo.",
+    "authoritative_monthly_waste_usd": 437.00,
+    "authoritative_annual_waste_usd": 5244.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative)"
+  }
+}

@@ -12,7 +12,14 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 SEVERITY_ICON      = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}
-ACTION_LABEL       = {"DELETE": "Immediate Deletion", "MONITOR": "Keep Monitoring", "OPTIMIZE": "Requires Optimization"}
+ACTION_LABEL       = {
+    "DELETE": "Immediate Deletion",
+    "REVIEW_DELETE": "Review, Drain, Then Delete",
+    "MONITOR": "Keep Monitoring",
+    "INVESTIGATE": "Investigate Dependencies",
+    "OPTIMIZE": "Requires Optimization",
+    "OPTIMIZE_OR_SHARE": "Optimize or Share",
+}
 ALB_HOURS_PER_MONTH = 730
 
 
@@ -48,7 +55,7 @@ def render_report(data: dict) -> str:
         f"|--------|-------|",
         f"| Region | {region} |",
         f"| Issues Found | {data['findings_count']} items |",
-        f"| Confirmed Monthly Savings (DELETE) | **${total_save:.2f}** |",
+        f"| Confirmed Monthly Savings (after review/delete) | **${total_save:.2f}** |",
         f"| Potential Monthly Savings (MONITOR) | ${total_potential:.2f} |",
         f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
         f"| Average Monthly ELB Spend | ${avg_elb_monthly} |",
