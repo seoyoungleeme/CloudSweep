@@ -1,0 +1,240 @@
+{
+  "scenario_id": "L2-016",
+  "work_dir": "sample/L2-016",
+  "skill": "finops-ecs",
+  "resource_type": "aws_ecs_service",
+  "region": "us-east-1",
+  "total_services": 10,
+  "total_task_definitions": 10,
+  "services": [
+    {
+      "name": "ecs-service-5se6xo",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-5se6xo",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 12.1,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.8,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.4,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-rt6k3m",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-rt6k3m",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 11.8,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.5,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 36.9,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-cw8wse",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-cw8wse",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 11.9,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.6,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.1,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-1tp21o",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-1tp21o",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 12.0,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.7,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.2,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-m0qag3",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-m0qag3",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 12.0,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.8,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.0,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-fzfa3w",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-fzfa3w",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 12.0,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.7,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.3,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-ph46sz",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-ph46sz",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 12.0,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.6,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.1,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-8w2rd8",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 5,
+      "task_definition": "ecs-service-8w2rd8",
+      "cpu_units": 4096,
+      "memory_mb": 8192,
+      "metrics": {
+        "cpu_avg_pct": 11.9,
+        "cpu_p95_pct": 20.0,
+        "cpu_max_pct": 25.7,
+        "cpu_p95_actual_units": 819,
+        "memory_avg_pct": 18.0,
+        "memory_p95_pct": 25.0,
+        "memory_max_pct": 37.2,
+        "memory_p95_actual_mb": 2048,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["E1", "E2", "E4"]
+    },
+    {
+      "name": "ecs-service-0anf0r",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 3,
+      "task_definition": "ecs-service-0anf0r",
+      "cpu_units": 1024,
+      "memory_mb": 2048,
+      "metrics": {
+        "cpu_avg_pct": 68.5,
+        "cpu_p95_pct": 88.0,
+        "cpu_max_pct": 100.0,
+        "memory_avg_pct": 65.0,
+        "memory_p95_pct": 82.0,
+        "memory_max_pct": 94.8,
+        "observation_days": 30
+      },
+      "status": "compliant",
+      "rules_fired": ["E4"]
+    },
+    {
+      "name": "ecs-service-uruv7w",
+      "launch_type": "FARGATE",
+      "platform_version": "1.4.0",
+      "desired_count": 3,
+      "task_definition": "ecs-service-uruv7w",
+      "cpu_units": 1024,
+      "memory_mb": 2048,
+      "metrics": {
+        "cpu_avg_pct": 65.2,
+        "cpu_p95_pct": 90.0,
+        "cpu_max_pct": 98.3,
+        "memory_avg_pct": 67.0,
+        "memory_p95_pct": 83.0,
+        "memory_max_pct": 96.9,
+        "observation_days": 30
+      },
+      "status": "compliant",
+      "rules_fired": ["E4"]
+    }
+  ],
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "monthly_ecs_spend": [782.90, 637.00, 767.02, 675.50, 705.75, 652.60],
+    "monthly_fargate_spend": [636.76, 555.64, 608.85, 683.09, 744.82, 671.43],
+    "avg_monthly_ecs_spend_usd": 703.46,
+    "avg_monthly_fargate_spend_usd": 650.10,
+    "avg_monthly_combined_usd": 1353.56,
+    "pricing_note": "Fargate 비용 = vCPU-시간($0.04048) + GB-시간($0.004445). 4vCPU/8GB → 1vCPU/2GB = 75% 절감. 현재 ~$1400/mo 중 $1050/mo 절감 가능.",
+    "authoritative_monthly_waste_usd": 1050.00,
+    "authoritative_annual_waste_usd": 12600.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative)"
+  }
+}

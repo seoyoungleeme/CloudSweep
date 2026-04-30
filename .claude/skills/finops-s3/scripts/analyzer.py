@@ -4,7 +4,7 @@ analyzer.py — FinOps S3 Skill
 Applies missing lifecycle policy rules to parsed_input.json → findings.json.
 
 Rule V1: aws_s3_bucket with versioning=Enabled AND no lifecycle config
-         AND noncurrent_version_count slope > threshold → ADD_LIFECYCLE_POLICY
+         AND noncurrent_version_count slope > threshold → ADD_SAFE_LIFECYCLE_POLICY
 """
 import argparse
 import json
@@ -133,9 +133,9 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict,
             f"({ncv_first:.0f} → {ncv_last:.0f} over {period}d)"
         ),
         "severity":      "HIGH",
-        "action":        "ADD_LIFECYCLE_POLICY",
+        "action":        "ADD_SAFE_LIFECYCLE_POLICY",
         "saving_type":   "confirmed",
-        "confidence":    "HIGH",
+        "confidence":    "MEDIUM",
         "metrics_summary": {
             "noncurrent_version_count_first": ncv_first,
             "noncurrent_version_count_last":  ncv_last,
@@ -146,13 +146,14 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict,
         "lifecycle_recommendation": lifecycle_cfg,
         "root_cause": (
             f"`{bucket_name}` has S3 versioning enabled but {issue_desc}. "
-            f"Every object update or delete creates a noncurrent version that is retained forever. "
+            f"Every object update or delete creates a noncurrent version that is retained until lifecycle or manual cleanup. "
             f"Over the last {period} days, noncurrent version count grew from {ncv_first:.0f} "
             f"to {ncv_last:.0f} (slope: {ncv_slope:.2f}/hr), confirming unbounded accumulation. "
             f"At ${price_per_gb}/GB-month (S3 Standard, {DEFAULT_REGION}), this grows without limit."
         ),
         "remediation": (
-            f"Add an aws_s3_bucket_lifecycle_configuration for `{bucket_name}` with:\n"
+            f"Validate Object Lock, legal hold, replication, backup, compliance, and restore requirements. "
+            f"If approved, add an aws_s3_bucket_lifecycle_configuration for `{bucket_name}` with:\n"
             f"  - noncurrent_version_expiration: {lifecycle_cfg['noncurrent_days']} days\n"
             f"  - newer_noncurrent_versions kept: {lifecycle_cfg['newer_versions']}\n"
             f"  - abort_incomplete_multipart_upload: {lifecycle_cfg['multipart_days']} days\n"

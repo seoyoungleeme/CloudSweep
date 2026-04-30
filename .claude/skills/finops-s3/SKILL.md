@@ -1,199 +1,191 @@
 ---
 name: finops-s3
 description: >
-  FinOps Analysis Skill — Detects cost waste in AWS S3 buckets caused by
-  versioning-enabled buckets without a lifecycle policy, leading to unbounded
-  noncurrent version accumulation. Automatically executes when given a
-  Terraform configuration (main.tf), CloudWatch metrics (metrics.json), and an
-  AWS cost report (cost_report.json) containing aws_s3_bucket resources.
-  Keywords: "S3 cost", "S3 versioning", "noncurrent version", "lifecycle policy", "FinOps S3".
+  FinOps S3 Analysis Skill. Detects S3 cost waste from versioning-enabled
+  buckets without safe lifecycle controls, noncurrent version accumulation,
+  incomplete multipart uploads, storage-class mismatch, and lifecycle governance
+  gaps using Terraform, metrics, and AWS cost reports.
 user_invocable: false
 ---
 
 # FinOps S3 Analysis Skill
 
-## Directory Layout
+## Scope
 
-| Variable | Path | Purpose |
-|----------|------|---------|
-| `SKILL_DIR` | Base directory of this skill (e.g. `.claude/skills/finops-s3`) | Contains `scripts/` and `rules/` |
-| `WORK_DIR` | Current working directory | Contains the input data files to analyze |
+Analyze S3 storage lifecycle cost from a FinOps perspective. The goal is to
+reduce noncurrent version accumulation and stale storage while preserving
+restore windows, legal hold, Object Lock, replication, backup, audit, and
+compliance requirements.
 
----
+Important safety rule:
 
-## Step 1 — Locate Input Files
+Do not add aggressive expiration policies solely from version growth. S3
+`NoncurrentVersionExpiration` permanently deletes noncurrent object versions.
+Validate restore, compliance, Object Lock, replication, backup, and application
+rollback requirements before applying lifecycle expiration.
+
+## Step 1 - Locate Input Files
 
 Recursively scan `WORK_DIR` for all files:
 
-```bash
-find WORK_DIR -type f | sort
-```
-
 | File | Description | If Missing |
 |------|-------------|------------|
-| `main.tf` | Terraform — `aws_s3_bucket`, `aws_s3_bucket_versioning`, `aws_s3_bucket_lifecycle_configuration` | Cannot analyze — ask user for path |
-| `metrics.json` | CloudWatch metrics: `storage_bytes`, `noncurrent_version_count` per bucket | Mark section "Cannot confirm from provided data — real-environment verification required" |
-| `cost_report.json` | Monthly S3 cost history with pricing_note | Mark section "Cannot confirm from provided data — real-environment verification required" |
+| `main.tf` | Terraform `aws_s3_bucket`, versioning, lifecycle, object lock, replication, encryption, logging, and tags | Cannot analyze; ask user for path |
+| `metrics.json` | Storage bytes, object count, noncurrent versions, incomplete multipart uploads, storage class mix, request/restore evidence | Mark metrics section as unavailable |
+| `cost_report.json` | Monthly S3 cost history with storage class, requests, retrieval, replication, and lifecycle pricing notes | Mark cost section as unavailable |
 
-Print the found file paths before proceeding.
+Base every conclusion on provided files. If a fact is not present, write:
+`Not available in the provided data; verify in the real environment.`
 
----
-
-## Step 2 — Run Pipeline Scripts
+## Step 2 - Run Pipeline Scripts
 
 ```bash
-# 1. Parse
-python SKILL_DIR/scripts/parser.py \
-  --tf      <main.tf path> \
-  --metrics <metrics.json path> \
-  --cost    <cost_report.json path> \
-  --out     WORK_DIR/parsed_input.json
-
-# 2. Analyze
-python SKILL_DIR/scripts/analyzer.py \
-  --input WORK_DIR/parsed_input.json \
-  --rules SKILL_DIR/rules/missing_lifecycle_policy.json \
-  --out   WORK_DIR/findings.json
-
-# 3. Format (also writes main_optimized.tf automatically)
-python SKILL_DIR/scripts/formatter.py \
-  --findings    WORK_DIR/findings.json \
-  --original-tf <main.tf path> \
-  --out         WORK_DIR/finops_report.md
+python SKILL_DIR/scripts/parser.py --tf <main.tf> --metrics <metrics.json> --cost <cost_report.json> --out WORK_DIR/parsed_input.json
+python SKILL_DIR/scripts/analyzer.py --input WORK_DIR/parsed_input.json --rules SKILL_DIR/rules/missing_lifecycle_policy.json --out WORK_DIR/findings.json
+python SKILL_DIR/scripts/formatter.py --findings WORK_DIR/findings.json --original-tf <main.tf> --out WORK_DIR/finops_report.md
 ```
 
-If `python` is not found, try `python3`. If Python is unavailable, fall back to Step 2-alt.
+If Python is unavailable, manually apply the rules below.
 
-> **Note**: Unlike other FinOps skills, the formatter writes both `finops_report.md`
-> **and** `main_optimized.tf` in a single pass. No separate Write step is needed for
-> the Terraform file when using scripts.
+## Step 3 - Analyze Evidence
 
----
+Apply detection rules from `rules/missing_lifecycle_policy.json`.
 
-## Step 2-alt — Fallback (No Python)
-
-Read all three input files with the Read tool and apply the rule below manually.
-
-**Detection rule (from `rules/missing_lifecycle_policy.json`):**
+### Detection Rules
 
 | Rule | Condition | Severity | Action |
 |------|-----------|----------|--------|
-| V1 | `aws_s3_bucket_versioning.status == "Enabled"` AND no `aws_s3_bucket_lifecycle_configuration` (or existing one has no `noncurrent_version_expiration`) AND `noncurrent_version_count` slope > 0.1/hr | HIGH | ADD_LIFECYCLE_POLICY |
+| V1 | Versioning enabled, noncurrent versions growing, and no noncurrent expiration | HIGH | ADD_SAFE_LIFECYCLE_POLICY |
+| V2 | Existing lifecycle lacks `abort_incomplete_multipart_upload` and incomplete uploads accumulate | MEDIUM | ADD_MULTIPART_ABORT |
+| V3 | Object Lock, legal hold, compliance, replication, or backup evidence exists | INFO | DO_NOT_EXPIRE_WITHOUT_POLICY_REVIEW |
+| V4 | Storage class mix suggests transition opportunity | LOW | MODEL_STORAGE_CLASS_TRANSITION |
+| V5 | Missing owner, data class, retention, or cost tags | MEDIUM | ADD_GOVERNANCE_TAGS |
 
-**Trend detection**: compute `slope = (last_datapoint - first_datapoint) / total_datapoints`.
-If slope > 0.1, noncurrent versions are actively accumulating.
+### Lifecycle Baselines
 
-**Savings estimate** (priority order):
-1. Parse dollar amount from `pricing_note` in `cost_report.json` → split across flagged buckets
-2. `noncurrent_storage_gb` from pricing_note × `$0.023/GB-month` → split across flagged buckets
-3. `avg_s3_monthly × 0.8` / number_of_flagged_buckets
+Use these as defaults, not absolute compliance rules:
 
-**Lifecycle recommendations by environment** (inferred from bucket name):
-| Environment | Noncurrent Expiry | Versions Kept | Multipart Abort |
-|-------------|-------------------|---------------|-----------------|
-| prod        | 90 days           | 5             | 7 days          |
-| staging     | 30 days           | 3             | 3 days          |
-| dev / test  | 14 days           | 2             | 3 days          |
-| unknown     | 30 days           | 3             | 7 days          |
+| Environment / Data Class | Noncurrent Expiry | Versions Kept | Multipart Abort |
+|--------------------------|-------------------|---------------|-----------------|
+| dev / test | 14-30 days | 2-3 | 3 days |
+| staging | 30-60 days | 3 | 3-7 days |
+| prod application data | 60-180 days | 5-10 | 7 days |
+| audit / compliance / legal hold | Organization policy first | Policy-defined | Policy-defined |
+| unknown | 30 days provisional | 3 | 7 days |
 
----
+If environment or data class is unknown, report the lifecycle as a review
+candidate and require owner validation before applying.
 
-## Step 3 — Deep Architectural Analysis
+## Step 4 - Deep Architectural Analysis
 
-### Analysis Principles
+Cover these sections in the final report:
 
-- **Cross-evidence principle**: All conclusions must be based on cross-evidence from the files found in `WORK_DIR`. Do not draw conclusions from a single source alone.
-- **Uncertainty principle**: Information not present in the provided files must be labeled **"Cannot confirm from provided data — real-environment verification required"**.
-- **Scope principle**: Do not describe AWS Console, real infrastructure, or external system state beyond what the files confirm.
+### 4.1 Infrastructure Evidence
 
-Use the Read tool to read `main.tf` and `WORK_DIR/findings.json`. Analyze:
+- Bucket count, versioning status, lifecycle configuration, Object Lock,
+  replication, encryption, logging, and tags.
+- Whether existing lifecycle rules already include noncurrent expiration,
+  noncurrent transitions, current expiration, and multipart abort.
 
-**3.1 Evidence from Infrastructure (Terraform)**
-- Total `aws_s3_bucket` count, buckets with versioning enabled
-- Which buckets have / are missing `aws_s3_bucket_lifecycle_configuration`
-- Which existing lifecycle configs are missing `noncurrent_version_expiration`
+### 4.2 Metrics Evidence
 
-**3.2 Evidence from Metrics (30 days)**
-- `noncurrent_version_count` trend per bucket: show first/last values and slope
-- `storage_bytes` trend: growing or stable
+- Noncurrent version count first/last/slope.
+- Storage bytes and storage class mix.
+- Incomplete multipart upload evidence.
+- Replication, restore, or access evidence when provided.
 
-**3.3 Evidence from Cost Report (6 months)**
-- Monthly S3 spend trend
-- `pricing_note` noncurrent storage cost breakdown
+### 4.3 Cost Evidence
 
-**3.4 Root Cause**
-- Why noncurrent versions are accumulating (missing lifecycle policy)
-- Why this is often overlooked (S3 billing doesn't separate current vs noncurrent)
+- Monthly S3 spend trend.
+- Current vs noncurrent storage cost, storage class cost, requests, retrieval,
+  replication, and early deletion effects where available.
+- Region-specific pricing assumptions. Prefer cost report or AWS Pricing MCP
+  over static fallback prices.
 
-**Proposed Solution**
-- Immediate: apply the `aws_s3_bucket_lifecycle_configuration` Terraform blocks
-- Preventive: AWS Config rule, Org-level module enforcement, budget alerts
+### 4.4 Root Cause
 
-**Optimized Terraform rules**:
-- The formatter script already generates `main_optimized.tf` with the original content
-  plus new lifecycle blocks appended. If scripts ran successfully, verify the file exists.
-- If running fallback: Use the Write tool to create `WORK_DIR/main_optimized.tf` containing:
-  1. The original `main.tf` content unchanged
-  2. New `aws_s3_bucket_lifecycle_configuration` blocks (one per flagged bucket)
-     using actual resource names and lifecycle values from the recommendations table above.
-- Do NOT use placeholders. Use the real resource names from `main.tf`.
+Frame root cause as lifecycle governance:
 
----
+- Versioning was enabled without matching lifecycle expiration.
+- Backup/rollback retention requirements were not encoded in Terraform.
+- Multipart uploads are not being aborted.
+- Data classification tags are missing, preventing safe lifecycle policy.
 
-## Step 4 — Write Final Report
+## Savings Calculation
 
-Use the Write tool to save `WORK_DIR/finops_report.md` (the formatter script handles this
-automatically; only use Write manually if running in fallback mode). Then output the full
-report in the response.
+Prefer this order of evidence:
 
-Verify that both files exist after the skill completes:
-- `WORK_DIR/finops_report.md`
-- `WORK_DIR/main_optimized.tf`
+1. Use `cost_report.json` or CUR-like S3 line items.
+2. Use noncurrent storage GB and storage-class pricing.
+3. Use static fallback pricing only as an estimate.
 
-### Report format:
+Separate savings by source: noncurrent expiration, multipart abort, storage
+class transition, and request/retrieval changes. Do not count savings if Object
+Lock or retention policy blocks expiration.
 
-```
-# FinOps S3 Deep Analysis Report — <Scenario ID>
+## Step 5 - Optimized Terraform
+
+Create `WORK_DIR/main_optimized.tf` from the actual `main.tf` content when a
+Terraform change is appropriate.
+
+Rules:
+
+- Do not use placeholders such as `<resource-name>`.
+- Preserve original bucket resources.
+- Add lifecycle blocks only for buckets where retention evidence supports it.
+- If Object Lock, legal hold, compliance, backup, or replication evidence is
+  present or unknown, add a commented review plan instead of an aggressive
+  expiration.
+- Include `abort_incomplete_multipart_upload` where safe.
+- Add governance tags recommendations where missing.
+
+## Step 6 - Write Final Report
+
+Save `WORK_DIR/finops_report.md` and include the report in the response.
+
+Report format:
+
+```markdown
+# FinOps S3 Analysis Report - <Scenario ID>
 
 ## Problem Identification
 | Category | Details |
 |----------|---------|
-| Waste Type | Unbounded S3 Noncurrent Version Accumulation |
-| Affected Resources | X of Y aws_s3_bucket |
-| Detection Signal | noncurrent_version_count growing at N/hr over 30 days |
-| Monthly Waste | $XX |
+| Waste Type | S3 noncurrent version or lifecycle inefficiency |
+| Affected Resources | X of Y |
+| Monthly Waste | $XX potential/confirmed |
+| Confidence | High/Medium/Low with reason |
+
+## Evidence
+
+### Infrastructure
+<versioning, lifecycle, object lock, replication, tags>
+
+### Metrics
+<noncurrent growth, storage, multipart, access/restore evidence>
+
+### Cost Report
+<storage class and lifecycle cost assumptions>
 
 ## Root Cause
-
-### 3.1 Evidence from Infrastructure (Terraform)
-<analysis>
-
-### 3.2 Evidence from Metrics (30 days)
-| Bucket | NCV Start | NCV End | Slope (per hr) | Trend |
-|--------|-----------|---------|----------------|-------|
-
-### 3.3 Evidence from Cost Report (6 months)
-| Month | S3 Spend | Total Spend |
-|-------|----------|-------------|
-
-### 3.4 Root Cause
-<root cause>
+<lifecycle governance cause>
 
 ## Proposed Solution
 
-### Immediate Actions (Week 1)
-1. Apply lifecycle Terraform blocks in main_optimized.tf
+### Immediate Actions
+1. Validate restore/compliance requirements.
+2. Apply safe lifecycle rules.
 
-### Preventive Actions (Week 2-4)
-1. ...
+### Preventive Actions
+1. Require lifecycle policy with versioning.
+2. Require data classification and retention tags.
+3. Review S3 Storage Lens/CUR storage class trends monthly.
 
-## Estimated Monthly Savings (USD)
-$XX.XX
+## Estimated Monthly Savings
+$XX.XX by savings source.
 
 ## Optimized Terraform
-<lifecycle configuration blocks>
+<real lifecycle configuration or review plan>
 ```
 
----
-
-*Generated by: finops-s3 skill — Claude Code*
+Generated by: finops-s3 skill

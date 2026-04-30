@@ -1,31 +1,90 @@
 {
-  "rule_name": "short_polling_sqs",
-  "description": "SQS Short Polling Detection Rules — Identifies waste from queues using short polling (receive_wait_time_seconds=0) that generate excessive empty ReceiveMessage API calls",
-  "version": "1.0.0",
+  "rule_name": "sqs_polling_and_request_efficiency_policy",
+  "description": "Identifies SQS cost inefficiencies from short polling, excessive empty receives, missing batching, and retry/visibility behavior while preserving latency and consumer safety.",
+  "version": "1.1.0",
   "thresholds": {
     "empty_receives_per_hour_min": 50,
     "empty_receives_per_day_min": 1200,
+    "empty_receive_ratio_pct_min": 50.0,
     "recommended_wait_time_seconds": 20,
-    "evaluation_period_days": 30
+    "min_client_read_timeout_seconds": 25,
+    "batching_request_volume_per_day_min": 10000,
+    "evaluation_period_days": 30,
+    "require_client_timeout_check": true,
+    "require_backlog_age_check": true,
+    "require_dlq_retry_check": true
   },
   "cost": {
     "region": "us-east-1",
-    "note": "SQS Standard Queue pricing: $0.40 per 1 million API calls. Every ReceiveMessage call counts — including empty responses from short polling.",
     "price_per_million_api_calls_usd": 0.40,
-    "free_tier_million_requests_per_month": 1
+    "free_tier_million_requests_per_month": 1,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
+    "note": "SQS charges per API request. Empty ReceiveMessage responses are billable. Long polling can reduce empty responses, but does not guarantee zero empty receives."
   },
   "severity_rules": [
     {
       "id": "Q1",
       "name": "short_polling_empty_receives",
       "metric_required": "number_of_empty_receives",
-      "condition": "receive_wait_time_seconds == 0 AND (number_of_empty_receives_avg_per_hour >= empty_receives_per_hour_min OR empty_receives_per_day >= empty_receives_per_day_min)",
+      "condition": "receive_wait_time_seconds == 0 AND (empty_receives_avg_per_hour >= empty_receives_per_hour_min OR empty_receives_per_day >= empty_receives_per_day_min OR empty_receive_ratio_pct >= empty_receive_ratio_pct_min)",
       "severity": "HIGH",
       "action": "ENABLE_LONG_POLLING",
       "recommended_receive_wait_time_seconds": 20,
-      "saving": "If empty_receives_per_day is present in Terraform, use (empty_receives_per_day * 30 / 1_000_000) * price_per_million_api_calls_usd; otherwise use (number_of_empty_receives_avg_per_hour * 720 / 1_000_000) * price_per_million_api_calls_usd",
       "confidence": "HIGH",
-      "description": "Queue is configured with receive_wait_time_seconds=0 (short polling) and generating high volumes of empty ReceiveMessage responses. When Terraform includes scenario-level empty_receives_per_day, use that as the authoritative scale for monthly waste. Long polling (wait_time=20s) should reduce empty receives by orders of magnitude versus short polling, even if sampled CloudWatch points are not literally near-zero."
+      "description": "Queue uses short polling and has high empty receives. Enable long polling after validating client read timeout, latency requirements, Lambda/SDK behavior, and backlog metrics."
+    },
+    {
+      "id": "Q2",
+      "name": "long_polling_still_empty",
+      "condition": "receive_wait_time_seconds > 0 AND empty_receive_ratio_pct >= empty_receive_ratio_pct_min",
+      "severity": "MEDIUM",
+      "action": "REVIEW_CONSUMER_POLLING",
+      "confidence": "MEDIUM",
+      "description": "Long polling is enabled but empty receives remain high. Review consumer concurrency, polling loop behavior, queue idleness, and event source configuration."
+    },
+    {
+      "id": "Q3",
+      "name": "batching_opportunity",
+      "condition": "send_receive_delete_requests_per_day >= batching_request_volume_per_day_min AND batch_api_usage_low == true",
+      "severity": "MEDIUM",
+      "action": "REVIEW_BATCHING",
+      "confidence": "MEDIUM",
+      "description": "High request volume may benefit from SendMessageBatch, DeleteMessageBatch, or ReceiveMessage MaxNumberOfMessages tuning."
+    },
+    {
+      "id": "Q4",
+      "name": "retry_visibility_cost_driver",
+      "condition": "message_age_high == true OR receive_count_high == true OR dlq_messages_high == true OR visibility_timeout_too_low == true",
+      "severity": "MEDIUM",
+      "action": "FIX_RETRY_VISIBILITY",
+      "confidence": "MEDIUM",
+      "description": "Retries, DLQ movement, or visibility timeout issues may be driving repeated receives and request cost."
+    },
+    {
+      "id": "Q5",
+      "name": "client_timeout_validation_required",
+      "condition": "recommended_wait_time_seconds >= client_read_timeout_seconds OR client_read_timeout_seconds unknown",
+      "severity": "INFO",
+      "action": "VALIDATE_CLIENT_TIMEOUTS",
+      "confidence": "MEDIUM",
+      "description": "Client read timeout must exceed long polling wait time to avoid connection errors and ineffective long polling."
     }
-  ]
+  ],
+  "savings_calculation": {
+    "note": "Use observed empty receive reduction when available. Otherwise report potential savings with an explicit reduction assumption.",
+    "formula": "avoidable_requests_per_month / 1000000 * price_per_million_api_calls_usd"
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Check client HTTP/read timeout is greater than receive_wait_time_seconds.",
+      "Check latency requirements and consumer behavior.",
+      "Check ApproximateAgeOfOldestMessage, visible/not visible messages, DLQ movement, and retries.",
+      "Check FIFO message group and throughput behavior where applicable."
+    ],
+    "reporting": [
+      "Separate long polling, batching, retry/visibility, and cleanup savings.",
+      "Use region-specific pricing when available.",
+      "Report confidence based on metrics and consumer configuration evidence."
+    ]
+  }
 }

@@ -5,7 +5,7 @@ Reads parsed_input.json + rules/overprovisioned_rds.json and generates findings.
 
 Detects two categories of waste:
   R1 — Multi-AZ enabled on non-production environment (HIGH)
-  R2 — CPU chronically under-utilized relative to instance class (MEDIUM)
+  R2 — CPU chronically under-utilized relative to instance class (review candidate)
 """
 import argparse
 import json
@@ -87,11 +87,11 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
             "resource_type": "aws_db_instance",
             "instance_class": instance_cls,
             "environment":   environment,
-            "verdict":       f"Multi-AZ enabled on '{environment}' environment — redundancy unnecessary outside production",
-            "severity":      "HIGH",
-            "action":        "DISABLE_MULTI_AZ",
-            "saving_type":   "confirmed",
-            "confidence":    "HIGH",
+            "verdict":       f"Multi-AZ enabled on '{environment}' environment — review Single-AZ only after SLA/DR validation",
+            "severity":      "MEDIUM",
+            "action":        "REVIEW_SINGLE_AZ",
+            "saving_type":   "potential",
+            "confidence":    "MEDIUM",
             "metrics_summary": {
                 "cpu_utilization_avg":       round(cpu_avg, 2) if cpu_avg is not None else None,
                 "database_connections_avg":  round(conn_avg, 2) if conn_avg is not None else None,
@@ -100,14 +100,15 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
             "root_cause": (
                 f"`{rid}` is tagged Environment='{environment}' but has `multi_az = true`. "
                 f"Multi-AZ doubles the instance cost (${monthly_single:.2f}/mo single-AZ → ${monthly_multi:.2f}/mo multi-AZ). "
-                "Development and test environments do not require cross-AZ failover; "
-                "enabling it here is a configuration oversight that silently doubles RDS spend."
+                "Non-production environments often tolerate reduced availability, but this must be "
+                "validated against SLA, RTO/RPO, compliance, backup, and owner requirements before "
+                "changing availability posture."
             ),
             "remediation": (
-                f"1. Set `multi_az = false` in Terraform for `aws_db_instance.{rid}`\n"
-                f"2. Apply during a maintenance window: `terraform apply -target=aws_db_instance.{rid}`\n"
-                "3. AWS performs a brief failover (< 60s) when switching from Multi-AZ to Single-AZ.\n"
-                "4. Add a governance check (e.g. AWS Config rule) to block multi_az=true on non-prod instances."
+                f"1. Validate SLA, RTO/RPO, compliance, backup, restore, and owner approval for `aws_db_instance.{rid}`\n"
+                f"2. If approved, set `multi_az = false` and apply during a maintenance window\n"
+                "3. Monitor availability and performance after the change\n"
+                "4. Add governance so non-prod Multi-AZ requires documented justification."
             ),
             "current_monthly_cost_usd":    monthly_multi,
             "optimized_monthly_cost_usd":  monthly_single,
@@ -115,7 +116,7 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
             "estimated_annual_saving_usd":  saving_annual,
         })
 
-    # ── Rule R2: CPU underutilization ─────────────────────────────────
+    # ── Rule R2: CPU underutilization review candidate ────────────────
     # Check if R1 was already emitted for this instance (Multi-AZ will be disabled).
     r1_emitted = any(f["rule_id"] == "R1" and f["resource_id"] == rid for f in findings)
 
@@ -142,12 +143,12 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
                         "environment":   environment,
                         "verdict": (
                             f"CPU avg {cpu_avg:.1f}% over {period_days}d — "
-                            f"'{instance_cls}' is overprovisioned; downsize to '{recommended_cls}'"
+                            f"'{instance_cls}' may be overprovisioned; review downsize to '{recommended_cls}'"
                         ),
                         "severity":    "MEDIUM",
-                        "action":      "DOWNSIZE",
-                        "saving_type": "confirmed",
-                        "confidence":  "MEDIUM",
+                        "action":      "REVIEW_DOWNSIZE",
+                        "saving_type": "potential",
+                        "confidence":  "LOW",
                         "metrics_summary": {
                             "cpu_utilization_avg":      round(cpu_avg, 2),
                             "database_connections_avg": round(conn_avg, 2) if conn_avg is not None else None,
@@ -156,15 +157,16 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, region: str) ->
                         "root_cause": (
                             f"`{rid}` uses `{instance_cls}` (memory-optimized, ${monthly_single:.2f}/mo) "
                             f"but 30-day average CPU is only {cpu_avg:.1f}%. "
-                            "Memory-optimized R-family instances are intended for workloads requiring >60% memory pressure; "
-                            "at these utilization levels a general-purpose T or M class instance is sufficient. "
+                            "Average CPU alone is insufficient to prove a safe downsize. "
+                            "Validate p95/max CPU, freeable memory, swap, I/O, latency, queue depth, and connection peaks. "
                             f"Recommended replacement: `{recommended_cls}` (${monthly_recommended:.2f}/mo)."
                         ),
                         "remediation": (
                             f"1. Create a snapshot before resizing: `aws rds create-db-snapshot`\n"
-                            f"2. Modify instance class in Terraform: `instance_class = \"{recommended_cls}\"`\n"
-                            f"3. Apply during maintenance window: `terraform apply -target=aws_db_instance.{rid}`\n"
-                            "4. Monitor CPU and connection metrics for 7 days after resize to confirm headroom."
+                            "2. Validate p95/max CPU, memory, I/O, latency, queue depth, storage, and RI coverage\n"
+                            f"3. If approved, modify instance class in Terraform: `instance_class = \"{recommended_cls}\"`\n"
+                            f"4. Apply during maintenance window: `terraform apply -target=aws_db_instance.{rid}`\n"
+                            "5. Monitor CPU, memory, connections, I/O, and latency for 7-14 days after resize."
                         ),
                         "current_instance_class":      instance_cls,
                         "recommended_instance_class":  recommended_cls,

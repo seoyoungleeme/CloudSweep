@@ -1,0 +1,107 @@
+{
+  "rule_name": "fargate_rightsizing_policy",
+  "description": "Identifies ECS Fargate services with over-provisioned task CPU or memory, missing Auto Scaling, or stale platform versions that result in unnecessary compute cost.",
+  "version": "1.0.0",
+  "thresholds": {
+    "cpu_high_severity_avg_pct": 20.0,
+    "cpu_medium_severity_avg_pct": 50.0,
+    "cpu_p95_safety_max_pct_for_reduction": 50.0,
+    "cpu_max_safety_block_pct": 80.0,
+    "memory_high_severity_avg_pct": 20.0,
+    "memory_medium_severity_avg_pct": 50.0,
+    "memory_p95_safety_max_pct_for_reduction": 50.0,
+    "memory_max_safety_block_pct": 90.0,
+    "safety_headroom_factor": 1.3,
+    "evaluation_period_days": 30,
+    "auto_scaling_target_cpu_utilization_pct": 65
+  },
+  "cost": {
+    "region": "us-east-1",
+    "fargate_vcpu_hour_usd": 0.04048,
+    "fargate_gb_hour_usd": 0.004445,
+    "hours_per_month": 730,
+    "pricing_source": "AWS Fargate list price. Effective savings may differ if Compute Savings Plans or Fargate Reserved Capacity are in use — check cost_report for actual effective rates.",
+    "note": "Fargate charges are per vCPU-hour and per GB-hour for the provisioned task size, regardless of actual utilization. Right-sizing directly reduces the provisioned cost."
+  },
+  "valid_fargate_configurations": [
+    { "cpu_units": 256,   "vcpu": 0.25, "min_memory_gb": 0.5, "max_memory_gb": 2   },
+    { "cpu_units": 512,   "vcpu": 0.5,  "min_memory_gb": 1,   "max_memory_gb": 4   },
+    { "cpu_units": 1024,  "vcpu": 1,    "min_memory_gb": 2,   "max_memory_gb": 8   },
+    { "cpu_units": 2048,  "vcpu": 2,    "min_memory_gb": 4,   "max_memory_gb": 16  },
+    { "cpu_units": 4096,  "vcpu": 4,    "min_memory_gb": 8,   "max_memory_gb": 30  },
+    { "cpu_units": 8192,  "vcpu": 8,    "min_memory_gb": 16,  "max_memory_gb": 60  },
+    { "cpu_units": 16384, "vcpu": 16,   "min_memory_gb": 32,  "max_memory_gb": 120 }
+  ],
+  "severity_rules": [
+    {
+      "id": "E1",
+      "name": "fargate_cpu_overprovisioned",
+      "condition": "launch_type == FARGATE AND cpu_avg_pct < 20 AND cpu_p95_pct < 50 AND cpu_max_pct < 80",
+      "severity": "HIGH",
+      "action": "RIGHTSIZE_CPU",
+      "confidence": "HIGH",
+      "sizing_formula": "ceil(cpu_p95_actual_units * 1.3) rounded up to next valid Fargate cpu_units value",
+      "description": "Task CPU is chronically under-utilized. Fargate bills for provisioned vCPU regardless of actual use. Right-sizing to the next valid CPU tier that covers p95 × 1.3 eliminates the over-provisioned portion."
+    },
+    {
+      "id": "E2",
+      "name": "fargate_memory_overprovisioned",
+      "condition": "launch_type == FARGATE AND memory_avg_pct < 20 AND memory_p95_pct < 50 AND memory_max_pct < 90",
+      "severity": "HIGH",
+      "action": "RIGHTSIZE_MEMORY",
+      "confidence": "HIGH",
+      "sizing_formula": "ceil(memory_p95_actual_mb * 1.3) rounded up to nearest 512 MB, must be within valid range for target CPU",
+      "description": "Task memory is chronically under-utilized. Fargate bills for provisioned GB-hours. Right-size memory to p95 × 1.3, ensuring the result is a valid Fargate memory value for the selected CPU tier."
+    },
+    {
+      "id": "E3",
+      "name": "missing_ecs_autoscaling",
+      "condition": "desired_count is static AND no aws_appautoscaling_target referencing this service",
+      "severity": "MEDIUM",
+      "action": "ADD_ECS_AUTOSCALING",
+      "confidence": "HIGH",
+      "description": "Service runs a fixed number of tasks with no Auto Scaling policy. Static desired_count pays for idle capacity during low-traffic periods and risks under-provisioning during traffic spikes. Add Target Tracking on ECSServiceAverageCPUUtilization at 60–70%."
+    },
+    {
+      "id": "E4",
+      "name": "stale_platform_version",
+      "condition": "platform_version != LATEST AND platform_version is pinned (e.g. '1.3.0', '1.4.0')",
+      "severity": "LOW",
+      "action": "UPDATE_PLATFORM_VERSION",
+      "confidence": "HIGH",
+      "description": "Fargate platform version is pinned to a specific release. Use LATEST to receive security patches, Fargate ephemeral storage improvements, and new networking features automatically."
+    }
+  ],
+  "auto_scaling_defaults": {
+    "min_capacity": 1,
+    "max_capacity_factor_from_desired": 3.0,
+    "target_cpu_utilization_pct": 65,
+    "scale_in_cooldown_seconds": 300,
+    "scale_out_cooldown_seconds": 60,
+    "scalable_dimension": "ecs:service:DesiredCount"
+  },
+  "deployment_recommendation": {
+    "strategy": "staged",
+    "steps": [
+      "Deploy right-sized task definition to a non-production environment first.",
+      "Run load test at expected peak traffic to confirm no OOMKilled or CPU throttling events.",
+      "Deploy to production with rolling update (minimumHealthyPercent: 100, maximumPercent: 200).",
+      "Monitor for 7 days: CPUUtilization, MemoryUtilization, and OOMKilled metric / container insights events.",
+      "Roll back to previous task definition if OOMKilled events appear or CPU consistently exceeds 85%."
+    ]
+  },
+  "policy_controls": {
+    "terraform": [
+      "Require cpu and memory to be set explicitly on every aws_ecs_task_definition.",
+      "Require aws_appautoscaling_target and aws_appautoscaling_policy for every aws_ecs_service with desired_count > 1.",
+      "Set platform_version = 'LATEST' on all aws_ecs_service resources unless a specific version is required for compatibility.",
+      "Add environment, workload_pattern, and owner tags to every aws_ecs_service."
+    ],
+    "monitoring": [
+      "Alert when ECSServiceAverageCPUUtilization < 15% for 7 consecutive days (sustained waste signal).",
+      "Alert when ECSServiceAverageMemoryUtilization < 15% for 7 consecutive days.",
+      "Alert on OOMKilled events in Container Insights — indicates memory is too low.",
+      "Track p95 and max CPU/memory, not only averages."
+    ]
+  }
+}

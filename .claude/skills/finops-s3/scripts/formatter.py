@@ -15,7 +15,10 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 SEVERITY_ICON = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}
-ACTION_LABEL  = {"ADD_LIFECYCLE_POLICY": "Add S3 Lifecycle Policy"}
+ACTION_LABEL  = {
+    "ADD_LIFECYCLE_POLICY": "Add S3 Lifecycle Policy",
+    "ADD_SAFE_LIFECYCLE_POLICY": "Validate retention, then add S3 Lifecycle Policy",
+}
 
 
 def lifecycle_tf_block(finding: dict) -> str:
@@ -85,8 +88,8 @@ def render_report(data: dict) -> str:
         f"| Buckets Checked | {data['total_resources_checked']} |",
         f"| Issues Found | {data['findings_count']} |",
         f"| Root Cause | Versioning enabled, no noncurrent version lifecycle policy |",
-        f"| Confirmed Monthly Savings | **${total_save:.2f}** |",
-        f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
+        f"| Potential Monthly Savings | **${total_save:.2f}** |",
+        f"| Potential Annual Savings | **${annual_save:.2f}** |",
         f"| Avg Monthly S3 Spend | ${cost_summary.get('avg_s3_monthly', 'N/A')} |",
         "",
     ]
@@ -110,7 +113,7 @@ def render_report(data: dict) -> str:
             "",
             f"**Verdict**: {f['verdict']}  ",
             f"**Recommended Action**: {action}  ",
-            f"**Confidence**: {f['confidence']}  ",
+            f"**Confidence**: {f['confidence']} (validate retention/Object Lock/replication before apply)  ",
             f"**Environment**: `{f.get('environment', 'unknown')}`",
             "",
             "**Noncurrent Version Growth (30 Days)**",
@@ -163,13 +166,13 @@ def render_report(data: dict) -> str:
     lines += [
         "### Preventive Actions (Apply to All Future Buckets)",
         "",
-        "1. **Org-wide policy**: Use AWS Organizations SCP or a Terraform module wrapper to "
+        "1. **Retention validation**: Confirm Object Lock, legal hold, replication, backup, compliance, and restore requirements before expiration rules.",
+        "2. **Org-wide policy**: Use AWS Organizations SCP or a Terraform module wrapper to "
         "enforce that any `aws_s3_bucket` with versioning enabled must also have a "
         "`aws_s3_bucket_lifecycle_configuration`.",
-        "2. **AWS Config rule**: Enable `S3_LIFECYCLE_POLICY_CHECK` to flag buckets "
+        "3. **AWS Config rule**: Enable `S3_LIFECYCLE_POLICY_CHECK` to flag buckets "
         "without lifecycle policies.",
-        "3. **Cost allocation**: Tag noncurrent storage with `StorageClass=Noncurrent` "
-        "and set a budget alert.",
+        "4. **Cost allocation**: Tag buckets with owner, data class, retention, and cost center; review S3 Storage Lens trends.",
         "",
     ]
 
@@ -190,7 +193,7 @@ def render_report(data: dict) -> str:
         f"| **TOTAL** | | | | **${total_save:.2f}** | **${annual_save:.2f}** |",
         "",
         f"> **Pricing basis**: S3 Standard ${price_per_gb}/GB-month ({region}).  ",
-        f"> Savings represent noncurrent version storage cost stopped at lifecycle expiry threshold.",
+        f"> Savings represent potential noncurrent version storage cost stopped at lifecycle expiry threshold after retention approval.",
         "",
     ]
 

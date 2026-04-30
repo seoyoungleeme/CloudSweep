@@ -1,27 +1,68 @@
 {
-  "rule_name": "missing_lifecycle_policy",
-  "description": "S3 Noncurrent Version Accumulation — Versioning-enabled S3 buckets with no lifecycle policy accumulate noncurrent object versions indefinitely, causing unbounded storage cost growth.",
-  "version": "1.0.0",
+  "rule_name": "s3_lifecycle_governance_policy",
+  "description": "Identifies S3 buckets with versioning and growing noncurrent versions, incomplete multipart uploads, storage-class mismatch, or lifecycle governance gaps while protecting retention and compliance requirements.",
+  "version": "1.1.0",
   "thresholds": {
     "noncurrent_version_count_slope_min": 0.1,
+    "incomplete_multipart_upload_age_days_min": 7,
     "evaluation_period_days": 30,
     "recommended_noncurrent_retention_days_prod": 90,
-    "recommended_noncurrent_retention_days_nonprod": 30
+    "recommended_noncurrent_retention_days_nonprod": 30,
+    "require_object_lock_check": true,
+    "require_replication_check": true,
+    "require_owner_validation_for_expiration": true
   },
   "cost": {
     "region": "us-east-1",
-    "s3_standard_per_gb_usd": 0.023,
-    "note": "S3 Standard storage $0.023/GB-month (us-east-1). Noncurrent versions are billed at the same rate as current objects. Lifecycle expiry stops cost accumulation."
+    "s3_standard_per_gb_month_usd": 0.023,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, S3 Storage Lens, or cost_report region-specific pricing when available.",
+    "note": "Noncurrent versions are billed as stored objects. Lifecycle expiration permanently deletes versions; storage-class transitions can introduce retrieval and minimum-duration charges."
   },
   "severity_rules": [
     {
       "id": "V1",
-      "name": "versioning_no_lifecycle",
-      "condition": "versioning_status == 'Enabled' AND lifecycle_config_exists == false AND noncurrent_version_count_slope > threshold",
+      "name": "versioning_no_noncurrent_lifecycle",
+      "condition": "versioning_status == 'Enabled' AND lifecycle_has_noncurrent_expiration == false AND noncurrent_version_count_slope > threshold AND no retention blocker evidence",
       "severity": "HIGH",
-      "action": "ADD_LIFECYCLE_POLICY",
+      "action": "ADD_SAFE_LIFECYCLE_POLICY",
+      "confidence": "MEDIUM",
+      "description": "Versioning is enabled and noncurrent versions are growing. Add a noncurrent lifecycle policy only after validating restore, Object Lock, replication, legal hold, backup, and compliance requirements."
+    },
+    {
+      "id": "V2",
+      "name": "incomplete_multipart_upload_accumulation",
+      "condition": "incomplete_multipart_uploads_age_days >= incomplete_multipart_upload_age_days_min AND no abort_incomplete_multipart_upload rule",
+      "severity": "MEDIUM",
+      "action": "ADD_MULTIPART_ABORT",
+      "confidence": "MEDIUM",
+      "description": "Incomplete multipart uploads may be accumulating storage cost. Add abort rules when upload workflows support it."
+    },
+    {
+      "id": "V3",
+      "name": "retention_blocker_present",
+      "condition": "object_lock_enabled == true OR legal_hold == true OR compliance_data == true OR replication_policy_requires_versions == true",
+      "severity": "INFO",
+      "action": "DO_NOT_EXPIRE_WITHOUT_POLICY_REVIEW",
       "confidence": "HIGH",
-      "description": "Versioning is enabled but no lifecycle policy expires noncurrent versions. Noncurrent version count is growing, confirming unbounded accumulation."
+      "description": "Retention or replication evidence exists. Do not expire noncurrent versions until the retention policy allows it."
+    },
+    {
+      "id": "V4",
+      "name": "storage_class_transition_candidate",
+      "condition": "older_objects_or_noncurrent_versions_have_low_access_frequency == true AND lifecycle_transition_missing == true",
+      "severity": "LOW",
+      "action": "MODEL_STORAGE_CLASS_TRANSITION",
+      "confidence": "LOW",
+      "description": "Storage class transitions may reduce cost, but retrieval, monitoring, request, and minimum-duration charges must be modeled."
+    },
+    {
+      "id": "V5",
+      "name": "missing_lifecycle_governance_tags",
+      "condition": "missing Owner OR DataClass OR RetentionDays OR CostCenter tags",
+      "severity": "MEDIUM",
+      "action": "ADD_GOVERNANCE_TAGS",
+      "confidence": "HIGH",
+      "description": "Missing lifecycle governance tags make safe retention decisions difficult."
     }
   ],
   "lifecycle_recommendations": {
@@ -34,6 +75,24 @@
       "noncurrent_version_expiration_days": 30,
       "newer_noncurrent_versions": 3,
       "abort_incomplete_multipart_upload_days": 3
+    },
+    "unknown": {
+      "noncurrent_version_expiration_days": 30,
+      "newer_noncurrent_versions": 3,
+      "abort_incomplete_multipart_upload_days": 7
     }
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Check Object Lock, legal hold, compliance, backup, replication, and restore requirements.",
+      "Check data classification and owner approval.",
+      "Model storage class transition retrieval and minimum-duration charges.",
+      "Apply lifecycle changes gradually where risk is high."
+    ],
+    "reporting": [
+      "Separate noncurrent expiration, multipart abort, and storage-class transition savings.",
+      "Use region-specific pricing and storage class line items when available.",
+      "Report confidence based on retention evidence and cost line-item quality."
+    ]
   }
 }

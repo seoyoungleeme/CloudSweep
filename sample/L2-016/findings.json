@@ -1,0 +1,135 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L2-016",
+  "skill": "finops-ecs",
+  "rule_set": "fargate_rightsizing_policy v1.0.0",
+  "region": "us-east-1",
+  "total_resources_checked": 10,
+  "findings_count": 8,
+  "findings": [
+    {
+      "resource_id": "ecs-service-5se6xo",
+      "rules": [
+        {
+          "rule_id": "E1",
+          "rule_name": "fargate_cpu_overprovisioned",
+          "severity": "HIGH",
+          "confidence": "HIGH",
+          "condition_met": {
+            "cpu_avg_pct": 12.1,
+            "cpu_p95_pct": 20.0,
+            "cpu_max_pct": 25.8,
+            "provisioned_cpu_units": 4096,
+            "cpu_p95_actual_units": 819
+          },
+          "action": "RIGHTSIZE_CPU",
+          "recommended_cpu_units": 1024,
+          "sizing_basis": "p95(819 units) × 1.3 = 1065 → next valid Fargate tier = 1024 (authoritative per cost_report pricing_note)"
+        },
+        {
+          "rule_id": "E2",
+          "rule_name": "fargate_memory_overprovisioned",
+          "severity": "HIGH",
+          "confidence": "HIGH",
+          "condition_met": {
+            "memory_avg_pct": 18.0,
+            "memory_p95_pct": 25.0,
+            "memory_max_pct": 37.4,
+            "provisioned_memory_mb": 8192,
+            "memory_p95_actual_mb": 2048
+          },
+          "action": "RIGHTSIZE_MEMORY",
+          "recommended_memory_mb": 2048,
+          "sizing_basis": "p95(2048 MB) × 1.3 = 2662 MB → 2048 MB valid for 1 vCPU (monitor for OOMKilled after apply)",
+          "note": "Memory max observed was 37.4% (3063 MB). Recommend monitoring OOMKilled events post-deployment and increasing to 3072 MB if needed."
+        }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-rt6k3m",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-cw8wse",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-1tp21o",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-m0qag3",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-fzfa3w",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-ph46sz",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    },
+    {
+      "resource_id": "ecs-service-8w2rd8",
+      "rules": [
+        { "rule_id": "E1", "rule_name": "fargate_cpu_overprovisioned", "severity": "HIGH", "recommended_cpu_units": 1024 },
+        { "rule_id": "E2", "rule_name": "fargate_memory_overprovisioned", "severity": "HIGH", "recommended_memory_mb": 2048 }
+      ]
+    }
+  ],
+  "compliant": [
+    {
+      "resource_id": "ecs-service-0anf0r",
+      "cpu_units": 1024,
+      "memory_mb": 2048,
+      "cpu_avg_pct": 68.5,
+      "memory_avg_pct": 65.0,
+      "note": "CPU and memory utilization within healthy range. No right-sizing required."
+    },
+    {
+      "resource_id": "ecs-service-uruv7w",
+      "cpu_units": 1024,
+      "memory_mb": 2048,
+      "cpu_avg_pct": 65.2,
+      "memory_avg_pct": 67.0,
+      "note": "CPU and memory utilization within healthy range. No right-sizing required."
+    }
+  ],
+  "secondary_findings": [
+    {
+      "rule_id": "E4",
+      "rule_name": "stale_platform_version",
+      "severity": "LOW",
+      "affected_services": "all 10 (platform_version = '1.4.0')",
+      "action": "UPDATE_PLATFORM_VERSION",
+      "note": "Set platform_version = 'LATEST' on all aws_ecs_service resources to receive security patches automatically."
+    }
+  ],
+  "cost_summary": {
+    "avg_monthly_combined_spend_usd": 1353.56,
+    "authoritative_monthly_waste_usd": 1050.00,
+    "authoritative_annual_waste_usd": 12600.00,
+    "estimated_monthly_after_fix_usd": 303.56,
+    "affected_tasks": 40,
+    "right_sized_from": "4096 vCPU / 8192 MB",
+    "right_sized_to": "1024 vCPU / 2048 MB"
+  }
+}

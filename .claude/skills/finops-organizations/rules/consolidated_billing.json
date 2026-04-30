@@ -1,31 +1,84 @@
 {
-  "rule_name": "consolidated_billing",
-  "description": "AWS Organizations Consolidated Billing Detection — Identifies member accounts operating independently (consolidated_billing=false) while an aws_organization resource exists, missing volume discounts and cross-account RI/SP pooling.",
-  "version": "1.0.0",
+  "rule_name": "organizations_discount_governance_policy",
+  "description": "Identifies missed AWS Organizations consolidated billing, Reserved Instance/Savings Plans sharing, commitment planning, and cost governance opportunities while requiring billing scope and chargeback validation.",
+  "version": "1.1.0",
   "thresholds": {
     "max_acceptable_on_demand_pct": 40.0,
-    "min_accounts_to_flag": 1,
-    "evaluation_period_days": 30
+    "min_monthly_eligible_spend_usd": 1000.0,
+    "min_commitment_utilization_pct": 80.0,
+    "min_coverage_gap_pct_to_flag": 20.0,
+    "evaluation_period_days": 30,
+    "require_account_scope_validation": true,
+    "require_discount_sharing_preference_check": true,
+    "require_chargeback_impact_review": true
   },
   "cost": {
-    "note": "AWS Organizations consolidated billing provides: (1) volume pricing tiers applied to combined usage across all member accounts, (2) RI/SP coverage shared across accounts — unused reservations in one account cover on-demand in another. Savings scale with total spend and on-demand percentage.",
-    "estimated_savings_source": "aws_organization.estimated_savings_percent field, or pricing_note in cost_report.json"
+    "estimated_savings_source": "Prefer cost_report.json or ri_sp_coverage.json modeled savings. Treat Terraform-provided savings percentages as potential until eligibility is verified.",
+    "note": "Consolidated billing can share volume pricing, Reserved Instance discounts, and Savings Plans within an AWS Organization, subject to sharing preferences and eligibility. Savings depend on service, region, family, tenancy, OS, engine, and commitment coverage."
   },
   "severity_rules": [
     {
       "id": "O1",
-      "name": "accounts_not_consolidated",
-      "condition": "aws_organization exists AND any aws_account has consolidated_billing == false",
+      "name": "accounts_not_in_discount_sharing_scope",
+      "condition": "accounts outside consolidated billing or sharing family AND eligible on-demand spend exists",
       "severity": "HIGH",
-      "action": "ENABLE_CONSOLIDATED_BILLING",
-      "saving": "total_monthly_spend_usd * (estimated_savings_percent / 100)",
+      "action": "REVIEW_CONSOLIDATED_BILLING",
+      "confidence": "MEDIUM",
+      "description": "Accounts may be missing consolidated billing or discount sharing benefits. Validate legal/billing scope, payer design, Billing Conductor, chargeback, and sharing preferences before changing account structure."
+    },
+    {
+      "id": "O2",
+      "name": "discount_sharing_disabled_or_stranded",
+      "condition": "RI/SP sharing disabled or scoped AND unused commitments coexist with eligible on-demand usage",
+      "severity": "HIGH",
+      "action": "REVIEW_DISCOUNT_SHARING",
       "confidence": "HIGH",
-      "description": "One or more AWS accounts are not enrolled in consolidated billing under the existing AWS Organization. Each account's RI/SP purchases benefit only that account, and volume usage tiers are computed per-account rather than in aggregate. Enabling consolidated billing pools all accounts' compute usage for volume discounts and allows unused RIs/SPs from any account to reduce on-demand charges in others."
+      "description": "Discount sharing preferences may strand RI/SP benefits while other accounts run eligible on-demand usage. Review sharing preferences and chargeback impact."
+    },
+    {
+      "id": "O3",
+      "name": "low_commitment_coverage_candidate",
+      "condition": "on_demand_pct > max_acceptable_on_demand_pct AND commitment_utilization_model >= min_commitment_utilization_pct",
+      "severity": "MEDIUM",
+      "action": "MODEL_RI_SP_PURCHASE",
+      "confidence": "MEDIUM",
+      "description": "Eligible on-demand spend may support new RI/SP purchases. Model term, payment option, utilization risk, and workload stability before purchasing."
+    },
+    {
+      "id": "O4",
+      "name": "low_commitment_utilization",
+      "condition": "existing_commitment_utilization_pct < min_commitment_utilization_pct",
+      "severity": "MEDIUM",
+      "action": "REALIGN_COMMITMENTS",
+      "confidence": "MEDIUM",
+      "description": "Existing commitments may be underutilized. Avoid buying more until utilization, account placement, and sharing preferences are fixed."
+    },
+    {
+      "id": "O5",
+      "name": "cost_governance_gap",
+      "condition": "missing owner, cost center, environment, account mapping, or allocation tags for commitment-eligible spend",
+      "severity": "MEDIUM",
+      "action": "IMPROVE_COST_GOVERNANCE",
+      "confidence": "HIGH",
+      "description": "Cost allocation gaps reduce the safety and accuracy of centralized commitment planning."
     }
   ],
   "savings_calculation_priority": [
-    "1. Use aws_organization.estimated_savings_percent * total_monthly_spend_usd from main.tf",
-    "2. Use pricing_note dollar amount from cost_report.json summary",
-    "3. Use ri_sp_coverage.json potential_savings.with_1yr_ri.monthly_savings_usd as lower bound"
-  ]
+    "Use explicit modeled savings from cost_report.json or ri_sp_coverage.json.",
+    "Use eligible on-demand spend multiplied by a documented modeled savings percentage.",
+    "Use static estimated_savings_percent only as potential savings.",
+    "Do not count new commitment savings unless utilization, eligibility, sharing, and term risk are modeled."
+  ],
+  "policy_controls": {
+    "validation_before_change": [
+      "Check organization membership and billing family scope.",
+      "Check RI/SP sharing preferences and exclusions.",
+      "Check Billing Conductor, billing transfer, legal entity, and chargeback constraints.",
+      "Check commitment eligibility and existing utilization before new purchases."
+    ],
+    "reporting": [
+      "Separate coverage opportunity, utilization waste, stranded discounts, and governance gaps.",
+      "Report confidence based on account mapping, sharing preference evidence, and RI/SP coverage data."
+    ]
+  }
 }
