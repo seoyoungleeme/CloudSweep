@@ -39,4 +39,4 @@
 
 | 난이도 | 관련 서비스 | 카테고리 |
 |--------|-----------|----------|
-| L3 | VPC, S3, NAT Gateway | network |
+| L3 | VPC, Transit Gateway | network |

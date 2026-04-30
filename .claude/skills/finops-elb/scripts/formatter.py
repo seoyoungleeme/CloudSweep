@@ -13,7 +13,7 @@ sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 SEVERITY_ICON      = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}
 ACTION_LABEL       = {
-    "DELETE": "Immediate Deletion",
+    "DELETE": "Legacy delete action",
     "REVIEW_DELETE": "Review, Drain, Then Delete",
     "MONITOR": "Keep Monitoring",
     "INVESTIGATE": "Investigate Dependencies",
@@ -55,9 +55,9 @@ def render_report(data: dict) -> str:
         f"|--------|-------|",
         f"| Region | {region} |",
         f"| Issues Found | {data['findings_count']} items |",
-        f"| Confirmed Monthly Savings (after review/delete) | **${total_save:.2f}** |",
-        f"| Potential Monthly Savings (MONITOR) | ${total_potential:.2f} |",
-        f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
+        f"| Estimated Monthly Savings (after dependency review) | **${total_save:.2f}** |",
+        f"| Potential Monthly Savings Requiring Review | ${total_potential:.2f} |",
+        f"| Estimated Annual Savings | **${annual_save:.2f}** |",
         f"| Average Monthly ELB Spend | ${avg_elb_monthly} |",
         f"| Average Monthly Cloud Cost | ${cost_summary.get('avg_total', 'N/A')} |",
         f"| Average Monthly Wasted Cost | ${cost_summary.get('avg_waste', 'N/A')} ({cost_summary.get('avg_waste_pct', 'N/A')}%) |",

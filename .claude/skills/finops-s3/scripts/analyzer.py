@@ -228,7 +228,7 @@ def main():
 
     Path(args.out).write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[analyzer] Done → {args.out}")
-    print(f"[analyzer]   Total confirmed monthly savings: ${total_monthly}")
+    print(f"[analyzer]   Total potential monthly savings: ${total_monthly}")
 
 
 if __name__ == "__main__":

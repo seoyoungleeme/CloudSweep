@@ -1,0 +1,135 @@
+{
+  "scenario_id": "L2-014",
+  "work_dir": "sample/L2-014",
+  "skill": "finops-lambda",
+  "resource_type": "aws_lambda_function",
+  "region": "us-east-1",
+  "total_functions": 5,
+  "functions": [
+    {
+      "name": "lambda-function-192d7g",
+      "runtime": "python3.11",
+      "memory_size_mb": 3008,
+      "timeout_sec": 30,
+      "architecture": "x86_64",
+      "ephemeral_storage_mb": 512,
+      "provisioned_concurrency": false,
+      "metrics": {
+        "memory_used_mb_avg": 100,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["L1"]
+    },
+    {
+      "name": "lambda-function-ctcl0s",
+      "runtime": "python3.11",
+      "memory_size_mb": 3008,
+      "timeout_sec": 30,
+      "architecture": "x86_64",
+      "ephemeral_storage_mb": 512,
+      "provisioned_concurrency": false,
+      "metrics": {
+        "memory_used_mb_avg": 100,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["L1"]
+    },
+    {
+      "name": "lambda-function-jfafoa",
+      "runtime": "python3.11",
+      "memory_size_mb": 3008,
+      "timeout_sec": 30,
+      "architecture": "x86_64",
+      "ephemeral_storage_mb": 512,
+      "provisioned_concurrency": false,
+      "metrics": {
+        "memory_used_mb_avg": 100,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0,
+        "observation_days": 30
+      },
+      "status": "affected",
+      "rules_fired": ["L1"]
+    },
+    {
+      "name": "lambda-function-7fw8rk",
+      "runtime": "python3.11",
+      "memory_size_mb": 512,
+      "timeout_sec": 30,
+      "architecture": "x86_64",
+      "ephemeral_storage_mb": 512,
+      "provisioned_concurrency": false,
+      "metrics": {
+        "memory_used_mb_avg": 100,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 19.5,
+        "memory_utilization_max_pct": 19.5,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0,
+        "observation_days": 30
+      },
+      "status": "affected_secondary",
+      "rules_fired": ["L1"]
+    },
+    {
+      "name": "lambda-function-q49wt1",
+      "runtime": "python3.11",
+      "memory_size_mb": 512,
+      "timeout_sec": 30,
+      "architecture": "x86_64",
+      "ephemeral_storage_mb": 512,
+      "provisioned_concurrency": false,
+      "metrics": {
+        "memory_used_mb_avg": 100,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 19.5,
+        "memory_utilization_max_pct": 19.5,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0,
+        "observation_days": 30
+      },
+      "status": "affected_secondary",
+      "rules_fired": ["L1"]
+    }
+  ],
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "monthly_lambda_spend": [739.92, 766.49, 947.19, 877.28, 893.73, 851.99],
+    "avg_monthly_lambda_spend_usd": 846.10,
+    "pricing_note": "Lambda cost = request count + (duration x allocated memory GB-seconds). Reducing from 3008MB to 512MB saves about $250/mo per function ($750/mo across 3 functions).",
+    "authoritative_monthly_waste_usd": 750.00,
+    "authoritative_annual_waste_usd": 9000.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative)"
+  }
+}

@@ -108,6 +108,11 @@ Prefer this order of evidence:
 Do not count savings from new RI/SP purchases unless utilization, term, payment
 option, service eligibility, and risk tolerance are modeled.
 
+If RI/SP eligibility for a specific service, engine, or region is unclear from
+the provided data, call `aws-docs` to verify before including it in the savings
+estimate. Do not call aws-docs when eligibility is already confirmed by
+cost_report or ri_sp_coverage data.
+
 ## Step 4 - Optimized Terraform or Operational Plan
 
 Create `WORK_DIR/main_optimized.tf` or an operational plan when appropriate.

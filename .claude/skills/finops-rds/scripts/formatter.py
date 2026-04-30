@@ -14,7 +14,9 @@ sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 SEVERITY_ICON = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}
 ACTION_LABEL  = {
     "DISABLE_MULTI_AZ": "Disable Multi-AZ",
+    "REVIEW_SINGLE_AZ": "Review Single-AZ change",
     "DOWNSIZE":         "Downsize Instance Class",
+    "REVIEW_DOWNSIZE":  "Review conservative downsize",
     "MONITOR":          "Monitor",
 }
 RULE_NAMES = {
@@ -54,8 +56,8 @@ def render_report(data: dict) -> str:
         f"|--------|-------|",
         f"| Region | {region} |",
         f"| Issues Found | {data['findings_count']} items |",
-        f"| Confirmed Monthly Savings | **${total_save:.2f}** |",
-        f"| Confirmed Annual Savings | **${annual_save:.2f}** |",
+        f"| Estimated Monthly Savings | **${total_save:.2f}** |",
+        f"| Estimated Annual Savings | **${annual_save:.2f}** |",
         f"| Avg Monthly RDS Spend | ${avg_rds_monthly} |",
         "",
     ]

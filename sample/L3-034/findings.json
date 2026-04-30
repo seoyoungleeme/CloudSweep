@@ -1,0 +1,103 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L3-034",
+  "skill": "finops-organizations",
+  "rule_set": "organizations_discount_governance_policy v1.1.0",
+  "region": "us-east-1",
+  "total_accounts_checked": 10,
+  "findings_count": 3,
+  "findings": [
+    {
+      "finding_id": "O1",
+      "rule_id": "O1",
+      "rule_name": "accounts_not_in_discount_sharing_scope",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "affected_accounts": [
+        "account-5sr559", "account-xgc1ls", "account-4dwi3q", "account-6xbfg6",
+        "account-4yh2uj", "account-tejgew", "account-hxs96d", "account-7d2j4e",
+        "account-grjdem", "account-tgt2ge"
+      ],
+      "affected_accounts_count": 10,
+      "action": "REVIEW_CONSOLIDATED_BILLING",
+      "condition_met": {
+        "all_accounts_consolidated_billing": false,
+        "organization_consolidated_billing": true,
+        "organization_name": "organization-bg5imo",
+        "on_demand_pct": 83.5,
+        "avg_individual_ri_coverage_pct": 12.0,
+        "avg_individual_sp_coverage_pct": 4.0,
+        "organization_combined_ri_coverage_pct": 65,
+        "organization_combined_sp_coverage_pct": 20
+      },
+      "description": "All 10 accounts have consolidated_billing = false. The organization (organization-bg5imo) exists with consolidated_billing = true and enterprise volume discount tier, but accounts are not enrolled. Each account purchases compute coverage in isolation at 12% average RI coverage — forfeiting RI/SP pooling and volume discounts that would bring combined coverage to 65%.",
+      "estimated_monthly_savings_usd": 3000.00,
+      "estimated_annual_savings_usd": 36000.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative): 20% savings on $15,000/mo total account spend = $3,000/mo. Includes RI/SP pooling effect and enterprise volume discount aggregation.",
+      "safety_checks_required": [
+        "Confirm all 10 accounts belong to the same legal/commercial billing scope.",
+        "Confirm no Billing Conductor or billing transfer isolates charges for chargeback.",
+        "Confirm RI/SP sharing preferences at management account level.",
+        "Confirm shared discounts do not break existing team chargeback/showback agreements."
+      ]
+    },
+    {
+      "finding_id": "O3",
+      "rule_id": "O3",
+      "rule_name": "low_commitment_coverage_candidate",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "scope": "organization",
+      "action": "MODEL_RI_SP_PURCHASE",
+      "condition_met": {
+        "on_demand_pct": 83.5,
+        "threshold_on_demand_pct": 40.0,
+        "total_monthly_compute_spend_usd": 15516.10,
+        "existing_ri_count": 1,
+        "existing_ri_type": "Convertible m5.large 3yr",
+        "existing_ri_utilization_pct": 81.9,
+        "sp_coverage_pct": 0.8
+      },
+      "description": "83.5% of compute spend ($12,956/mo) runs on-demand against only 1 RI (m5.large, 81.9% utilized) and negligible Savings Plans. The single existing RI's 81.9% utilization confirms commitments are well-managed when purchased. After enrolling in consolidated billing (O1), the pooled commitment model supports purchasing new RIs or Compute Savings Plans for the eligible on-demand portion.",
+      "estimated_additional_monthly_savings_usd": 4455.91,
+      "estimated_additional_annual_savings_usd": 53470.92,
+      "savings_basis": "ri_sp_coverage.json modeled estimate: 1yr Compute Savings Plans at 34.4% savings on on-demand eligible spend. NOT authoritative — requires workload stability analysis, term/payment risk modeling, and sharing-preference verification. Enroll in consolidated billing (O1) and fix tag governance (O5) before purchasing.",
+      "note": "Do not purchase new commitments until O1 (consolidated billing) is confirmed and O5 (cost governance tags) provides accurate per-account chargeback mapping."
+    },
+    {
+      "finding_id": "O5",
+      "rule_id": "O5",
+      "rule_name": "cost_governance_gap",
+      "severity": "MEDIUM",
+      "confidence": "HIGH",
+      "affected_accounts": [
+        "account-5sr559", "account-xgc1ls", "account-4dwi3q", "account-6xbfg6",
+        "account-4yh2uj", "account-tejgew", "account-hxs96d", "account-7d2j4e",
+        "account-grjdem", "account-tgt2ge"
+      ],
+      "affected_accounts_count": 10,
+      "action": "IMPROVE_COST_GOVERNANCE",
+      "condition_met": {
+        "tag_compliance_pct": 20.0,
+        "fully_compliant_accounts": 0,
+        "non_compliant_accounts": 10,
+        "required_tags": ["Service", "Team", "Env", "CostCenter", "Owner"],
+        "avg_tags_present_per_account": 1,
+        "accounts_missing_owner": 10,
+        "accounts_missing_cost_center": 8
+      },
+      "description": "All 10 accounts have exactly 20% tag compliance (1 of 5 required tags each). Owner is missing on all 10 accounts. CostCenter is missing on 8 of 10. Without CostCenter and Owner, centralized commitment purchasing cannot safely attribute shared discount savings to the correct team chargeback, and consolidated billing benefits cannot be verified per account.",
+      "estimated_monthly_savings_usd": 0,
+      "note": "Prerequisite for O1 and O3: consolidated billing consolidation and commitment purchase chargeback cannot be verified without complete tagging."
+    }
+  ],
+  "cost_summary": {
+    "total_account_monthly_spend_usd": 15000.00,
+    "on_demand_eligible_monthly_spend_usd": 12956.10,
+    "authoritative_monthly_waste_usd": 3000.00,
+    "authoritative_annual_waste_usd": 36000.00,
+    "modeled_additional_savings_usd": 4455.91,
+    "modeled_additional_annual_savings_usd": 53470.92,
+    "savings_confidence": "HIGH for O1 (cost_report authoritative); MEDIUM for O3 (ri_sp_coverage.json modeled only, new purchases required)"
+  }
+}

@@ -208,8 +208,13 @@ def main():
         else:
             print(f"[analyzer]   [OK]  {resource['resource_id']} — No issues found")
 
-    confirmed = [f for f in all_findings if f["saving_type"] == "confirmed"]
-    total_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in confirmed), 2)
+    # Report estimated savings for all findings so review-candidate wording does
+    # not accidentally zero out the cost impact in the final report.
+    estimated_findings = [
+        f for f in all_findings
+        if f.get("saving_type") in {"confirmed", "potential"}
+    ]
+    total_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in estimated_findings), 2)
     total_annual  = round(total_monthly * 12, 2)
 
     # Cap total savings at avg_rds_monthly from cost report.
@@ -218,7 +223,7 @@ def main():
     avg_rds_monthly  = cost_summary.get("avg_rds_monthly", 0)
     if avg_rds_monthly > 0 and total_monthly > avg_rds_monthly:
         cap_ratio = avg_rds_monthly / total_monthly
-        for f in confirmed:
+        for f in estimated_findings:
             f["estimated_monthly_saving_usd"] = round(f["estimated_monthly_saving_usd"] * cap_ratio, 2)
             f["estimated_annual_saving_usd"]  = round(f["estimated_monthly_saving_usd"] * 12, 2)
         total_monthly  = round(avg_rds_monthly, 2)
@@ -233,6 +238,7 @@ def main():
         "findings_count":                     len(all_findings),
         "total_estimated_monthly_saving_usd": total_monthly,
         "total_estimated_annual_saving_usd":  total_annual,
+        "savings_confidence":                  "potential_review_required",
         "savings_capped_at_rds_spend":        savings_capped,
         "cost_summary":                       cost_summary,
         "findings":                           all_findings,
@@ -240,7 +246,7 @@ def main():
 
     Path(args.out).write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[analyzer] Done — {args.out}")
-    print(f"[analyzer]   Total confirmed monthly savings: ${total_monthly}")
+    print(f"[analyzer]   Total estimated monthly savings: ${total_monthly}")
 
 
 if __name__ == "__main__":

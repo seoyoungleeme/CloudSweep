@@ -1,0 +1,88 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L3-026",
+  "skill": "finops-tgw",
+  "rule_set": "tgw_cost_rightsizing_policy v1.0.0",
+  "region": "us-east-1",
+  "total_resources_checked": 4,
+  "findings_count": 2,
+  "findings": [
+    {
+      "finding_id": "T1",
+      "rule_id": "T1",
+      "rule_name": "tgw_data_processing_replaceable_by_peering",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "affected_resources": [
+        "ec2-transit-gateway-y3bueb",
+        "ec2-transit-gateway-vpc-attachment-kqhgxx",
+        "ec2-transit-gateway-vpc-attachment-59hhc6"
+      ],
+      "action": "REPLACE_TGW_WITH_VPC_PEERING",
+      "condition_met": {
+        "tgw_data_processing_per_gb_usd": 0.02,
+        "monthly_data_gb": 10000,
+        "same_region": true,
+        "vpc_peering_connection_exists": true,
+        "vpc_peering_connection_name": "vpc-peering-connection-jjfn9p",
+        "vpc_peering_same_az_cost_per_gb": 0.00,
+        "traffic_pattern": "flat/stable — no burst requiring TGW fan-out"
+      },
+      "description": "TGW processes 10TB/month at $0.02/GB = $200/month in data processing charges. A VPC Peering connection (vpc-peering-connection-jjfn9p) already exists between vpc-a and vpc-b in the same region. Same-AZ VPC Peering is free — routing this traffic through the peering connection instead of TGW eliminates the data processing charge entirely.",
+      "estimated_monthly_savings_usd": 200.00,
+      "estimated_annual_savings_usd": 2400.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative): 10TB × $0.02/GB = $200/mo. VPC Peering same-AZ = $0.",
+      "safety_checks_required": [
+        "Confirm topology is point-to-point (vpc-a <-> vpc-b only), not transitive.",
+        "Confirm no centralized inspection appliance routes through this TGW.",
+        "Confirm no Direct Connect or VPN attachment on ec2-transit-gateway-y3bueb.",
+        "Confirm no multi-account traffic depends on this TGW.",
+        "Confirm VPC CIDR ranges do not overlap.",
+        "Confirm security groups and NACLs permit traffic over the peering path."
+      ]
+    },
+    {
+      "finding_id": "T2",
+      "rule_id": "T2",
+      "rule_name": "tgw_over_engineered_for_simple_topology",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "affected_resources": [
+        "ec2-transit-gateway-y3bueb",
+        "ec2-transit-gateway-vpc-attachment-kqhgxx",
+        "ec2-transit-gateway-vpc-attachment-59hhc6"
+      ],
+      "action": "EVALUATE_VPC_PEERING_REPLACEMENT",
+      "condition_met": {
+        "attachment_count": 2,
+        "threshold_max_attachments": 3,
+        "transitive_routing_evidenced": false,
+        "direct_connect_evidenced": false,
+        "multi_account_evidenced": false,
+        "inspection_appliance_evidenced": false
+      },
+      "description": "The TGW has only 2 VPC attachments for simple same-region connectivity. No transitive routing, centralized inspection, Direct Connect, or multi-account requirement is evidenced. A VPC Peering mesh (1 peering connection per VPC pair) would be simpler and eliminate the $36/month per-attachment charge.",
+      "estimated_additional_monthly_savings_usd": 72.00,
+      "estimated_additional_annual_savings_usd": 864.00,
+      "savings_basis": "Static rule: 2 attachments × $0.05/hr × 720 hr/mo = $72/mo. Conditional on full TGW decommission after safety verification.",
+      "note": "Do not remove TGW until T1 migration is complete, traffic is confirmed on peering path, and all safety checks pass."
+    }
+  ],
+  "compliant_resources": [
+    {
+      "resource_id": "vpc-peering-connection-jjfn9p",
+      "resource_type": "aws_vpc_peering_connection",
+      "status": "PREFERRED_PATH",
+      "note": "Already the correct architecture for same-region VPC-to-VPC connectivity. 100% tag compliant. Should be the primary routing path."
+    }
+  ],
+  "cost_summary": {
+    "avg_monthly_tgw_spend_usd": 122.54,
+    "authoritative_monthly_waste_usd": 200.00,
+    "authoritative_annual_waste_usd": 2400.00,
+    "additional_savings_if_tgw_removed_usd": 72.00,
+    "total_potential_monthly_savings_usd": 272.00,
+    "total_potential_annual_savings_usd": 3264.00,
+    "savings_confidence": "HIGH for T1 (pricing_note authoritative); MEDIUM for T2 (modeled, conditional on TGW removal)"
+  }
+}

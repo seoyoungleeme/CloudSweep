@@ -1,0 +1,87 @@
+{
+  "scenario_id": "L3-026",
+  "work_dir": "sample/L3-026",
+  "skill": "finops-tgw",
+  "resource_types": [
+    "aws_ec2_transit_gateway",
+    "aws_ec2_transit_gateway_vpc_attachment",
+    "aws_vpc_peering_connection"
+  ],
+  "region": "us-east-1",
+  "total_resources": 4,
+  "transit_gateway": {
+    "name": "ec2-transit-gateway-y3bueb",
+    "description": "Transit Gateway",
+    "default_route_table_association": "enable",
+    "default_route_table_propagation": "enable",
+    "dns_support": "enable",
+    "tag_compliance_pct": 20.0,
+    "known_tags": { "Owner": "charlie@example.com" },
+    "missing_tags": ["Service", "Team", "Env", "CostCenter"]
+  },
+  "attachments": [
+    {
+      "name": "ec2-transit-gateway-vpc-attachment-kqhgxx",
+      "vpc_count": 2,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Owner": "bob@example.com" },
+      "missing_tags": ["Service", "Team", "Env", "CostCenter"]
+    },
+    {
+      "name": "ec2-transit-gateway-vpc-attachment-59hhc6",
+      "vpc_count": 2,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Owner": "bob@example.com" },
+      "missing_tags": ["Service", "Team", "Env", "CostCenter"]
+    }
+  ],
+  "vpc_peering_connections": [
+    {
+      "name": "vpc-peering-connection-jjfn9p",
+      "vpc_pair": "vpc-a <-> vpc-b",
+      "monthly_data_gb": 10000,
+      "same_region": true,
+      "tag_compliance_pct": 100.0,
+      "tags": {
+        "Service": "api",
+        "Team": "backend",
+        "Env": "staging",
+        "CostCenter": "CC-198",
+        "Owner": "devops@example.com"
+      }
+    }
+  ],
+  "metrics": {
+    "ec2-transit-gateway-y3bueb": {
+      "bytes_processed_mb_per_hr_avg": 100.0,
+      "bytes_processed_mb_per_hr_max": 100.0,
+      "packet_count_per_hr_avg": 100.0,
+      "total_monthly_gb_from_metrics": 72.0,
+      "traffic_pattern": "flat/stable",
+      "observation_hours": 720
+    }
+  },
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "avg_monthly_tgw_usd": 122.54,
+    "avg_monthly_vpc_usd": 120.87,
+    "avg_monthly_total_usd": 1715.10,
+    "monthly_tgw": [106.87, 113.08, 103.60, 131.56, 142.38, 137.75],
+    "pricing_note": "Transit Gateway 데이터 처리: 10TB x $0.02/GB = $200/월. VPC Peering으로 전환 시 같은 AZ 내 전송은 무료.",
+    "authoritative_monthly_waste_usd": 200.00,
+    "authoritative_annual_waste_usd": 2400.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative)"
+  },
+  "inferred_topology": {
+    "attachment_count": 2,
+    "vpc_count_per_attachment": 2,
+    "total_vpcs_served": 4,
+    "peering_connection_exists": true,
+    "same_region_peering": true,
+    "transitive_routing_evidenced": false,
+    "direct_connect_evidenced": false,
+    "multi_account_evidenced": false,
+    "inspection_appliance_evidenced": false
+  }
+}

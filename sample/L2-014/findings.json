@@ -1,0 +1,121 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L2-014",
+  "skill": "finops-lambda",
+  "rule_set": "lambda_cost_rightsizing_policy v1.1.0",
+  "region": "us-east-1",
+  "total_resources_checked": 5,
+  "findings_count": 3,
+  "findings": [
+    {
+      "resource_id": "lambda-function-192d7g",
+      "rule_id": "L1",
+      "rule_name": "memory_rightsize_candidate",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "condition_met": {
+        "memory_size_mb": 3008,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "duration_ms_avg": 100,
+        "duration_ms_p95": 100,
+        "duration_ms_max": 100,
+        "errors": 0,
+        "throttles": 0
+      },
+      "action": "RIGHTSIZE_MEMORY",
+      "recommended_memory_mb": 512,
+      "sizing_basis": "max_memory_used(100 MB) × 1.5 headroom = 150 MB minimum; 512 MB selected per cost_report pricing_note for safety buffer and cold-start headroom",
+      "estimated_monthly_savings_usd": 250.00,
+      "estimated_annual_savings_usd": 3000.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative): $250/mo per 3008 MB → 512 MB reduction"
+    },
+    {
+      "resource_id": "lambda-function-ctcl0s",
+      "rule_id": "L1",
+      "rule_name": "memory_rightsize_candidate",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "condition_met": {
+        "memory_size_mb": 3008,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "errors": 0,
+        "throttles": 0
+      },
+      "action": "RIGHTSIZE_MEMORY",
+      "recommended_memory_mb": 512,
+      "estimated_monthly_savings_usd": 250.00,
+      "estimated_annual_savings_usd": 3000.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative)"
+    },
+    {
+      "resource_id": "lambda-function-jfafoa",
+      "rule_id": "L1",
+      "rule_name": "memory_rightsize_candidate",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "condition_met": {
+        "memory_size_mb": 3008,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 3.3,
+        "memory_utilization_max_pct": 3.3,
+        "errors": 0,
+        "throttles": 0
+      },
+      "action": "RIGHTSIZE_MEMORY",
+      "recommended_memory_mb": 512,
+      "estimated_monthly_savings_usd": 250.00,
+      "estimated_annual_savings_usd": 3000.00,
+      "savings_basis": "cost_report.json pricing_note (authoritative)"
+    }
+  ],
+  "secondary_findings": [
+    {
+      "resource_id": "lambda-function-7fw8rk",
+      "rule_id": "L1",
+      "rule_name": "memory_rightsize_candidate",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "condition_met": {
+        "memory_size_mb": 512,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 19.5,
+        "memory_utilization_max_pct": 19.5,
+        "errors": 0,
+        "throttles": 0
+      },
+      "action": "RIGHTSIZE_MEMORY",
+      "recommended_memory_mb": 256,
+      "sizing_basis": "max_memory_used(100 MB) × 1.5 = 150 MB → 256 MB (next safe power-of-two tier); run Lambda Power Tuning to confirm duration does not increase before applying",
+      "note": "Not covered by cost_report pricing_note. Savings are estimated from list-price GB-second reduction only."
+    },
+    {
+      "resource_id": "lambda-function-q49wt1",
+      "rule_id": "L1",
+      "rule_name": "memory_rightsize_candidate",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "condition_met": {
+        "memory_size_mb": 512,
+        "memory_used_mb_max": 100,
+        "memory_utilization_avg_pct": 19.5,
+        "memory_utilization_max_pct": 19.5,
+        "errors": 0,
+        "throttles": 0
+      },
+      "action": "RIGHTSIZE_MEMORY",
+      "recommended_memory_mb": 256,
+      "note": "Not covered by cost_report pricing_note. Run Lambda Power Tuning before applying."
+    }
+  ],
+  "cost_summary": {
+    "avg_monthly_lambda_spend_usd": 846.10,
+    "authoritative_monthly_waste_usd": 750.00,
+    "authoritative_annual_waste_usd": 9000.00,
+    "estimated_monthly_after_primary_fix_usd": 96.10,
+    "secondary_additional_savings_estimate_usd": 48.00
+  }
+}

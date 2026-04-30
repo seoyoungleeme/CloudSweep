@@ -1,0 +1,75 @@
+{
+  "rule_name": "tgw_cost_rightsizing_policy",
+  "description": "Identifies avoidable AWS Transit Gateway data processing and attachment charges where VPC Peering or topology simplification would reduce cost without breaking connectivity.",
+  "version": "1.1.0",
+  "thresholds": {
+    "max_attachments_for_peering_replacement": 3,
+    "idle_attachment_bytes_per_month_gb": 1.0,
+    "min_monthly_data_processing_usd_to_flag": 20.0,
+    "preserve_existing_vpc_peering_decoys": true,
+    "require_operational_cutover_plan": true,
+    "require_unit_economics_for_l3": true
+  },
+  "cost": {
+    "tgw_attachment_hourly_usd": 0.05,
+    "tgw_data_processing_per_gb_usd": 0.02,
+    "vpc_peering_same_az_per_gb_usd": 0.00,
+    "vpc_peering_cross_az_per_gb_usd": 0.01,
+    "hours_per_month": 720,
+    "pricing_region": "us-east-1",
+    "note": "Prefer cost_report.json pricing_note over these static prices."
+  },
+  "severity_rules": [
+    {
+      "id": "T1",
+      "name": "tgw_data_processing_replaceable_by_peering",
+      "condition": "TGW data processing charges exist AND same-region VPC-to-VPC traffic AND VPC Peering would eliminate or reduce the charge",
+      "severity": "HIGH",
+      "action": "MIGRATE_TGW_TRAFFIC_TO_VPC_PEERING",
+      "confidence": "HIGH",
+      "description": "TGW charges for data processing on all traffic. VPC Peering in the same AZ is free; cross-AZ has transfer charges. For same-region point-to-point VPC connectivity without transitive routing needs, migrate traffic to VPC Peering through a staged cutover rather than deleting TGW immediately."
+    },
+    {
+      "id": "T2",
+      "name": "tgw_over_engineered_for_simple_topology",
+      "condition": "TGW attachment count <= max_attachments_for_peering_replacement AND no transitive routing OR multi-account OR inspection requirement evidenced",
+      "severity": "MEDIUM",
+      "action": "EVALUATE_VPC_PEERING_MIGRATION",
+      "confidence": "MEDIUM",
+      "description": "A TGW with only 2-3 attachments for simple VPC-to-VPC connectivity may be over-engineered. VPC Peering is simpler and cheaper unless transitive routing, centralized inspection, Direct Connect, or multi-account requirements are present."
+    },
+    {
+      "id": "T3",
+      "name": "idle_tgw_attachment",
+      "condition": "TGW attachment monthly bytes < idle_attachment_bytes_per_month_gb GB",
+      "severity": "MEDIUM",
+      "action": "REVIEW_IDLE_ATTACHMENT",
+      "confidence": "MEDIUM",
+      "description": "A TGW attachment with no or near-zero traffic still incurs $0.05/hr x 720 hr = $36/month. Verify routing tables, then detach if unused."
+    },
+    {
+      "id": "T4",
+      "name": "cross_az_tgw_routing_overhead",
+      "condition": "traffic routed cross-AZ through TGW when same-AZ path exists",
+      "severity": "MEDIUM",
+      "action": "REVIEW_AZ_LOCAL_ROUTING",
+      "confidence": "MEDIUM",
+      "description": "Cross-AZ TGW routing adds $0.01/GB data transfer on top of TGW data processing. AZ-local routing (or AZ-local peering) eliminates the transfer charge."
+    }
+  ],
+  "safety_checks_required": [
+    "Confirm topology is point-to-point, not hub-spoke or transitive.",
+    "Confirm no centralized inspection appliance uses TGW routing.",
+    "Confirm no Direct Connect or VPN attachment on the TGW.",
+    "Confirm no multi-account routing relies on the TGW.",
+    "Confirm security groups and NACLs permit traffic over the peering path.",
+    "Confirm VPC CIDR ranges do not overlap (peering requirement).",
+    "Preserve existing VPC peering resources unless explicitly flagged.",
+    "Cut over routes and monitor before detaching TGW attachments."
+  ],
+  "savings_calculation_priority": [
+    "Use cost_report.json pricing_note scenario-specific TGW data processing savings.",
+    "Use metrics/business_metrics monthly data_processed_gb multiplied by TGW data processing price.",
+    "Use attachment-hour savings only after route and dependency checks confirm attachment removal is safe."
+  ]
+}

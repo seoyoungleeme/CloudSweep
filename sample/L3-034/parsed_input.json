@@ -1,0 +1,163 @@
+{
+  "scenario_id": "L3-034",
+  "work_dir": "sample/L3-034",
+  "skill": "finops-organizations",
+  "resource_types": ["aws_account", "aws_organization"],
+  "region": "us-east-1",
+  "total_accounts": 10,
+  "organization": {
+    "name": "organization-bg5imo",
+    "consolidated_billing": true,
+    "account_count": 10,
+    "total_monthly_spend_usd": 15000,
+    "combined_ri_coverage_pct": 65,
+    "combined_sp_coverage_pct": 20,
+    "estimated_savings_pct": 20,
+    "volume_discount_tier": "enterprise"
+  },
+  "accounts": [
+    {
+      "name": "account-5sr559",
+      "alias": "team-alpha",
+      "monthly_spend_usd": 1800,
+      "ri_coverage_pct": 25,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Env": "prod" }
+    },
+    {
+      "name": "account-xgc1ls",
+      "alias": "team-beta",
+      "monthly_spend_usd": 2200,
+      "ri_coverage_pct": 30,
+      "sp_coverage_pct": 10,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Team": "devops" }
+    },
+    {
+      "name": "account-4dwi3q",
+      "alias": "team-gamma",
+      "monthly_spend_usd": 1500,
+      "ri_coverage_pct": 20,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Team": "data" }
+    },
+    {
+      "name": "account-6xbfg6",
+      "alias": "team-delta",
+      "monthly_spend_usd": 1200,
+      "ri_coverage_pct": 0,
+      "sp_coverage_pct": 15,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Service": "worker" }
+    },
+    {
+      "name": "account-4yh2uj",
+      "alias": "team-epsilon",
+      "monthly_spend_usd": 1600,
+      "ri_coverage_pct": 10,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "CostCenter": "CC-820" }
+    },
+    {
+      "name": "account-tejgew",
+      "alias": "dev-sandbox-1",
+      "monthly_spend_usd": 800,
+      "ri_coverage_pct": 0,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Service": "web" }
+    },
+    {
+      "name": "account-hxs96d",
+      "alias": "dev-sandbox-2",
+      "monthly_spend_usd": 900,
+      "ri_coverage_pct": 0,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "CostCenter": "CC-426" }
+    },
+    {
+      "name": "account-7d2j4e",
+      "alias": "staging",
+      "monthly_spend_usd": 2000,
+      "ri_coverage_pct": 15,
+      "sp_coverage_pct": 5,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Env": "staging" }
+    },
+    {
+      "name": "account-grjdem",
+      "alias": "analytics",
+      "monthly_spend_usd": 1700,
+      "ri_coverage_pct": 20,
+      "sp_coverage_pct": 0,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Team": "backend" }
+    },
+    {
+      "name": "account-tgt2ge",
+      "alias": "ml-platform",
+      "monthly_spend_usd": 1300,
+      "ri_coverage_pct": 0,
+      "sp_coverage_pct": 10,
+      "consolidated_billing": false,
+      "tag_compliance_pct": 20.0,
+      "known_tags": { "Service": "auth" }
+    }
+  ],
+  "ri_sp_coverage": {
+    "ri_coverage_pct": 15.7,
+    "sp_coverage_pct": 0.8,
+    "on_demand_pct": 83.5,
+    "total_monthly_compute_spend_usd": 15516.10,
+    "reservations_count": 1,
+    "reservation": {
+      "type": "Convertible RI",
+      "instance_type": "m5.large",
+      "term": "3yr",
+      "count": 1,
+      "utilization_pct": 81.9,
+      "monthly_cost_usd": 401.53
+    },
+    "potential_savings": {
+      "with_1yr_ri_usd": 5631.09,
+      "with_1yr_ri_pct": 43.5,
+      "with_1yr_sp_usd": 4455.91,
+      "with_1yr_sp_pct": 34.4,
+      "with_3yr_ri_usd": 7883.53,
+      "with_3yr_ri_pct": 60.8
+    }
+  },
+  "tag_compliance": {
+    "fully_compliant": 0,
+    "non_compliant": 10,
+    "tag_coverage_pct": 20.0,
+    "required_tags": ["Service", "Team", "Env", "CostCenter", "Owner"],
+    "accounts_missing_cost_center": 8,
+    "accounts_missing_owner": 10
+  },
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "avg_monthly_total_usd": 24664.93,
+    "total_account_monthly_spend_usd": 15000,
+    "avg_individual_ri_coverage_pct": 12.0,
+    "avg_individual_sp_coverage_pct": 4.0,
+    "pricing_note": "10 accounts total $15,000/mo. Average individual RI/SP coverage is very low at 16%. Consolidating with Organizations enables RI/SP pooling plus volume discounts, allowing 20% savings ($3,000/mo).",
+    "authoritative_monthly_waste_usd": 3000.00,
+    "authoritative_annual_waste_usd": 36000.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative)"
+  }
+}

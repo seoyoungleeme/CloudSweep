@@ -43,15 +43,45 @@ Choose the most specific service skill based on Terraform resources and cost evi
 | `aws_sqs_queue` | `finops-sqs` |
 | `aws_kinesis_stream` | `finops-kinesis` |
 | `aws_nat_gateway`, VPC endpoints | `finops-nat` |
+| `aws_ec2_transit_gateway`, TGW, `aws_ec2_transit_gateway_vpc_attachment`, `aws_vpc_peering_connection` | `finops-tgw` |
 | AWS Organizations, RI/SP pooling | `finops-organizations` |
+| `aws_cloudwatch_metric_alarm`, high-resolution metric cost | `finops-cloudwatch-alarm` |
+| `aws_cloudwatch_log_group`, retention policy | `finops-cloudwatch` |
 
 ## Analysis Rules
 
 - Base conclusions on cross-file evidence from the workspace.
+- Always read `main.tf`, `metrics.json`, and `cost_report.json` when present
+  before choosing a remediation. Do not reuse a solution pattern from a
+  different scenario if the Terraform resources do not match.
 - Mark missing facts as `Not available in the provided data; verify in the real environment`.
 - Do not claim live AWS state unless it is explicitly present in the files.
 - Keep Terraform changes scoped to the affected resources.
 - Preserve real resource names and avoid placeholders.
+- Preserve decoy or healthy resources. Never delete or modify resources whose
+  tags, metrics, or cost evidence mark them as compliant, active, retained, or
+  outside the detected waste pattern.
+- Compute savings from the provided cost report or official AWS unit prices and
+  show the arithmetic. Keep estimates tied to the affected resources only.
+- Always produce `finops_report.md`; `main_optimized.tf` alone is incomplete.
+- Prefer configuration fixes over deletion when the waste type is lifecycle,
+  retention, polling, rightsizing, or routing related. Delete resources only
+  when the evidence explicitly supports deletion and dependency checks are
+  documented.
+
+## Scoring Guardrails
+
+Use this checklist before final output:
+
+1. Scenario match: the detected AWS resource type in `main.tf` matches the
+   chosen service skill.
+2. Cross evidence: every finding cites Terraform, metrics, and cost evidence,
+   or clearly states what is unavailable.
+3. Decoy preservation: normal resources remain unchanged in `main_optimized.tf`.
+4. Savings accuracy: savings are within a reasonable range of cost evidence and
+   are not counted for unaffected resources.
+5. Report completeness: `finops_report.md` includes problem, evidence, root
+   cause, remediation, prevention, and savings.
 
 ## Outputs
 

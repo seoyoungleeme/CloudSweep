@@ -1,0 +1,125 @@
+{
+  "rule_name": "cloudwatch_metric_alarm_high_resolution",
+  "description": "Identifies aws_cloudwatch_metric_alarm resources using high-resolution (1-second) period when standard resolution (60-second) is sufficient, generating avoidable custom metric cost.",
+  "version": "1.0.0",
+  "thresholds": {
+    "high_resolution_period_seconds": 1,
+    "standard_resolution_period_seconds": 60,
+    "evaluation_period_minutes_safe_to_downgrade": 1,
+    "evaluation_period_days": 30,
+    "require_justification_for_high_resolution": true
+  },
+  "cost": {
+    "region": "us-east-1",
+    "high_resolution_custom_metric_per_month_usd": 0.90,
+    "standard_resolution_custom_metric_per_month_usd": 0.30,
+    "savings_per_metric_per_month_usd": 0.60,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report pricing_note when available.",
+    "api_overhead_note": "High-resolution metrics require more frequent PutMetricData API calls (up to 60x more than standard). Add API cost savings from cost report when available."
+  },
+  "resolution_tiers": {
+    "high_resolution": {
+      "period_seconds": 1,
+      "price_per_metric_per_month_usd": 0.90,
+      "use_cases": [
+        "Payment fraud detection requiring sub-minute response",
+        "Real-time safety or emergency shutdown systems",
+        "SLA breach alerts with sub-60-second contractual requirements",
+        "Anomaly detection models consuming 1-second granularity"
+      ]
+    },
+    "standard_resolution": {
+      "period_seconds": 60,
+      "price_per_metric_per_month_usd": 0.30,
+      "use_cases": [
+        "Application health alarms evaluated over 5+ minutes",
+        "Capacity and utilization monitoring",
+        "Business KPI tracking",
+        "General operational alerting with no sub-minute SLA"
+      ]
+    }
+  },
+  "scenario_attribute_mapping": {
+    "note": "Scenario files may use non-standard Terraform attributes to encode resolution intent. Map to real provider attributes for optimized Terraform output.",
+    "scenario_only_attributes": [
+      "resolution_seconds",
+      "actual_required_resolution_seconds",
+      "metric_type",
+      "evaluation_period_minutes"
+    ],
+    "real_terraform_attribute": "period",
+    "mapping": {
+      "resolution_seconds=1": "period = 1 (high-resolution)",
+      "actual_required_resolution_seconds=60": "evidence that period = 60 is sufficient",
+      "metric_type=high_resolution": "corroborates period = 1 setting",
+      "evaluation_period_minutes>=1": "evaluation window >= 60 seconds; sub-minute data granularity provides no benefit"
+    }
+  },
+  "severity_rules": [
+    {
+      "id": "M1",
+      "name": "high_resolution_with_sufficient_standard",
+      "condition": "resolution_seconds == 1 AND actual_required_resolution_seconds >= 60",
+      "severity": "HIGH",
+      "action": "DOWNGRADE_TO_STANDARD",
+      "confidence": "HIGH",
+      "description": "Alarm is configured for 1-second high-resolution but scenario evidence indicates 60-second standard resolution is operationally sufficient. Downgrade period to 60 seconds to reduce custom metric cost from $0.90 to $0.30/metric/month."
+    },
+    {
+      "id": "M2",
+      "name": "high_resolution_with_long_evaluation_period",
+      "condition": "metric_type == 'high_resolution' AND evaluation_period_minutes >= 1",
+      "severity": "HIGH",
+      "action": "DOWNGRADE_TO_STANDARD",
+      "confidence": "HIGH",
+      "description": "Alarm evaluates over 1+ minute windows. CloudWatch alarms aggregate data points within the evaluation period; 1-second granularity adds no detection advantage when the evaluation window is 60+ seconds."
+    },
+    {
+      "id": "M3",
+      "name": "large_count_high_resolution_alarms",
+      "condition": "high_resolution_alarm_count > 10 AND no documented sub_minute_sla",
+      "severity": "MEDIUM",
+      "action": "REVIEW_HIGH_RESOLUTION",
+      "confidence": "MEDIUM",
+      "description": "Large number of high-resolution alarms detected. At scale, resolution choice has significant cost impact. Review each alarm namespace and evaluation period to confirm which, if any, genuinely require sub-minute granularity."
+    },
+    {
+      "id": "M4",
+      "name": "scenario_only_terraform_attributes",
+      "condition": "aws_cloudwatch_metric_alarm uses resolution_seconds OR actual_required_resolution_seconds OR metric_type OR evaluation_period_minutes",
+      "severity": "MEDIUM",
+      "action": "NORMALIZE_TERRAFORM",
+      "confidence": "HIGH",
+      "description": "Terraform contains scenario-only attributes not valid in the AWS provider. Replace with real provider attributes (period, evaluation_periods, comparison_operator, metric_name, statistic, threshold) in optimized output."
+    }
+  ],
+  "safe_to_downgrade_conditions": [
+    "evaluation_period_minutes >= 1 (alarm aggregates over >= 60 seconds)",
+    "actual_required_resolution_seconds >= 60 (scenario evidence)",
+    "namespace is Custom/* with no documented real-time SLA",
+    "metric_count pattern shows no sub-minute volatility requiring immediate detection"
+  ],
+  "do_not_downgrade_conditions": [
+    "Explicit sub-minute SLA documented in tags or runbook",
+    "Namespace tied to payment, fraud, safety, or emergency response systems",
+    "Alarm feeds an anomaly detection model that requires 1-second granularity",
+    "evaluation_period_minutes < 1 (genuinely sub-minute alarm evaluation)"
+  ],
+  "policy_controls": {
+    "terraform": [
+      "Set period = 60 as the default in shared aws_cloudwatch_metric_alarm Terraform modules.",
+      "Require a justified exception tag (e.g. high_resolution_reason) for any alarm with period < 60.",
+      "Block period = 1 in OPA/Sentinel/tfsec policy unless exception is approved."
+    ],
+    "aws": [
+      "Enable AWS Config custom rule to flag aws_cloudwatch_metric_alarm with period < 60 lacking an exception tag.",
+      "Use Cost Explorer with CloudWatch metric dimension to track per-alarm metric cost.",
+      "Add cost allocation tags (alarm_name, namespace, team) to surface resolution cost to owning teams."
+    ],
+    "reporting": [
+      "Report high-resolution vs standard alarm count and total metric cost separately.",
+      "Include API call overhead savings when cost report provides PutMetricData cost.",
+      "Use region-specific pricing when available; label static prices as estimates."
+    ]
+  }
+}

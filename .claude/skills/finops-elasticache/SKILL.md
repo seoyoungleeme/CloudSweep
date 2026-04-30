@@ -124,6 +124,12 @@ recommended_node_cost = recommended_node_count * recommended_node_hourly_price *
 monthly_savings = current_node_cost - recommended_node_cost
 ```
 
+For reserved node recommendations: if the node type, engine (Redis vs Valkey vs
+Memcached), or region has eligibility or pricing terms not covered by the rule
+file and not available from cost_report or aws-pricing MCP, call `aws-docs` to
+verify before modeling savings. Skip aws-docs when the rule file or cost data
+already covers the case.
+
 Do not count reserved node savings unless the recommendation explicitly buys or
 changes reserved node coverage.
 

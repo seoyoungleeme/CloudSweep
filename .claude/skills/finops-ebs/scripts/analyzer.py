@@ -150,7 +150,7 @@ def main():
     print(f"[analyzer]   Total orphaned storage: {total_storage} GB")
     if savings_capped:
         print(f"[analyzer]   GB-based estimate: ${total_monthly_raw} → capped at avg_ebs_monthly: ${total_monthly}")
-    print(f"[analyzer]   Total confirmed monthly savings: ${total_monthly}")
+    print(f"[analyzer]   Total potential monthly savings: ${total_monthly}")
 
     output = {
         "analyzed_at":                        datetime.utcnow().isoformat() + "Z",

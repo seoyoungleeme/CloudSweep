@@ -118,6 +118,12 @@ Separate savings by source: instance class, Multi-AZ, storage, IOPS/throughput,
 backup, Extended Support, and RI coverage. Do not count RI purchase savings
 unless utilization and term risk are modeled.
 
+For R5 (Reserved Instance coverage): if the applicable RI term options, payment
+options, or engine-specific eligibility (e.g. Aurora vs RDS, custom engine
+versions) are unclear from the provided data, call `aws-docs` to verify before
+modeling savings. Do not call aws-docs when term and engine are already confirmed
+in cost_report or the rule file covers the case.
+
 ## Step 4 - Optimized Terraform
 
 Create `WORK_DIR/main_optimized.tf` from the actual `main.tf` content when a

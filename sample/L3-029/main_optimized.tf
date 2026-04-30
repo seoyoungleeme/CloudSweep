@@ -11,7 +11,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_instance" "instance-bktoi7" {
+resource "aws_instance" "instance-fv8a56" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -23,11 +23,11 @@ resource "aws_instance" "instance-bktoi7" {
   }
 
   tags = {
-    Name        = "instance-bktoi7"
+    Name        = "instance-fv8a56"
   }
 }
 
-resource "aws_instance" "instance-a04sst" {
+resource "aws_instance" "instance-2eny0e" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -39,11 +39,11 @@ resource "aws_instance" "instance-a04sst" {
   }
 
   tags = {
-    Name        = "instance-a04sst"
+    Name        = "instance-2eny0e"
   }
 }
 
-resource "aws_instance" "instance-d3y8ow" {
+resource "aws_instance" "instance-p0jh3s" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -55,11 +55,11 @@ resource "aws_instance" "instance-d3y8ow" {
   }
 
   tags = {
-    Name        = "instance-d3y8ow"
+    Name        = "instance-p0jh3s"
   }
 }
 
-resource "aws_instance" "instance-bwcu6o" {
+resource "aws_instance" "instance-x2xy4d" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -71,11 +71,11 @@ resource "aws_instance" "instance-bwcu6o" {
   }
 
   tags = {
-    Name        = "instance-bwcu6o"
+    Name        = "instance-x2xy4d"
   }
 }
 
-resource "aws_instance" "instance-udf6i9" {
+resource "aws_instance" "instance-q3xxi4" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -87,28 +87,28 @@ resource "aws_instance" "instance-udf6i9" {
   }
 
   tags = {
-    Name        = "instance-udf6i9"
+    Name        = "instance-q3xxi4"
   }
 }
 
-resource "aws_nat_gateway" "nat-gateway-9yz6ej" {
-  allocation_id = aws_eip.nat-gateway-9yz6ej_eip.id
+resource "aws_nat_gateway" "nat-gateway-5xmpd2" {
+  allocation_id = aws_eip.nat-gateway-5xmpd2_eip.id
   subnet_id     = aws_subnet.public.id
 
   tags = {
-    Name = "nat-gateway-9yz6ej"
+    Name = "nat-gateway-5xmpd2"
   }
 }
 
-resource "aws_eip" "nat-gateway-9yz6ej_eip" {
+resource "aws_eip" "nat-gateway-5xmpd2_eip" {
   domain = "vpc"
 
   tags = {
-    Name = "nat-gateway-9yz6ej-eip"
+    Name = "nat-gateway-5xmpd2-eip"
   }
 }
 
-resource "aws_instance" "instance-iuif3c" {
+resource "aws_instance" "instance-umuajk" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -120,11 +120,11 @@ resource "aws_instance" "instance-iuif3c" {
   }
 
   tags = {
-    Name        = "instance-iuif3c"
+    Name        = "instance-umuajk"
   }
 }
 
-resource "aws_instance" "instance-xngo1c" {
+resource "aws_instance" "instance-4cwdnx" {
   ami           = "ami-0abcdef1234567890"
   instance_type = "m5.xlarge"
   subnet_id     = aws_subnet.main.id
@@ -136,19 +136,20 @@ resource "aws_instance" "instance-xngo1c" {
   }
 
   tags = {
-    Name        = "instance-xngo1c"
+    Name        = "instance-4cwdnx"
   }
 }
 
-resource "aws_vpc_endpoint" "vpc-endpoint-gwlkls" {
+resource "aws_vpc_endpoint" "vpc-endpoint-dmrceu" {
   vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.ap-northeast-2.s3"
+  # Fixed: was "com.amazonaws.ap-northeast-2.s3" (Seoul) — wrong region for a us-east-1 VPC.
+  # Correcting to us-east-1 injects the right S3 prefix routes, eliminating ~$119–$360/month NAT data processing cost.
+  service_name      = "com.amazonaws.us-east-1.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = var.private_route_table_ids
 
   tags = {
-    Name = "vpc-endpoint-gwlkls"
+    Name = "vpc-endpoint-dmrceu"
   }
 }
-

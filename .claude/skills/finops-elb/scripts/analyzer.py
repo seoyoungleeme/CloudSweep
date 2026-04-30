@@ -88,7 +88,7 @@ def analyze_resource(resource: dict, metrics: dict, rules: dict, alb_monthly_cos
     if is_req_zero and is_conn_zero and is_persistent_zero:
         severity_score = 95
         action         = "REVIEW_DELETE"
-        saving_type    = "confirmed"
+        saving_type    = "potential"
         verdict        = "Unused ALB — deletion candidate after dependency review"
         # Downgrade confidence when connection data is absent (can't fully confirm)
         if conn_data_missing:
@@ -204,11 +204,13 @@ def main():
                     and not f["metrics_summary"].get("active_connection_data_missing")):
                 f["confidence"] = "HIGH"
 
-    # ── Totals: confirmed (reviewed deletion candidates) vs potential (MONITOR) ──
+    # ── Totals: estimate all review candidates, but keep them marked potential
+    # until DNS/listener/target/owner checks are completed.
     confirmed = [f for f in findings if f["saving_type"] == "confirmed"]
     potential = [f for f in findings if f["saving_type"] == "potential"]
+    estimated = confirmed + potential
 
-    total_confirmed_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in confirmed), 2)
+    total_confirmed_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in estimated), 2)
     total_potential_monthly = round(sum(f["estimated_monthly_saving_usd"] for f in potential), 2)
     total_confirmed_annual  = round(total_confirmed_monthly * 12, 2)
 
@@ -218,7 +220,7 @@ def main():
     avg_elb_monthly = cost_summary.get("avg_elb_monthly", 0)
     if avg_elb_monthly > 0 and total_confirmed_monthly > avg_elb_monthly:
         cap_ratio = avg_elb_monthly / total_confirmed_monthly
-        for f in confirmed:
+        for f in estimated:
             f["estimated_monthly_saving_usd"] = round(f["estimated_monthly_saving_usd"] * cap_ratio, 2)
             f["estimated_annual_saving_usd"]  = round(f["estimated_monthly_saving_usd"] * 12, 2)
         total_confirmed_monthly = round(avg_elb_monthly, 2)
@@ -242,7 +244,7 @@ def main():
 
     Path(args.out).write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[analyzer] Done - {args.out}")
-    print(f"[analyzer]   Confirmed monthly savings: ${total_confirmed_monthly} | Potential: ${total_potential_monthly}")
+    print(f"[analyzer]   Estimated monthly savings: ${total_confirmed_monthly} | Potential review: ${total_potential_monthly}")
 
 
 if __name__ == "__main__":
