@@ -1,0 +1,167 @@
+{
+  "rule_name": "cloudwatch_log_group_retention_policy",
+  "description": "Identifies CloudWatch Log Groups with missing, infinite, excessive, or unsafe retention settings. The rule focuses on storage waste while preserving operational, audit, security, and compliance requirements.",
+  "version": "1.1.0",
+  "thresholds": {
+    "infinite_retention_value": 0,
+    "zero_ingestion_threshold_bytes_per_hour": 0.01,
+    "evaluation_period_days": 30,
+    "delete_candidate_min_silent_days": 30,
+    "require_owner_validation_for_delete": true,
+    "require_data_classification_for_aggressive_retention": true
+  },
+  "cost": {
+    "region": "us-east-1",
+    "log_ingestion_per_gb_usd": 0.50,
+    "log_storage_per_gb_month_usd": 0.03,
+    "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
+    "note": "CloudWatch Logs retention changes reduce stored log volume only. They do not reduce ongoing ingestion cost unless log volume, sampling, or verbosity is also changed."
+  },
+  "retention_recommendations": {
+    "dev": {
+      "recommended_days": 30,
+      "minimum_days": 14,
+      "maximum_days": 30,
+      "rationale": "Short operational debugging window for non-production workloads."
+    },
+    "development": {
+      "recommended_days": 30,
+      "minimum_days": 14,
+      "maximum_days": 30,
+      "rationale": "Short operational debugging window for non-production workloads."
+    },
+    "test": {
+      "recommended_days": 30,
+      "minimum_days": 14,
+      "maximum_days": 30,
+      "rationale": "Short operational debugging window for non-production workloads."
+    },
+    "testing": {
+      "recommended_days": 30,
+      "minimum_days": 14,
+      "maximum_days": 30,
+      "rationale": "Short operational debugging window for non-production workloads."
+    },
+    "sandbox": {
+      "recommended_days": 30,
+      "minimum_days": 7,
+      "maximum_days": 30,
+      "rationale": "Ephemeral workloads should not retain logs for long periods."
+    },
+    "staging": {
+      "recommended_days": 90,
+      "minimum_days": 30,
+      "maximum_days": 90,
+      "rationale": "Release validation and debugging usually require a longer window than dev/test."
+    },
+    "stage": {
+      "recommended_days": 90,
+      "minimum_days": 30,
+      "maximum_days": 90,
+      "rationale": "Release validation and debugging usually require a longer window than dev/test."
+    },
+    "preprod": {
+      "recommended_days": 90,
+      "minimum_days": 30,
+      "maximum_days": 90,
+      "rationale": "Pre-production environments often need release-cycle history."
+    },
+    "prod": {
+      "recommended_days": 180,
+      "minimum_days": 90,
+      "maximum_days": 365,
+      "rationale": "Production application logs need enough history for incident response and support. Use data classification before reducing below 90 days."
+    },
+    "production": {
+      "recommended_days": 180,
+      "minimum_days": 90,
+      "maximum_days": 365,
+      "rationale": "Production application logs need enough history for incident response and support. Use data classification before reducing below 90 days."
+    },
+    "audit": {
+      "recommended_days": null,
+      "minimum_days": null,
+      "maximum_days": null,
+      "rationale": "Audit retention must follow organization, legal, and compliance policy. Prefer long-term archival in S3, Glacier, SIEM, or security tooling instead of indefinite CloudWatch Logs storage."
+    },
+    "security": {
+      "recommended_days": null,
+      "minimum_days": null,
+      "maximum_days": null,
+      "rationale": "Security retention must follow organization, legal, and compliance policy. Do not reduce based on cost alone."
+    },
+    "compliance": {
+      "recommended_days": null,
+      "minimum_days": null,
+      "maximum_days": null,
+      "rationale": "Compliance retention must follow documented retention policy. Do not reduce based on cost alone."
+    },
+    "unknown": {
+      "recommended_days": 90,
+      "minimum_days": 30,
+      "maximum_days": 90,
+      "rationale": "Conservative provisional default when owner and environment are not available."
+    },
+    "default": {
+      "recommended_days": 90,
+      "minimum_days": 30,
+      "maximum_days": 90,
+      "rationale": "Conservative provisional default when owner and environment are not available."
+    }
+  },
+  "severity_rules": [
+    {
+      "id": "C1",
+      "name": "missing_or_infinite_retention",
+      "condition": "retention_in_days is missing OR retention_in_days == 0",
+      "severity": "HIGH",
+      "action": "SET_RETENTION",
+      "confidence": "HIGH",
+      "description": "Log group has no bounded expiry policy. Logs accumulate indefinitely and create growing storage cost. Apply an environment-appropriate retention_in_days unless audit/security/compliance policy requires a different path."
+    },
+    {
+      "id": "C2",
+      "name": "excessive_retention",
+      "condition": "retention_in_days > environment_max AND no documented exception",
+      "severity": "MEDIUM",
+      "action": "REDUCE_RETENTION",
+      "confidence": "MEDIUM",
+      "description": "Retention exceeds the recommended maximum for the detected environment or data class. Reduce only when operational and compliance requirements are satisfied."
+    },
+    {
+      "id": "C3",
+      "name": "silent_log_group_review_candidate",
+      "condition": "avg(log_bytes_ingested) < zero_ingestion_threshold AND no recent events for delete_candidate_min_silent_days",
+      "severity": "LOW",
+      "action": "REVIEW_DELETE_CANDIDATE",
+      "confidence": "LOW",
+      "description": "Log group appears silent during the observation period. Confirm owner, upstream service retirement, no subscription/export dependency, and retention obligations before deleting."
+    },
+    {
+      "id": "C4",
+      "name": "invalid_or_scenario_only_retention_attribute",
+      "condition": "aws_cloudwatch_log_group uses retention_days OR other non-provider retention attribute",
+      "severity": "MEDIUM",
+      "action": "NORMALIZE_TERRAFORM",
+      "confidence": "HIGH",
+      "description": "Terraform AWS provider uses retention_in_days. Convert scenario-only or invalid retention attributes to retention_in_days in optimized Terraform."
+    }
+  ],
+  "policy_controls": {
+    "terraform": [
+      "Require aws_cloudwatch_log_group.retention_in_days to be explicitly set.",
+      "Block retention_in_days = 0 unless an approved audit/security/compliance exception is documented.",
+      "Require owner, environment, and data_class tags for log groups where possible."
+    ],
+    "aws": [
+      "Enable AWS Config managed rule cloudwatch-log-group-retention-period-check.",
+      "Use EventBridge plus Lambda remediation or approved Terraform modules to set retention on implicitly created log groups.",
+      "Export long-term audit or security logs to S3, Glacier, SIEM, or security tooling when CloudWatch Logs is not the cost-effective retention tier."
+    ],
+    "reporting": [
+      "Separate storage savings from ingestion optimization.",
+      "Use region-specific pricing when available.",
+      "Report confidence based on whether StoredBytes, cost line items, and environment/data-class evidence are present."
+    ]
+  }
+}

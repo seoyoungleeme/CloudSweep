@@ -1,0 +1,92 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L1-010",
+  "skill": "finops-dynamodb",
+  "rule_set": "dynamodb_capacity_and_billing_mode_policy v1.1.0",
+  "region": "us-east-1",
+  "total_resources_checked": 2,
+  "findings_count": 3,
+  "findings": [
+    {
+      "resource_id": "dynamodb-table-c53qiq",
+      "rule_id": "D1",
+      "rule_name": "wcu_underutilization_confirmed",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "confidence_note": "ThrottledWriteRequests not available in provided data. Confirm no write throttling in production before reducing WCU.",
+      "condition_met": {
+        "billing_mode": "PROVISIONED",
+        "provisioned_wcu": 1000,
+        "avg_consumed_wcu": 83,
+        "avg_utilization_pct": 8.3,
+        "p95_consumed_wcu": 100,
+        "p95_utilization_pct": 10.0,
+        "throttled_write_requests": "unavailable"
+      },
+      "action": "REDUCE_WCU + ADD_WRITE_AUTOSCALING",
+      "recommended_wcu": {
+        "min_provisioned": 150,
+        "max_autoscaling": 300,
+        "target_utilization_pct": 70,
+        "sizing_basis": "p95(100) × 1.3 safety factor = 130, rounded to 150; max = peak(100) × 3.0 = 300"
+      }
+    },
+    {
+      "resource_id": "dynamodb-table-c53qiq",
+      "rule_id": "D2",
+      "rule_name": "rcu_underutilization_confirmed",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "confidence_note": "ThrottledReadRequests not available in provided data. RCU actual inferred from cost_report pricing_note (500 RCU). Confirm no read throttling before reducing RCU.",
+      "condition_met": {
+        "billing_mode": "PROVISIONED",
+        "provisioned_rcu": 5000,
+        "avg_consumed_rcu": 500,
+        "avg_utilization_pct": 10.0,
+        "p95_consumed_rcu": 500,
+        "p95_utilization_pct": 10.0,
+        "throttled_read_requests": "unavailable"
+      },
+      "action": "REDUCE_RCU + ADD_READ_AUTOSCALING",
+      "recommended_rcu": {
+        "min_provisioned": 650,
+        "max_autoscaling": 1500,
+        "target_utilization_pct": 70,
+        "sizing_basis": "p95(500) × 1.3 safety factor = 650; max = peak(500) × 3.0 = 1500"
+      }
+    },
+    {
+      "resource_id": "dynamodb-table-c53qiq",
+      "rule_id": "D3",
+      "rule_name": "missing_auto_scaling",
+      "severity": "MEDIUM",
+      "confidence": "HIGH",
+      "condition_met": {
+        "billing_mode": "PROVISIONED",
+        "aws_appautoscaling_target": false,
+        "aws_appautoscaling_policy": false
+      },
+      "action": "ADD_AUTOSCALING",
+      "note": "Without Auto Scaling, the table cannot adjust to traffic changes. Adds throttling risk on traffic spikes and prevents capacity savings on traffic lulls."
+    }
+  ],
+  "compliant": [
+    {
+      "resource_id": "dynamodb-table-am0yhj",
+      "billing_mode": "PAY_PER_REQUEST",
+      "note": "On-demand billing — no unused provisioned capacity. No action required."
+    }
+  ],
+  "billing_mode_recommendation": {
+    "action": "KEEP_PROVISIONED",
+    "rationale": "Traffic pattern is classified as steady (WCU CV ≈ 0.22, p95/avg ≈ 1.2). PROVISIONED with Auto Scaling is cost-effective for steady workloads. Switching to PAY_PER_REQUEST requires cost modeling against observed request volume — not performed here due to absence of request-count metrics.",
+    "requires_cost_model_before_mode_change": true
+  },
+  "cost_summary": {
+    "avg_monthly_dynamodb_spend_usd": 661.89,
+    "authoritative_monthly_waste_usd": 522.00,
+    "authoritative_annual_waste_usd": 6264.00,
+    "estimated_monthly_after_fix_usd": 139.89,
+    "non_capacity_cost_drivers": "PITR enabled on both tables — contributes to cost but not addressable by capacity right-sizing. No storage, streams, global tables, or export detected."
+  }
+}

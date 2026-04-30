@@ -1,0 +1,82 @@
+{
+  "analyzed_at": "2026-04-30T00:00:00Z",
+  "scenario_id": "L1-006",
+  "skill": "orchestrator-direct",
+  "orchestrator_note": "aws_cloudwatch_log_group is not mapped to any registered sub-skill. Analysis performed directly by orchestrator.",
+  "rule": "missing_retention_policy",
+  "region": "us-east-1",
+  "total_resources_checked": 10,
+  "findings_count": 8,
+  "findings": [
+    {
+      "resource_id": "cloudwatch-log-group-upz5kj",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-ct2yww",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-iy9ws4",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-0tnecc",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-ur71ym",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-nlkcxf",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-d3eyyn",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    },
+    {
+      "resource_id": "cloudwatch-log-group-havj8r",
+      "issue": "retention_days = 0 (infinite retention)",
+      "daily_ingestion_gb": 2,
+      "severity": "HIGH",
+      "action": "SET retention_in_days = 90"
+    }
+  ],
+  "compliant": [
+    { "resource_id": "cloudwatch-log-group-2rjgcu", "retention_days": 90 },
+    { "resource_id": "cloudwatch-log-group-t4vfyn", "retention_days": 90 }
+  ],
+  "cost_summary": {
+    "avg_monthly_cloudwatch_spend_usd": 174.20,
+    "current_storage_gb": 4800,
+    "current_storage_cost_usd": 144.0,
+    "storage_after_90d_retention_gb": 1440,
+    "storage_after_90d_retention_cost_usd": 43.20,
+    "estimated_ingestion_cost_usd": 30.20,
+    "estimated_monthly_savings_usd": 100.80,
+    "estimated_annual_savings_usd": 1209.60
+  }
+}

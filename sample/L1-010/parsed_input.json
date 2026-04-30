@@ -1,0 +1,69 @@
+{
+  "scenario_id": "L1-010",
+  "work_dir": "sample/L1-010",
+  "skill": "finops-dynamodb",
+  "resource_type": "aws_dynamodb_table",
+  "region": "us-east-1",
+  "total_tables": 2,
+  "tables": [
+    {
+      "name": "dynamodb-table-c53qiq",
+      "billing_mode": "PROVISIONED",
+      "provisioned_rcu": 5000,
+      "provisioned_wcu": 1000,
+      "gsis": [],
+      "auto_scaling": false,
+      "pitr_enabled": true,
+      "streams": false,
+      "ttl": false,
+      "table_class": "STANDARD",
+      "metrics": {
+        "consumed_wcu_avg": 83,
+        "consumed_wcu_p95": 100,
+        "consumed_wcu_max": 100,
+        "consumed_wcu_utilization_avg_pct": 8.3,
+        "consumed_wcu_utilization_p95_pct": 10.0,
+        "consumed_rcu_avg": 500,
+        "consumed_rcu_p95": 500,
+        "consumed_rcu_max": 500,
+        "consumed_rcu_utilization_avg_pct": 10.0,
+        "consumed_rcu_utilization_p95_pct": 10.0,
+        "throttled_write_requests": "Not available in the provided data; verify in the real environment.",
+        "throttled_read_requests": "Not available in the provided data; verify in the real environment.",
+        "traffic_pattern": "steady",
+        "traffic_pattern_basis": "WCU CV ≈ 0.22 < 0.25, p95/avg ≈ 1.2 < 1.5"
+      },
+      "status": "affected",
+      "rules_fired": ["D1", "D2", "D3"]
+    },
+    {
+      "name": "dynamodb-table-am0yhj",
+      "billing_mode": "PAY_PER_REQUEST",
+      "provisioned_rcu": null,
+      "provisioned_wcu": null,
+      "gsis": [],
+      "auto_scaling": false,
+      "pitr_enabled": true,
+      "streams": false,
+      "ttl": false,
+      "table_class": "STANDARD",
+      "metrics": {
+        "consumed_wcu_pattern": "flat 100 (normalized units, steady on-demand usage)",
+        "consumed_rcu_pattern": "flat 100 (normalized units, steady on-demand usage)",
+        "throttled_requests": "Not applicable for PAY_PER_REQUEST"
+      },
+      "status": "compliant",
+      "rules_fired": []
+    }
+  ],
+  "cost_data": {
+    "currency": "USD",
+    "period_months": 6,
+    "monthly_dynamodb_spend": [705.90, 789.93, 552.33, 723.67, 652.47, 547.01],
+    "avg_monthly_dynamodb_spend_usd": 661.89,
+    "pricing_note": "Unused WCU: 900 × $0.00065/hr × 730hr ≈ $427. Unused RCU: 4500 × $0.00013/hr × 730hr ≈ $427. Total ~$522/mo waste.",
+    "authoritative_monthly_waste_usd": 522.00,
+    "authoritative_annual_waste_usd": 6264.00,
+    "pricing_source": "cost_report.json pricing_note (authoritative). Static fallback used for Auto Scaling sizing estimate."
+  }
+}
