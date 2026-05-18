@@ -1,0 +1,22 @@
+{
+  "season": "2",
+  "week": 2,
+  "type": "fusion-analysis",
+  "level": null,
+  "scenarios": [
+    "MA-001"
+  ],
+  "theme": "멀티 에이전트 아키텍처 도입",
+  "ma_id": "MA-001",
+  "components": [
+    "L2-014",
+    "L1-011",
+    "L1-010"
+  ],
+  "company": "PixelStorm",
+  "seed": 338558148,
+  "line_count": 208,
+  "expected_monthly_waste_usd": 1435.67,
+  "reveal_date": "2026-05-11",
+  "due_date": "2026-05-18"
+}

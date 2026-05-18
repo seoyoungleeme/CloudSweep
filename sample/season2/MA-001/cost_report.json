@@ -1,0 +1,166 @@
+{
+  "scenario_id": "fusion",
+  "currency": "USD",
+  "period_months": 6,
+  "_fusion_components": [
+    "L2-014",
+    "L1-011",
+    "L1-010"
+  ],
+  "monthly_data": [
+    {
+      "month_offset": 5,
+      "label": "M-5",
+      "total_spend_usd": 10260.51,
+      "waste_usd": 1460.32,
+      "waste_pct": 14.23,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 906.98,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 593.68,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 218.7,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 4,
+      "label": "M-4",
+      "total_spend_usd": 11312.72,
+      "waste_usd": 1461.35,
+      "waste_pct": 12.92,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 997.57,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 800.1,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 227.42,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 3,
+      "label": "M-3",
+      "total_spend_usd": 10933.21,
+      "waste_usd": 1422.97,
+      "waste_pct": 13.02,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 934.22,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 722.28,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 193.61,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 2,
+      "label": "M-2",
+      "total_spend_usd": 10719.71,
+      "waste_usd": 1430.63,
+      "waste_pct": 13.35,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 1023.86,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 760.81,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 160.57,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 1,
+      "label": "M-1",
+      "total_spend_usd": 10692.13,
+      "waste_usd": 1466.32,
+      "waste_pct": 13.71,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 894.12,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 581.82,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 168.92,
+          "contains_waste": true
+        }
+      ]
+    },
+    {
+      "month_offset": 0,
+      "label": "M-0",
+      "total_spend_usd": 10543.9,
+      "waste_usd": 1372.41,
+      "waste_pct": 13.02,
+      "services": [
+        {
+          "service": "Lambda",
+          "spend_usd": 903.22,
+          "contains_waste": true
+        },
+        {
+          "service": "DynamoDB",
+          "spend_usd": 575.67,
+          "contains_waste": true
+        },
+        {
+          "service": "S3",
+          "spend_usd": 233.44,
+          "contains_waste": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "avg_monthly_total": 10743.71,
+    "avg_monthly_waste": 1435.67,
+    "waste_services": [
+      "DynamoDB",
+      "Lambda",
+      "S3"
+    ],
+    "pricing_note": "[L2-014] Lambda 비용 = 요청 수 + (Duration x 할당 메모리 GB-초). 3008MB → 512MB로 줄이면 함수당 약 $250/mo 절감 (3 함수 합계 $750/mo). · [L1-011] 8 TB eligible × ($0.023 - $0.004)/GB = 8,192 GB × $0.019 ≈ $155.6 → ~$152/mo · [L1-010] 미사용 WCU: 900 × $0.00065/hr × 730hr ≈ $427. 미사용 RCU: 4500 × $0.00013/hr × 730hr ≈ $427. 총 약 $522/mo 낭비 (실사용 대비 초과분)"
+  }
+}

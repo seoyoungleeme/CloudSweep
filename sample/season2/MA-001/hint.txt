@@ -1,0 +1,36 @@
+# Multi-Agent 분석 힌트
+
+## MA-001 · Lambda + S3 + DynamoDB 결합 — 컨텍스트 분할 문제
+
+Lambda 전문가 + Storage 전문가 + DynamoDB 전문가 + Orchestrator로 분할하면 cross-domain query가 가능해집니다.
+
+## 컴포넌트별 추천 전문가 분담
+
+이 시나리오에 심어진 패턴들:
+- L2-014
+- L1-011
+- L1-010
+
+위 패턴들은 서로 다른 AWS 서비스/도메인에 속해 있어, 도메인별 전문가에게 분담하면
+각 전문가의 컨텍스트가 줄고 정확도가 올라갑니다.
+
+## 측정해 봐야 할 metric
+
+1. **Recall** = (찾은 문제 수) / (실제 문제 수). 이 시나리오는 3개 패턴이 심어져 있음.
+2. **토큰 사용량** = LLM API 호출 시 총 input + output tokens.
+3. **Wall-clock 시간** = 분석 시작 → 결과 출력까지 실제 경과 시간.
+4. **비용** = 토큰 × 단가. multi-agent는 일반적으로 단일 대비 토큰 ~15x 사용.
+
+## 단일 에이전트 베이스라인 측정 팁
+
+- 본인 도구의 기존 entry point로 main.tf + cost_report + metrics를 그대로 입력
+- LLM API 응답에서 input/output token 수 기록
+- 분석 결과에서 unique한 문제 항목 수 카운트
+- 30일 metric을 봐야 잡히는 패턴(L2)이 잡혔는지 별도 표시
+
+## 멀티 에이전트 설계 시 고려할 것
+
+- **분할 기준**: AWS 서비스별 / 라이프사이클별 / 비용 카테고리별 중 선택
+- **컨텍스트 격리**: 각 전문가가 받는 main.tf chunk는 자기 도메인만 (다른 도메인 리소스 노이즈 제거)
+- **Orchestrator의 역할**: cross-domain 질문 받아 재분배, 최종 종합
+- **Framework 선택**: Claude Code Subagent / LangGraph / Strands SDK / Bedrock AgentCore 중 본인 도구 스택과 가장 맞는 것
