@@ -12,168 +12,62 @@ user_invocable: false
 
 ## Scope
 
-Analyze AWS Organizations and billing architecture from a FinOps perspective.
-The goal is to improve discount sharing, volume discount aggregation, commitment
-planning, cost visibility, and governance without crossing legal, security,
-commercial, or chargeback boundaries.
+Improve discount sharing, volume discount aggregation, commitment planning,
+cost visibility, and governance without crossing legal, security, commercial,
+or chargeback boundaries.
 
-Important safety rule:
+## Input Mode
 
-Do not recommend consolidating accounts or enabling RI/SP sharing solely from
-spend data. Confirm organization membership, payer/management account design,
-sharing preferences, Billing Conductor or billing transfer use, legal entity
-constraints, chargeback requirements, and account ownership first.
+- **Orchestrator subagent mode** (`=== TERRAFORM ===` present): inline slices only.
+- **Standalone mode**: scan `WORK_DIR` for full inputs.
 
-## Step 1 - Locate Input Files
+## Required Evidence
 
-Recursively scan `WORK_DIR` and list every available file before analysis.
+| File | Used For | If Missing |
+|------|----------|------------|
+| `main.tf` | `aws_organizations_organization`, accounts, OUs, billing/sharing metadata | Cannot analyze; ask for path |
+| `metrics.json` | Account spend, RI/SP coverage, utilization, sharing prefs, discount leakage, account mapping | Mark metrics unavailable |
+| `cost_report.json` | Monthly cost, pricing notes, commitment coverage, payer/account data | Mark cost unavailable |
+| `ri_sp_coverage.json` | Optional RI/SP coverage, utilization, recommendations, commitment scenarios | Mark RI/SP detail unavailable |
 
-| File | Description | If Missing |
-|------|-------------|------------|
-| `main.tf` | Terraform `aws_organizations_organization`, accounts, OUs, billing/sharing metadata when present | Cannot analyze; ask user for path |
-| `metrics.json` | Account spend, RI/SP coverage, utilization, sharing preferences, discount leakage, and account mapping | Mark metrics section as unavailable |
-| `cost_report.json` | Monthly cost history, pricing notes, commitment coverage, and payer/account-level data | Mark cost section as unavailable |
-| `ri_sp_coverage.json` | Optional RI/SP coverage, utilization, recommendations, and commitment scenarios | Mark RI/SP detail as unavailable |
+Missing facts → write `Not available in the provided data; verify in the real environment.`
 
-Base every conclusion on provided files. If a fact is not present, write:
-`Not available in the provided data; verify in the real environment.`
-
-## Step 2 - Analyze Evidence
-
-Read the input files and apply detection rules from
-`rules/consolidated_billing.json`.
-
-### Detection Rules
+## Detection Rules (apply `rules/consolidated_billing.json`)
 
 | Rule | Condition | Severity | Action |
 |------|-----------|----------|--------|
-| O1 | Accounts are outside consolidated billing or sharing family and discount leakage is evidenced | HIGH | REVIEW_CONSOLIDATED_BILLING |
-| O2 | RI/SP sharing disabled or scoped in a way that causes unused commitments and on-demand leakage | HIGH | REVIEW_DISCOUNT_SHARING |
-| O3 | Coverage is low but utilization and workload stability support a commitment plan | MEDIUM | MODEL_RI_SP_PURCHASE |
-| O4 | Utilization is low or commitments are stranded | MEDIUM | REALIGN_COMMITMENTS |
-| O5 | Cost allocation, tags, OU/account mapping, or chargeback data is insufficient | MEDIUM | IMPROVE_COST_GOVERNANCE |
+| O1 | Accounts outside consolidated billing or sharing family with evidenced leakage | HIGH | REVIEW_CONSOLIDATED_BILLING |
+| O2 | RI/SP sharing disabled or scoped causing unused commitments + on-demand leakage | HIGH | REVIEW_DISCOUNT_SHARING |
+| O3 | Coverage low but utilization + workload stability supports commitment plan | MEDIUM | MODEL_RI_SP_PURCHASE |
+| O4 | Utilization low or commitments stranded | MEDIUM | REALIGN_COMMITMENTS |
+| O5 | Cost allocation, tags, OU/account mapping, or chargeback insufficient | MEDIUM | IMPROVE_COST_GOVERNANCE |
 
-### Required Safety Checks
+## Safety Guardrails
 
-Before recommending billing consolidation or sharing changes:
+- Do not recommend account consolidation or RI/SP sharing from spend alone.
+  Confirm org membership, payer/management design, sharing prefs, Billing
+  Conductor / transfer use, legal entity constraints, chargeback requirements,
+  account ownership first.
+- Prefer an operational plan over Terraform-applied billing changes.
 
-- Confirm the accounts belong to the same legal/commercial billing scope.
-- Confirm RI/SP sharing preferences at the management account and account level.
-- Confirm Billing Conductor, billing transfer, or custom chargeback does not
-  intentionally isolate charges.
-- Confirm commitment type, region, instance family, tenancy, OS, and engine
-  eligibility where applicable.
-- Confirm shared discounts will not break team chargeback/showback agreements.
+Full pre-change checklist: `references/details.md` § Required Safety Checks.
 
-## Step 3 - Deep Architectural Analysis
+## Output
 
-Cover these sections in the final report:
+Write to `WORK_DIR/result/`:
+- `finops_report.md` — template in `references/report.md`.
+- `main_optimized.tf` or operational plan — preserve real account names; don't
+  move accounts/create commitments in Terraform without evidence. Full rules:
+  `references/details.md` § Optimized Terraform / Operational Plan.
 
-### 3.1 Infrastructure and Account Evidence
+## Reference Index
 
-- Organization, OU, account, payer, and management account evidence.
-- Consolidated billing status and discount sharing preferences when present.
-- Account ownership, cost center, environment, and workload mapping.
-
-### 3.2 RI/SP Coverage Evidence
-
-- On-demand percentage, RI/SP coverage, utilization, effective savings rate,
-  unused commitments, and stranded discounts.
-- Distinguish coverage opportunity from utilization waste.
-
-### 3.3 Cost Evidence
-
-- Monthly spend trend by account or payer when available.
-- Service mix and commitment-eligible spend.
-- Any pricing notes or recommendation scenarios.
-
-### 3.4 Root Cause
-
-Frame root cause as governance or purchasing architecture:
-
-- Accounts are fragmented across billing families.
-- Discount sharing preferences block otherwise eligible RI/SP coverage.
-- Commitments are purchased locally without centralized planning.
-- Cost allocation data is insufficient for central commitment planning.
-
-## Savings Calculation
-
-Prefer this order of evidence:
-
-1. Use explicit savings estimates in `cost_report.json` or `ri_sp_coverage.json`.
-2. Use eligible on-demand spend times a documented modeled savings percentage.
-3. Treat any static or Terraform-provided savings percentage as potential until
-   commitment eligibility and sharing preferences are verified.
-
-Do not count savings from new RI/SP purchases unless utilization, term, payment
-option, service eligibility, and risk tolerance are modeled.
-
-If RI/SP eligibility for a specific service, engine, or region is unclear from
-the provided data, call `aws-docs` to verify before including it in the savings
-estimate. Do not call aws-docs when eligibility is already confirmed by
-cost_report or ri_sp_coverage data.
-
-## Step 4 - Optimized Terraform or Operational Plan
-
-Create `WORK_DIR/main_optimized.tf` or an operational plan when appropriate.
-
-Rules:
-
-- Do not use placeholders such as `<resource-name>`.
-- Preserve real resources and account names.
-- Do not move accounts, change sharing preferences, or create commitments in
-  Terraform unless the provided files include enough evidence.
-- Prefer an operational plan for billing architecture changes: validate
-  accounts, update sharing preferences, run commitment analysis, then implement.
-- Add comments explaining assumptions and verification steps.
-
-## Step 5 - Write Final Report
-
-Save `WORK_DIR/finops_report.md` and include the report in the response.
-
-Report format:
-
-```markdown
-# FinOps Organizations Analysis Skill Report - <Scenario ID>
-
-## Problem Identification
-| Category | Details |
-|----------|---------|
-| Waste Type | Missed consolidated billing, RI/SP sharing, or commitment planning savings |
-| Affected Accounts | X of Y |
-| Monthly Waste | $XX potential/confirmed |
-| Confidence | High/Medium/Low with reason |
-
-## Evidence
-
-### Infrastructure and Accounts
-<organization, account, payer, sharing, and governance evidence>
-
-### RI/SP Coverage
-<coverage, utilization, on-demand leakage, stranded commitment evidence>
-
-### Cost Report
-<monthly spend and savings assumptions>
-
-## Root Cause
-<billing governance cause>
-
-## Proposed Solution
-
-### Immediate Actions
-1. Validate account scope and sharing preferences.
-2. Model RI/SP sharing and commitment scenarios before changes.
-
-### Preventive Actions
-1. Centralize commitment planning.
-2. Enforce account cost ownership and allocation tags.
-3. Review coverage and utilization monthly.
-
-## Estimated Monthly Savings
-$XX.XX with assumptions and confidence.
-
-## Optimized Terraform / Operational Plan
-<real resource-based plan>
-```
+| When | File | Search for |
+|------|------|------------|
+| Pre-change validation | `references/details.md` | Required Safety Checks |
+| Evidence sections | `references/details.md` | Deep Architectural Analysis |
+| Savings / aws-docs trigger | `references/details.md` | Savings Calculation |
+| Preventive actions | `references/details.md` | Preventive Actions |
+| Report writing | `references/report.md` | full markdown template |
 
 Generated by: finops-organizations skill

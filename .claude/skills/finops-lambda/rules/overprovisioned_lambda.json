@@ -83,6 +83,15 @@
       "action": "FIX_ERROR_RETRY_COST",
       "confidence": "HIGH",
       "description": "Errors, timeouts, retries, or backlog may be driving avoidable Lambda and downstream cost. Fix reliability before pure rightsizing."
+    },
+    {
+      "id": "L7",
+      "name": "downstream_request_amplification",
+      "condition": "downstream_requests_per_invocation is high_or_rising AND cache_hit_rate is missing_or_low AND downstream_request_cost_material == true",
+      "severity": "HIGH",
+      "action": "REDUCE_DEPENDENCY_CALLS_OR_CACHE",
+      "confidence": "MEDIUM",
+      "description": "Repeated downstream storage/API calls can drive both Lambda duration and request spend. Attribute the caller and reduce calls or add caching before treating the issue as memory-only waste."
     }
   ],
   "memory_recommendation": {

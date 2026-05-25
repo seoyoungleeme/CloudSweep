@@ -12,15 +12,26 @@ user_invocable: false
 
 ## Purpose
 
-Use this skill when a workspace contains AWS infrastructure files and the user
-asks for cloud cost, waste, or FinOps analysis. The orchestrator inspects
-available files, identifies the AWS services in scope, then either delegates to
-a single service skill (single-domain) or dispatches parallel subagents
+Use when a workspace contains AWS infrastructure files and the user asks for
+cloud cost or FinOps analysis. Inspect inputs, identify domains, then route to
+a single service skill (single-domain) or dispatch parallel subagents
 (multi-domain).
 
-## Inputs
+## Input Slice Contract
 
-Look for these files anywhere under the working directory:
+**Multi-domain mode** — subagents receive inline slices only:
+- `=== TERRAFORM ===`, `=== METRICS ===`, `=== COST REPORT ===`, `WORKLOAD_PATH`,
+  and `RELATED_CONTEXT` in the subagent prompt are the **authoritative, complete
+  inputs** for that domain.
+- Subagents **must not** read `main.tf`, `metrics.json`, or `cost_report.json`
+  from WORK_DIR. Full file reads are forbidden in this mode.
+- If a section reads `"No matching metrics found..."` or `"No cost data..."`,
+  state that in the report — do not rescan WORK_DIR.
+
+**Standalone mode** (single domain, no inline slices) — full file access is
+permitted; the domain skill's own Step 1 file-location rules apply.
+
+## Inputs
 
 | File | Purpose |
 |------|---------|
@@ -30,218 +41,258 @@ Look for these files anywhere under the working directory:
 | `findings.json` | Existing analyzer output, when available |
 | `parsed_input.json` | Existing parser output, when available |
 
-If required evidence is missing, state exactly what is unavailable and avoid
-guessing.
+If required evidence is missing, state exactly what is unavailable.
+
+## Output Directory
+
+Write all generated artifacts under `<WORK_DIR>/result/` (create if missing).
+Example: `sample/season2/MA-001` → `sample/season2/MA-001/result/`.
+
+---
 
 ## Domain Detection
 
-After reading `main.tf`, list every service domain present using this table:
+After reading `main.tf`, list every service domain present:
 
 | Resource keyword | Domain | Skill |
 |-----------------|--------|-------|
 | `aws_lb`, ALB, ELB | elb | `finops-elb` |
 | `aws_ebs_snapshot` | ebs | `finops-ebs` |
 | `aws_db_instance`, RDS | rds | `finops-rds` |
-| `aws_s3_bucket`, lifecycle/versioning | s3 | `finops-s3` |
-| `aws_lambda_function` | lambda | `finops-lambda` |
-| `aws_dynamodb_table` | dynamodb | `finops-dynamodb` |
+| `aws_s3_bucket` and lifecycle/versioning/policy | s3 | `finops-s3` |
+| `aws_lambda_function`, aliases, concurrency, ESMs; `aws_iam_role` only when assume-role contains `lambda.amazonaws.com` | lambda | `finops-lambda` |
+| `aws_dynamodb_table`, `aws_appautoscaling_target/policy`, GSI | dynamodb | `finops-dynamodb` |
 | `aws_elasticache_replication_group` | elasticache | `finops-elasticache` |
 | `aws_sqs_queue` | sqs | `finops-sqs` |
 | `aws_kinesis_stream` | kinesis | `finops-kinesis` |
 | `aws_nat_gateway`, VPC endpoints | nat | `finops-nat` |
-| `aws_ec2_transit_gateway`, TGW attachment, VPC peering | tgw | `finops-tgw` |
+| `aws_ec2_transit_gateway`, TGW attachment, peering | tgw | `finops-tgw` |
 | AWS Organizations, RI/SP pooling | organizations | `finops-organizations` |
 | `aws_cloudwatch_metric_alarm`, high-resolution metric | cloudwatch-alarm | `finops-cloudwatch-alarm` |
-| `aws_cloudwatch_log_group`, retention policy | cloudwatch | `finops-cloudwatch` |
+| `aws_cloudwatch_log_group` (non-lambda-scoped) | cloudwatch | `finops-cloudwatch` |
+| `aws_sfn_state_machine`; `aws_cloudwatch_event_target` with `states` arn | stepfunctions | cross-service |
+| `aws_cloudfront_distribution`, cache/origin | cloudfront | cross-service |
+| `aws_vpc_endpoint`, private subnet → AWS svc via NAT | vpc-endpoint | via nat |
 
-## MCP Integration
+---
 
-Two MCP servers are available. Use them at every opportunity — they provide
-real-time pricing and authoritative documentation that static rule files cannot.
+## Cross-Service Coupling
 
-### aws-pricing MCP
+Run **after** domain detection, **before** routing.
 
-| Tool | When to call |
-|------|-------------|
-| `mcp__aws-pricing__get_pricing_service_codes` | Once per run to confirm the correct service code before any pricing query |
-| `mcp__aws-pricing__get_pricing` | For every savings calculation when `cost_report.json` has no `pricing_note`, or to verify a `pricing_note` against live prices |
+This step must infer workload behavior from Terraform, metrics, cost, and
+RELATED_CONTEXT. Do not use scenario IDs, filenames, assignment titles, or
+hint text as proof of a finding. They can suggest what to inspect, but the
+report must cite observable evidence or state the evidence gap.
 
-**Service code map** (use with `get_pricing`):
+### Workload Path
 
-| Domain | service_code |
-|--------|-------------|
-| lambda | `AWSLambda` |
-| dynamodb | `AmazonDynamoDB` |
-| s3 | `AmazonS3` |
-| elb | `AWSELB` |
-| rds | `AmazonRDS` |
-| elasticache | `AmazonElastiCache` |
-| kinesis | `AmazonKinesis` |
-| sqs | `AmazonSQS` |
-| nat / ebs / ec2 | `AmazonEC2` |
-| cloudwatch | `AmazonCloudWatch` |
+Trace: caller → network → compute → storage/API → egress.
 
-Always pass `region` matching the Terraform provider region (default `us-east-1`).
-Use `output_options: {"pricing_terms": ["OnDemand"]}` to keep responses small.
+| Layer | Resources |
+|-------|-----------|
+| Entry | `aws_lb`, `aws_api_gateway_*`, `aws_cloudfront_distribution`, SQS/S3 trigger |
+| Compute | `aws_lambda_function`, `aws_ecs_service`, `aws_instance` |
+| Network | `aws_vpc`, subnets, `aws_nat_gateway`, `aws_vpc_endpoint`, `aws_ec2_transit_gateway` |
+| Storage/DB | `aws_s3_bucket`, `aws_dynamodb_table`, `aws_db_instance`, `aws_elasticache_replication_group` |
+| Orchestration | `aws_sfn_state_machine`, `aws_cloudwatch_event_rule` |
+| Egress | `aws_internet_gateway`, `aws_nat_gateway`, `aws_cloudfront_distribution` |
 
-### aws-docs MCP
+Build `caller → [NAT|Endpoint] → compute → [S3|DynamoDB|RDS] → egress` and
+pass as `WORKLOAD_PATH` in every subagent prompt.
 
-| Tool | When to call |
-|------|-------------|
-| `mcp__aws-docs__search_documentation` | For every remediation recommendation — fetch the canonical doc URL and cite it in the report |
+### Request-Amplification Check
 
-Typical queries: `"DynamoDB auto scaling provisioned capacity"`,
-`"S3 lifecycle configuration Glacier transition"`,
-`"Lambda memory power tuning"`.
+For every compute domain connected to storage/API domains, check whether
+downstream calls are the cost driver before applying only service-local rules.
+
+Evidence to derive when present:
+- `downstream_requests_per_compute_invocation =
+  downstream_request_count / compute_invocation_count`
+- co-movement of compute duration/cost and downstream request rate
+- request-cost share versus storage/capacity share
+- cache layer evidence: CloudFront, ElastiCache, DAX, API Gateway cache,
+  Lambda execution-context/extension cache, or app-level cache metric
+
+If request metrics exist but invocation/cache metrics are missing, report the
+finding as `Suspected request amplification` with instrumentation required
+instead of forcing an unrelated local remediation. If both sides are present
+and the ratio is repeatedly high, prioritize request reduction/caching over
+memory rightsizing, lifecycle, or capacity changes.
+
+### Cascade Patterns
+
+| Pattern | Surface | Driver | Signal |
+|---------|---------|--------|--------|
+| Compute → storage/API request amplification | Compute duration + request spend | Repeated downstream calls; no cache evidence | downstream requests / invocation |
+| Lambda → S3 GET no cache | Lambda duration | S3 GETs + transfer | GetObject/invocation ratio |
+| Polling Lambda → SFN | SFN transitions | Lambda × retry multiplier | ExecutionsFailed ratio |
+| Private subnet → AWS svc via NAT | NAT GB | Eliminable with Gateway Endpoint | Route table, no endpoint |
+| Low CloudFront hit → origin | CF spend | Origin compute | CacheHitRate < 80% |
+| Retry loop | Lambda/ECS errors | DB writes + NAT + logs | Errors + ConsumedWCU spike |
+| ECS → S3/DynamoDB via NAT | NAT GB | Gateway Endpoint eliminates it | Private subnet, no endpoint |
+
+Formulas (NAT/Endpoint, Step Functions, CloudFront) and remediation templates:
+`references/cross-service-playbooks.md`.
+
+---
+
+## Pricing & MCP
+
+Default policy: scenario `cost_report` → aws-pricing MCP → rule fallback →
+`[estimate]`. MCP unavailable → fall back immediately, never block. Cite
+`mcp__aws-docs__search_documentation` URL for each remediation. Service codes,
+call template, and full pricing rules: `references/pricing-policy.md`.
 
 ---
 
 ## Single-Domain Routing
 
 If **exactly one domain** is detected: read `.claude/skills/finops-[service]/SKILL.md`
-and follow its full instructions directly (no subagent needed).
+and follow its instructions in **standalone mode** (full file access permitted).
 
 ## Multi-Domain Dispatch
 
-If **two or more domains** are detected in `main.tf`:
+If **two or more domains** are detected: prefer parallel subagents; fall back
+to sequential with isolated context per domain (no shared state).
 
-### Step 1 — Prepare per-domain inputs
+### Step 1 — Build per-domain slices
 
-For each detected domain, extract:
+Never pass an unsliced full file to any subagent.
 
-- **TF chunk** — `resource` blocks whose type matches the domain (from the
-  Domain Detection table) **plus all associated configuration resources**
-  (e.g., `aws_s3_bucket_lifecycle_configuration` and
-  `aws_s3_bucket_versioning` belong to the s3 domain;
-  `aws_appautoscaling_target` for a DynamoDB table belongs to the dynamodb
-  domain). Preserve section comment headers so the subagent can orient itself.
-- **Metrics slice** — filter `metrics.json` by resource key prefix that maps
-  to that domain's resources. Use Grep on the metrics file with each resource
-  name from the TF chunk to locate its key, then Read only those line ranges.
-  For large metrics files (>100 KB), pass statistical summaries (min/max/avg/
-  p95/p99 per metric) rather than raw datapoints.
-- **Cost slice** — the matching `services[]` entry from `cost_report.json`
-  plus the `summary.pricing_note` substring relevant to that domain.
+**1-a. TF chunk** — Extract `resource` blocks from `main.tf` whose type matches
+this domain's keywords. Include associated resources: autoscaling
+targets/policies, lifecycle rules, log groups, route tables, endpoint
+associations, target groups, listeners, GSI blocks. Preserve comment headers.
+**Verify**: ≥ 1 `resource` block — empty chunk means false detection, remove domain.
+
+**1-b. Metrics slice** — Identifiers per domain from the TF chunk:
+- Terraform local name (`resource "TYPE" "NAME"`)
+- Config values: `function_name`, `bucket`, `table_name`, `queue_name`,
+  `stream_name`, `name`, `log_group_name`, cluster/service name, `tags.Name`, ARN suffix
+- Associated resources (autoscaling target, GSI, log group, route table, target group, listener)
+
+Grep `metrics.json` for each identifier (quoted). Read matched line ranges.
+**Size gate**: raw slice > 20 KB → replace with per-metric summary:
+`resource: NAME  metric: KEY  count: N  min/max/avg/p95/p99: X`.
+**Verify**: no match → pass `"No matching metrics found for this domain"`. Never pass full file.
+
+**1-c. Cost slice** — Match `service` (case-insensitive) using aliases in
+`references/domain-aliases.md`. Aggregate from `monthly_data[].services[]`:
+```
+period_months          = cost_report.period_months  OR  len(monthly_data)
+total_period_spend_usd = sum(matched spend_usd across months)
+avg_monthly_spend_usd  = total_period_spend_usd / period_months
+contains_waste         = any(matched contains_waste == true)
+```
+Include `monthly_series` only for anomaly/spike analysis. Extract
+domain-relevant sentences from `summary.pricing_note`.
+
+Pass only:
+```json
+{
+  "avg_monthly_spend_usd": <number>,
+  "total_period_spend_usd": <number>,
+  "period_months": <int>,
+  "contains_waste": <bool>,
+  "pricing_note": "<domain-relevant substring>"
+}
+```
+**Verify**: no match → pass `"No cost data for this domain in cost_report.json"`. Never pass full file.
+
+**1-d. RELATED_CONTEXT** — Build once from the workload path and adjacent
+domain summaries, then pass the relevant subset to each subagent.
+- dependency edges inferred from Terraform references, env vars, IAM policies,
+  event sources, resource names, tags, or scenario metrics keys
+- compute-side metrics: invocations/request count, duration avg/p95/p99,
+  errors/retries/timeouts when available
+- storage/API-side metrics: GET/HEAD/LIST/read/write request count, throttles,
+  request-cost share, storage/capacity share when available
+- derived ratios: downstream requests per invocation, cache hit rate, and
+  co-movement notes; use `Not available` for missing inputs
+- cache evidence: CloudFront, ElastiCache, DAX, API Gateway cache, Lambda
+  extension/execution-context cache, or app-level cache metric
+
+Never fill RELATED_CONTEXT from scenario ID alone. If the ratio cannot be
+computed, preserve the question for the subagent as an instrumentation gap.
 
 ### Step 2 — Spawn parallel subagents
 
-Use the **Agent tool** to launch one subagent per domain simultaneously.
-Do NOT run them sequentially.
-
-Each subagent prompt must include all of the following inline:
+Each subagent prompt must include:
 
 ```
-You are a [Lambda / S3 / DynamoDB / …] FinOps domain expert.
+You are a [DOMAIN] FinOps domain expert. Analyze ONLY the inline slices below.
+Do NOT read WORK_DIR/main.tf, metrics.json, or cost_report.json — those are off-limits.
 
-Step 1 — Read the skill rules:
-  Read .claude/skills/finops-[service]/SKILL.md and follow its analysis rules.
+Step 1 — Read .claude/skills/finops-[service]/SKILL.md. The skill's file-location
+  instructions do not apply; your inputs are the inline slices.
 
-Step 2 — Fetch live pricing (REQUIRED):
-  Call mcp__aws-pricing__get_pricing with:
-    service_code: [see service code map in finops/SKILL.md]
-    region: [from Terraform provider, default us-east-1]
-    output_options: {"pricing_terms": ["OnDemand"]}
-  Use the returned prices for savings arithmetic.
-  If the MCP call fails, fall back to cost_report pricing_note, then rule file.
+Step 2 — Verify pricing via mcp__aws-pricing__get_pricing (service_code per
+  references/pricing-policy.md, region from provider, tight filters,
+  max_results=10, output_options={"pricing_terms":["OnDemand"]}).
+  Cross-check only; scenario pricing_note is the final estimate.
 
-Step 3 — Fetch documentation reference (REQUIRED):
-  Call mcp__aws-docs__search_documentation with a query specific to the
-  waste pattern found (e.g. "Lambda memory right-sizing power tuning").
-  Include the top result URL in the report under each remediation.
+Step 3 — Fetch a doc URL via mcp__aws-docs__search_documentation (REQUIRED).
 
-Step 4 — Produce output:
-1. Waste findings — resource name, pattern ID, severity, evidence.
-2. Optimized Terraform fragment — real resource names, no placeholders.
-3. Monthly savings estimate — show full arithmetic with MCP-sourced prices.
-4. Confidence level — High / Medium / Low with reason.
-5. Doc reference — URL from aws-docs MCP per finding.
+Step 4 — Cross-service check: using WORKLOAD_PATH and RELATED_CONTEXT, identify
+  upstream drivers and downstream impacts. If cascade confirmed:
+  total_workload_cost = compute + requests + storage_or_db + network + logs + orchestration
+  Always run the generic request-amplification/cache-miss check when compute
+  and storage/API domains are both present. Do not infer it from scenario_id;
+  cite invocation/request/cache evidence or mark the instrumentation gap.
 
-WORK_DIR: <absolute path to the scenario directory>
+Step 5 — Per finding output:
+  1. Resource name, rule ID, severity, evidence (+ cascade sub-row if any).
+  2. Optimized TF fragment (real names, no placeholders).
+  3. Monthly savings with arithmetic and pricing source.
+  4. Confidence: High / Medium / Low with reason.
+  5. Doc URL.
+  6. MCP result: called / unavailable / skipped.
 
-=== TERRAFORM (this domain only) ===
-<filtered TF chunk>
+WORK_DIR: <path>
+RESULT_DIR: <WORK_DIR>/result
+DOMAIN: <domain>
+RESOURCES: <TF local names>
+WORKLOAD_PATH: <e.g. "ALB → Lambda → DynamoDB via NAT">
+RELATED_CONTEXT: <upstream/downstream names; route/NAT/endpoint facts;
+  dependency edges; invocation/request ratios; cache-layer evidence; request
+  cost share; avg_monthly_spend_usd + GB summary for adjacent domains. Raw
+  file content excluded.>
 
-=== METRICS (this domain only — statistical summaries for large files) ===
-<filtered metrics slice>
+=== TERRAFORM ([DOMAIN] — [N] blocks) ===
+<TF chunk from Step 1-a>
 
-=== COST REPORT (this domain only) ===
-<filtered cost slice as JSON>
+=== METRICS ([DOMAIN]) ===
+<Metrics slice or "No matching metrics found for this domain">
+
+=== COST REPORT ([DOMAIN]) ===
+<Cost slice JSON or "No cost data for this domain in cost_report.json">
 ```
 
-### Step 3 — Aggregate results
+### Step 3 — Aggregate
 
-After all subagents complete:
+Merge findings into `result/finops_report.md` (template: `references/report-template.md`)
+and merge optimized TF into `result/main_optimized.tf`. Full aggregation and
+scoring rules: `references/scoring.md`.
 
-1. Merge all domain findings into one `finops_report.md` (sections per domain,
-   summary table at the top).
-2. Merge all optimized TF fragments into one `main_optimized.tf` (preserve
-   unchanged resources from every domain).
-3. Add a **Cross-Domain Interactions** section noting emergent findings only
-   visible when all domains are in view (e.g., Lambda calling an
-   over-provisioned DynamoDB table — both wastes compound).
-4. Sum savings with a per-domain breakdown table.
-5. If any subagent skipped the MCP pricing step (e.g., due to tool denial),
-   call `mcp__aws-pricing__get_pricing` directly here for that domain and
-   patch the savings figure before writing the final report.
-
-## Analysis Rules
-
-- Base conclusions on cross-file evidence from the workspace.
-- Always read `main.tf`, `metrics.json`, and `cost_report.json` when present
-  before choosing a remediation.
-- Mark missing facts as `Not available in the provided data; verify in the
-  real environment`.
-- Do not claim live AWS state unless it is explicitly present in the files.
-- Keep Terraform changes scoped to the affected resources.
-- Preserve real resource names and avoid placeholders.
-- Preserve decoy or healthy resources. Never delete or modify resources whose
-  tags, metrics, or cost evidence mark them as compliant, active, retained, or
-  outside the detected waste pattern.
-- Compute savings from the provided cost report or official AWS unit prices and
-  show the arithmetic. Keep estimates tied to the affected resources only.
-- Always produce `finops_report.md`; `main_optimized.tf` alone is incomplete.
-- Prefer configuration fixes over deletion when the waste type is lifecycle,
-  retention, polling, rightsizing, or routing related.
-
-## Scoring Guardrails
-
-Use this checklist before final output:
-
-1. Scenario match: every detected domain has a corresponding finding.
-2. Cross evidence: every finding cites Terraform, metrics, and cost evidence,
-   or clearly states what is unavailable.
-3. Decoy preservation: normal resources remain unchanged in `main_optimized.tf`.
-4. Savings accuracy: savings are within a reasonable range of cost evidence.
-5. Report completeness: `finops_report.md` includes problem, evidence, root
-   cause, remediation, prevention, and savings for each domain.
+---
 
 ## Outputs
 
-When enough evidence is present, produce:
+1. `result/finops_report.md` — unified 4-section report.
+2. `result/main_optimized.tf` — merged optimized Terraform across all domains.
+3. Concise final response: changed files, per-domain recall, verification gaps.
 
-1. `finops_report.md` — all domain findings, cross-domain interactions, savings
-   summary.
-2. `main_optimized.tf` — merged optimized Terraform for all affected domains.
-3. A concise final response with changed files, per-domain recall, and any
-   verification gaps.
+---
 
-### Required Measurement Block (multi-domain runs only)
+## Reference Index
 
-Include this table at the top of `finops_report.md`:
-
-```markdown
-## Analysis Metrics
-| Metric | Value |
-|--------|-------|
-| Recall | X / Y patterns found |
-| Domains analyzed | N |
-| Agent count | 1 orchestrator + N domain experts |
-| Total tokens (est.) | input + output across all agents |
-| Wall-clock time (est.) | seconds from dispatch to aggregation |
-| Est. analysis cost | tokens × $0.000003/token (Sonnet) |
-```
-
-Recall denominator comes from the count of seeded or known waste patterns
-(check `cost_report.json` `_fusion_components` or scenario metadata).
+| When to read | File | Look for |
+|-------------|------|----------|
+| Building cost slice | `references/domain-aliases.md` | service alias table |
+| Pricing / MCP call | `references/pricing-policy.md` | service codes, call template |
+| Cascade formulas, remediations | `references/cross-service-playbooks.md` | Request-Amplification, Cost Formulas, VPC Endpoint, SFN, CloudFront, Athena, Anomaly |
+| Report writing | `references/report-template.md` | 4-section layout, Agent Performance JSON |
+| Aggregation / scoring | `references/scoring.md` | guardrails, recall denominator, aggregation steps |
 
 Generated by: finops orchestrator skill — Claude Code

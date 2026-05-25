@@ -63,6 +63,15 @@
       "action": "ADD_GOVERNANCE_TAGS",
       "confidence": "HIGH",
       "description": "Missing lifecycle governance tags make safe retention decisions difficult."
+    },
+    {
+      "id": "R1",
+      "name": "request_amplification_or_cache_miss",
+      "condition": "GET_OR_HEAD_request_rate_material == true AND upstream_requests_per_invocation is high_or_rising AND cache_hit_rate is missing_or_low",
+      "severity": "HIGH",
+      "action": "REDUCE_REQUESTS_OR_ADD_CACHE",
+      "confidence": "MEDIUM",
+      "description": "S3 request cost may be driven by repeated upstream reads rather than storage lifecycle. Attribute the caller and recommend caching or request coalescing before lifecycle-only remediation."
     }
   ],
   "lifecycle_recommendations": {
@@ -87,10 +96,12 @@
       "Check Object Lock, legal hold, compliance, backup, replication, and restore requirements.",
       "Check data classification and owner approval.",
       "Model storage class transition retrieval and minimum-duration charges.",
+      "Attribute high request rates to callers before changing lifecycle or storage class.",
       "Apply lifecycle changes gradually where risk is high."
     ],
     "reporting": [
       "Separate noncurrent expiration, multipart abort, and storage-class transition savings.",
+      "Separate request-reduction/cache savings from storage lifecycle savings.",
       "Use region-specific pricing and storage class line items when available.",
       "Report confidence based on retention evidence and cost line-item quality."
     ]
