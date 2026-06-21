@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "EBS_SNAPSHOT_POLICY", "domain": "ebs",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "ebs.extract", "savings": "ebs.savings", "remediation": "ebs.remediation"},
   "rule_name": "ebs_snapshot_lifecycle_policy",
   "description": "Identifies EBS snapshots that are potentially orphaned, stale, over-retained, archive candidates, or missing lifecycle governance. Destructive deletion requires dependency and retention validation.",
   "version": "1.1.0",

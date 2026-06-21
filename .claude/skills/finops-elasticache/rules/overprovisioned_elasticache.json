@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "ELASTICACHE_CAPACITY_POLICY", "domain": "elasticache",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "elasticache.extract", "savings": "elasticache.savings", "remediation": "elasticache.remediation"},
   "rule_name": "elasticache_topology_and_node_rightsizing_policy",
   "description": "Identifies ElastiCache cost waste from excessive replicas, excessive shards, oversized node types, or missing reserved node coverage while protecting availability and performance.",
   "version": "1.1.0",

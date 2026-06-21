@@ -1,0 +1,39 @@
+{
+  "schema_version": "2.0", "rule_id": "BEDROCK_PROMPT_CACHE_POLICY", "domain": "bedrock",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "bedrock.extract", "savings": "bedrock.savings", "remediation": "bedrock.remediation"},
+  "rule_name": "bedrock_missing_prompt_cache_policy",
+  "description": "Detects repeated Bedrock prompt prefixes or static context that should be evaluated for prompt caching.",
+  "version": "1.0.0",
+  "thresholds": {
+    "minimum_repeated_prefix_tokens": 1024,
+    "minimum_repeated_requests_per_day": 100,
+    "minimum_repeated_input_cost_share_pct": 20.0,
+    "cache_hit_rate_target_pct": 70.0,
+    "require_model_cache_support": true,
+    "require_freshness_review": true
+  },
+  "severity_rules": [
+    {
+      "id": "B3",
+      "name": "missing_prompt_cache_for_repeated_context",
+      "condition": "repeated_prefix_tokens >= 1024 AND repeated_requests_per_day >= 100 AND cache_read_tokens == 0 AND model_supports_prompt_cache == true",
+      "severity": "HIGH",
+      "action": "ENABLE_PROMPT_CACHING",
+      "confidence": "MEDIUM",
+      "description": "Repeated static prompt context is being charged as normal input tokens. Add cache points or prompt caching where the model supports it."
+    }
+  ],
+  "formulas": {
+    "uncached_repeated_input_cost": "repeated_prefix_tokens_million * standard_input_price_per_1m",
+    "cached_repeated_input_cost": "cache_write_tokens_million * cache_write_price_per_1m + cache_read_tokens_million * cache_read_price_per_1m",
+    "prompt_cache_savings": "uncached_repeated_input_cost - cached_repeated_input_cost"
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Confirm repeated prefix is stable and does not include user secrets or volatile policy text.",
+      "Confirm model, region, and SDK path support prompt caching.",
+      "Measure cache read tokens and cache write tokens after rollout."
+    ]
+  }
+}

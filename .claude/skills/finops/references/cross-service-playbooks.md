@@ -16,6 +16,11 @@ endpoint_cost         = AZ_count × $0.01/hr × 730 + GB × $0.01/GB  (Interface
 ```
 Flag HIGH when private traffic to S3/DynamoDB routes through NAT with no Gateway Endpoint.
 
+**GenAI cache / LLM TCO**:
+Use `llm-tco-playbook.md` for managed API vs hosted inference comparisons and
+`genai-cache-playbook.md` for prompt cache and semantic cache formulas. Keep
+Bedrock prompt caching distinct from semantic response reuse.
+
 **Step Functions**:
 ```
 sfn_standard   = max(transitions - 4000, 0) × $0.000025

@@ -4,8 +4,11 @@ Match `service` field (case-insensitive) in `cost_report.json` against:
 
 | Domain | Aliases |
 |--------|---------|
+| ec2 | EC2, Amazon EC2, Amazon Elastic Compute Cloud |
+| bedrock | Bedrock, Amazon Bedrock |
+| sagemaker | SageMaker, Amazon SageMaker, Amazon SageMaker AI |
 | lambda | Lambda, AWS Lambda |
-| s3 | S3, Amazon S3 |
+| s3 | S3, Amazon S3, Amazon Simple Storage Service |
 | dynamodb | DynamoDB, Amazon DynamoDB |
 | rds | RDS, Amazon RDS, Amazon Relational Database Service |
 | ebs | EBS, Amazon EBS, Amazon Elastic Block Store |

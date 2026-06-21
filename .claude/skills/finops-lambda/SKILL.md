@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review duration, errors, retries, and dependency impacts; do not rerun rule arithmetic.
+
 Reduce unnecessary compute, request, provisioned-concurrency, ephemeral-storage,
 and retry/error cost without increasing latency, throttling, cold-start risk,
 or failure rates.

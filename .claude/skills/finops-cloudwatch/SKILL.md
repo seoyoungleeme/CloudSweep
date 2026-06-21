@@ -14,6 +14,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review retention/compliance safety and explain machine findings; do not rerun rule arithmetic.
+
 Reduce CloudWatch Logs storage cost while preserving operational, security,
 audit, and compliance requirements.
 

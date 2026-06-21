@@ -1,0 +1,39 @@
+{
+  "schema_version": "2.0", "rule_id": "BEDROCK_SEMANTIC_CACHE_POLICY", "domain": "bedrock",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "bedrock.extract", "savings": "bedrock.savings", "remediation": "bedrock.remediation"},
+  "rule_name": "bedrock_missing_semantic_cache_policy",
+  "description": "Detects repeated or semantically similar Bedrock requests where embedding-based response reuse may reduce inference cost and latency.",
+  "version": "1.0.0",
+  "thresholds": {
+    "minimum_duplicate_or_similar_query_rate_pct": 15.0,
+    "minimum_monthly_bedrock_spend_usd": 500.0,
+    "minimum_expected_cache_hit_rate_pct": 30.0,
+    "minimum_net_savings_pct": 10.0,
+    "require_similarity_threshold": true,
+    "require_ttl_and_invalidation": true
+  },
+  "severity_rules": [
+    {
+      "id": "B4",
+      "name": "missing_semantic_cache_for_repeated_queries",
+      "condition": "similar_query_rate_pct >= 15 AND expected_cache_hit_rate_pct >= 30 AND semantic_cache_layer_absent == true",
+      "severity": "MEDIUM",
+      "action": "ADD_SEMANTIC_CACHE",
+      "confidence": "MEDIUM",
+      "description": "Repeated or similar queries may be served from a semantic cache before invoking Bedrock. Validate quality, freshness, and tenant isolation before rollout."
+    }
+  ],
+  "formulas": {
+    "avoidable_llm_cost": "avoided_requests * avg_bedrock_cost_per_request",
+    "semantic_cache_cost": "embedding_requests * embedding_cost_per_request + cache_node_monthly_cost + cache_network_and_storage_cost",
+    "net_savings": "avoidable_llm_cost - semantic_cache_cost"
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Define similarity threshold and measure false-positive answer risk.",
+      "Use TTL, invalidation, and tenant isolation for cached answers.",
+      "Track cache hit rate, fallback rate, answer quality, and Bedrock cost per route."
+    ]
+  }
+}

@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "ECS_FARGATE_POLICY", "domain": "ecs",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "ecs.extract", "savings": "ecs.savings", "remediation": "ecs.remediation"},
   "rule_name": "fargate_rightsizing_policy",
   "description": "Identifies ECS Fargate services with over-provisioned task CPU or memory, missing Auto Scaling, or stale platform versions that result in unnecessary compute cost.",
   "version": "1.0.0",

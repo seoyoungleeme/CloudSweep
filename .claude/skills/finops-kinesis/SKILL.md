@@ -11,6 +11,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review latency, lag, and throughput safety; do not rerun rule arithmetic.
+
 Reduce avoidable stream, shard, retention, and consumer cost while preserving
 producer throughput, consumer latency, replay requirements, and operational safety.
 

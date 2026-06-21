@@ -1,0 +1,57 @@
+{
+  "schema_version": "2.0", "rule_id": "BEDROCK_THROUGHPUT_POLICY", "domain": "bedrock",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "bedrock.extract", "savings": "bedrock.savings", "remediation": "bedrock.remediation"},
+  "rule_name": "bedrock_throughput_breakeven_policy",
+  "description": "Models when Amazon Bedrock On-Demand token pricing should remain in place versus when Provisioned Throughput, model units, or reserved service tiers may reduce steady inference cost.",
+  "version": "1.0.0",
+  "thresholds": {
+    "minimum_observation_days": 14,
+    "steady_traffic_cv_max": 0.35,
+    "minimum_effective_utilization_pct": 60.0,
+    "minimum_monthly_savings_pct": 10.0,
+    "low_commitment_utilization_pct": 40.0,
+    "require_p95_latency_or_throughput_need": true,
+    "require_model_region_support": true
+  },
+  "formulas": {
+    "on_demand_monthly": "input_tokens_million * input_price_per_1m_tokens + output_tokens_million * output_price_per_1m_tokens",
+    "committed_monthly": "committed_units * hourly_price_per_unit * committed_hours_per_month",
+    "reserved_monthly": "reserved_tpm_blocks * monthly_price_per_1k_tpm_block",
+    "monthly_savings": "on_demand_monthly - committed_monthly",
+    "effective_utilization_pct": "observed_steady_tokens_per_minute / committed_tokens_per_minute * 100"
+  },
+  "severity_rules": [
+    {
+      "id": "B1",
+      "name": "on_demand_above_commitment_breakeven",
+      "condition": "on_demand_monthly > committed_monthly AND monthly_savings_pct >= 10 AND effective_utilization_pct >= 60 AND traffic_cv <= 0.35",
+      "severity": "HIGH",
+      "action": "MODEL_THROUGHPUT_COMMIT",
+      "confidence": "MEDIUM",
+      "description": "Steady token usage may be cheaper on a committed Bedrock throughput or reserved service tier, subject to model and region support."
+    },
+    {
+      "id": "B2",
+      "name": "committed_bedrock_capacity_underutilized",
+      "condition": "committed_capacity_exists == true AND effective_utilization_pct < 40",
+      "severity": "HIGH",
+      "action": "REVIEW_COMMITTED_THROUGHPUT",
+      "confidence": "HIGH",
+      "description": "Bedrock committed throughput or reserved capacity appears underutilized. Review commitment size, routing, and expiration before renewal."
+    }
+  ],
+  "policy_controls": {
+    "validation_before_change": [
+      "Confirm model and region support for the selected commitment mode.",
+      "Compare p95 and p99 latency against current On-Demand behavior.",
+      "Check traffic seasonality and deployment plans before locking a commitment.",
+      "Separate input and output token prices; do not use total token count only."
+    ],
+    "reporting": [
+      "Show On-Demand monthly cost, committed monthly cost, and break-even arithmetic.",
+      "State whether pricing came from cost_report, AWS Pricing MCP, or static estimate.",
+      "Report underutilized commitments separately from On-Demand break-even candidates."
+    ]
+  }
+}

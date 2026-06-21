@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "DYNAMODB_CAPACITY_POLICY", "domain": "dynamodb",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "dynamodb.extract", "savings": "dynamodb.savings", "remediation": "dynamodb.remediation"},
   "rule_name": "dynamodb_capacity_and_billing_mode_policy",
   "description": "Identifies DynamoDB tables and GSIs with over-provisioned capacity, missing or unsafe Auto Scaling, suboptimal billing mode, or non-capacity cost drivers that require separate FinOps analysis.",
   "version": "1.1.0",

@@ -15,6 +15,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review workload headroom and rollout safety; do not rerun rule arithmetic.
+
 Detect Fargate task right-sizing opportunities (CPU/memory over-provisioning),
 missing Auto Scaling on static `desired_count`, and stale platform versions.
 

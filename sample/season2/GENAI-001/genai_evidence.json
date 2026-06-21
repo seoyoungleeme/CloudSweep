@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "scenario_id": "GENAI-001",
+    "period_start": "2026-05-01",
+    "period_end": "2026-05-03",
+    "period_days": 3,
+    "resolution": "daily",
+    "region": "us-east-1",
+    "currency": "USD"
+  },
+  "resources": {
+    "orders-assistant": {
+      "service": "bedrock",
+      "resource_type": "aws_bedrock_model_usage",
+      "region": "us-east-1",
+      "model_id": "anthropic.claude-sonnet",
+      "configuration": {
+        "model_supports_prompt_cache": true,
+        "committed_capacity_exists": false,
+        "semantic_cache_layer_present": false,
+        "model_region_supports_commitment": true,
+        "latency_or_throughput_need": true,
+        "committed_units": 1,
+        "committed_tokens_per_minute": 120000,
+        "committed_hours_per_month": 730,
+        "prompt_cache_hit_rate_target_pct": 70
+      },
+      "metrics": {
+        "input_tokens": {"unit": "Count", "datapoints": [4200000, 4350000, 4400000]},
+        "output_tokens": {"unit": "Count", "datapoints": [620000, 640000, 650000]},
+        "requests": {"unit": "Count", "datapoints": [4000, 4100, 4200]},
+        "repeated_prefix_tokens": {"unit": "Count", "datapoints": [1800, 1800, 1800]},
+        "repeated_requests_per_day": {"unit": "Count", "datapoints": [2100, 2200, 2300]},
+        "cache_read_tokens": {"unit": "Count", "datapoints": [0, 0, 0]},
+        "cache_write_tokens": {"unit": "Count", "datapoints": [0, 0, 0]},
+        "similar_query_rate_pct": {"unit": "Percent", "datapoints": [24.0, 25.5, 26.0]},
+        "expected_cache_hit_rate_pct": {"unit": "Percent", "datapoints": [38.0, 40.0, 41.0]},
+        "traffic_tokens_per_minute": {"unit": "Count/Minute", "datapoints": [92000, 95000, 94000]}
+      },
+      "costs": {
+        "input_price_per_1m_tokens": 3.0,
+        "output_price_per_1m_tokens": 15.0,
+        "hourly_price_per_unit": 0.5,
+        "cache_write_price_per_1m_tokens": 3.75,
+        "cache_read_price_per_1m_tokens": 0.3,
+        "embedding_cost_per_request": 0.00002,
+        "cache_node_monthly_cost": 50.0,
+        "cache_network_and_storage_cost": 10.0,
+        "monthly_spend_usd": 1250.0
+      }
+    },
+    "orders-realtime": {
+      "service": "sagemaker",
+      "resource_type": "aws_sagemaker_endpoint",
+      "region": "us-east-1",
+      "endpoint_name": "orders-realtime",
+      "variant_name": "AllTraffic",
+      "instance_type": "ml.g5.xlarge",
+      "instance_count": 2,
+      "configuration": {
+        "real_time_endpoint": true,
+        "autoscaling_target_present": false,
+        "autoscaling_policy_present": false,
+        "scheduled_scaling_present": false,
+        "strict_low_latency_sla": false,
+        "predictable_low_traffic_windows": true,
+        "minimum_safe_capacity": 1,
+        "hours_reduced_per_month": 360,
+        "off_hours_per_month": 360,
+        "latency_sla_ms": 500
+      },
+      "metrics": {
+        "invocations_per_instance": {"unit": "Count/Minute", "datapoints": [1.2, 2.1, 1.7]},
+        "gpu_utilization_pct": {"unit": "Percent", "datapoints": [11.0, 14.0, 13.0]},
+        "gpu_memory_utilization_pct": {"unit": "Percent", "datapoints": [35.0, 38.0, 37.0]},
+        "model_latency_ms": {"unit": "Milliseconds", "datapoints": [180, 190, 185]},
+        "errors": {"unit": "Count", "datapoints": [0, 0, 0]}
+      },
+      "costs": {
+        "instance_hourly_price": 1.408,
+        "monthly_spend_usd": 2055.68
+      }
+    },
+    "training-gpu": {
+      "service": "ec2",
+      "resource_type": "aws_instance",
+      "region": "us-east-1",
+      "instance_type": "g5.2xlarge",
+      "instance_count": 1,
+      "configuration": {
+        "workload_role": "training",
+        "schedule_control_present": false,
+        "off_hours_per_week": 70
+      },
+      "metrics": {
+        "gpu_utilization_pct": {"unit": "Percent", "datapoints": [8.0, 12.0, 9.0]},
+        "cpu_utilization_pct": {"unit": "Percent", "datapoints": [5.0, 7.0, 6.0]}
+      },
+      "costs": {
+        "instance_hourly_price": 1.212,
+        "ebs_monthly_usd": 32.0,
+        "eip_monthly_usd": 3.65,
+        "snapshot_monthly_usd": 8.0,
+        "scheduler_monthly_usd": 0.0
+      }
+    }
+  }
+}

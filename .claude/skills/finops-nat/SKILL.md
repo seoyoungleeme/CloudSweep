@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review route, region, endpoint policy, and caller evidence; do not rerun rule arithmetic.
+
 Reduce avoidable NAT hourly and per-GB data processing charges while preserving
 private subnet egress, security policy, route correctness, availability, and
 service access.

@@ -13,6 +13,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review transitive routing, inspection, and multi-account requirements; do not rerun rule arithmetic.
+
 Reduce avoidable TGW data processing and attachment charges without breaking
 network connectivity, security segmentation, routing policy, or multi-account
 architecture requirements.

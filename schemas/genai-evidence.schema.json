@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloudsweep.local/schemas/genai-evidence.schema.json",
+  "title": "CloudSweep GenAI Evidence",
+  "description": "Canonical cost and utilization evidence for Bedrock, SageMaker, and EC2 accelerator analysis.",
+  "type": "object",
+  "required": ["schema_version", "metadata", "resources"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "metadata": {
+      "type": "object",
+      "required": ["period_start", "period_end", "period_days", "resolution", "region", "currency"],
+      "properties": {
+        "period_start": {"type": "string", "format": "date"},
+        "period_end": {"type": "string", "format": "date"},
+        "period_days": {"type": "integer", "minimum": 1},
+        "resolution": {"enum": ["hourly", "daily", "monthly"]},
+        "region": {"type": "string", "minLength": 1},
+        "currency": {"const": "USD"}
+      },
+      "additionalProperties": true
+    },
+    "resources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/resource"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "required": ["unit", "datapoints"],
+      "properties": {
+        "unit": {"type": "string", "minLength": 1},
+        "datapoints": {
+          "type": "array",
+          "items": {"type": "number"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "resource": {
+      "type": "object",
+      "required": ["service", "resource_type", "configuration", "metrics"],
+      "properties": {
+        "service": {"enum": ["bedrock", "sagemaker", "ec2"]},
+        "resource_type": {"type": "string", "minLength": 1},
+        "region": {"type": "string"},
+        "model_id": {"type": "string"},
+        "endpoint_name": {"type": "string"},
+        "variant_name": {"type": "string"},
+        "instance_type": {"type": "string"},
+        "instance_count": {"type": "integer", "minimum": 0},
+        "configuration": {"type": "object"},
+        "metrics": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/metric"}
+        },
+        "costs": {
+          "type": "object",
+          "additionalProperties": {"type": "number"}
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {"properties": {"service": {"const": "bedrock"}}},
+          "then": {"required": ["model_id"]}
+        },
+        {
+          "if": {"properties": {"service": {"const": "sagemaker"}}},
+          "then": {"required": ["endpoint_name", "instance_type", "instance_count"]}
+        },
+        {
+          "if": {"properties": {"service": {"const": "ec2"}}},
+          "then": {
+            "required": ["instance_type", "instance_count"],
+            "properties": {
+              "instance_type": {"pattern": "^(g|p|inf|trn)[0-9]"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

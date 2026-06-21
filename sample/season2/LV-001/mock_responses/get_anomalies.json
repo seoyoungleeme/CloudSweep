@@ -1,0 +1,60 @@
+{
+  "Anomalies": [
+    {
+      "AnomalyId": "anomaly-a1b2c3d4-5678-90ab-cdef-111111111111",
+      "AnomalyStartDate": "2026-05-27T01:00:00Z",
+      "AnomalyEndDate": null,
+      "DimensionValue": "Amazon Elastic Compute Cloud",
+      "RootCauses": [
+        {
+          "Service": "Amazon Elastic Compute Cloud",
+          "Region": "ap-northeast-2",
+          "LinkedAccount": "123456789012",
+          "UsageType": "APN2-BoxUsage:c5.4xlarge"
+        }
+      ],
+      "AnomalyScore": {
+        "MaxScore": 0.92,
+        "CurrentScore": 0.88
+      },
+      "Impact": {
+        "MaxImpact": 156.80,
+        "TotalImpact": 312.45,
+        "TotalActualSpend": 478.20,
+        "TotalExpectedSpend": 165.75
+      },
+      "MonitorArn": "arn:aws:ce::123456789012:anomalymonitor/monitor-abc123",
+      "Feedback": "NO_FEEDBACK"
+    },
+    {
+      "AnomalyId": "anomaly-a1b2c3d4-5678-90ab-cdef-222222222222",
+      "AnomalyStartDate": "2026-05-27T01:00:00Z",
+      "AnomalyEndDate": null,
+      "DimensionValue": "Amazon Simple Storage Service",
+      "RootCauses": [
+        {
+          "Service": "Amazon Simple Storage Service",
+          "Region": "ap-northeast-2",
+          "LinkedAccount": "123456789012",
+          "UsageType": "APN2-Requests-Tier1"
+        }
+      ],
+      "AnomalyScore": {
+        "MaxScore": 0.71,
+        "CurrentScore": 0.65
+      },
+      "Impact": {
+        "MaxImpact": 42.30,
+        "TotalImpact": 78.60,
+        "TotalActualSpend": 128.40,
+        "TotalExpectedSpend": 49.80
+      },
+      "MonitorArn": "arn:aws:ce::123456789012:anomalymonitor/monitor-abc123",
+      "Feedback": "NO_FEEDBACK"
+    }
+  ],
+  "ResponseMetadata": {
+    "RequestId": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+    "HTTPStatusCode": 200
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": "2.0", "rule_id": "EC2_ACCELERATOR_POLICY", "domain": "ec2",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "ec2.extract", "savings": "ec2.savings", "remediation": "ec2.remediation"},
+  "rule_name": "ec2_gpu_instance_scheduling_policy",
+  "description": "Detects expensive EC2 GPU, Inferentia, or Trainium instances and fleets that run during idle windows without start/stop scheduling or autoscaling controls.",
+  "version": "1.0.0",
+  "thresholds": {
+    "minimum_monthly_instance_spend_usd": 300.0,
+    "minimum_off_hours_per_week": 40,
+    "low_gpu_utilization_avg_pct": 20.0,
+    "low_cpu_utilization_avg_pct": 15.0,
+    "minimum_net_savings_pct": 20.0,
+    "default_business_hours_per_week": 50,
+    "weeks_per_month": 4.345
+  },
+  "accelerator_instance_family_prefixes": [
+    "g",
+    "p",
+    "inf",
+    "trn"
+  ],
+  "severity_rules": [
+    {
+      "id": "EC2G1",
+      "name": "unscheduled_accelerator_off_hours",
+      "condition": "accelerator_instance == true AND off_hours_per_week >= 40 AND no_schedule_control == true",
+      "severity": "HIGH",
+      "action": "ADD_INSTANCE_SCHEDULER",
+      "confidence": "MEDIUM",
+      "description": "Accelerator instances run during likely idle windows without schedule automation. Add Instance Scheduler, SSM Quick Setup, EventBridge, or ASG scheduled actions."
+    },
+    {
+      "id": "EC2G2",
+      "name": "idle_dev_training_gpu",
+      "condition": "accelerator_instance == true AND workload_role in [dev, training, notebook] AND gpu_utilization_avg_pct < 20 AND no_schedule_control == true",
+      "severity": "HIGH",
+      "action": "ADD_SSM_OR_EVENTBRIDGE_SCHEDULE",
+      "confidence": "HIGH",
+      "description": "Development or training accelerator has low utilization and should be stopped automatically outside approved windows after checkpoint safety review."
+    },
+    {
+      "id": "EC2G3",
+      "name": "fixed_gpu_asg_capacity",
+      "condition": "gpu_launch_template_or_asg == true AND desired_capacity_static == true AND no_scheduled_action_or_scaling == true",
+      "severity": "MEDIUM",
+      "action": "ADD_ASG_SCHEDULE_OR_SCALING",
+      "confidence": "MEDIUM",
+      "description": "GPU Auto Scaling group keeps fixed desired capacity. Add scaling or scheduled actions if the workload has predictable idle windows."
+    },
+    {
+      "id": "EC2G4",
+      "name": "residual_costs_not_modeled",
+      "condition": "stop_schedule_recommended == true AND residual_ebs_or_eip_costs_unknown == true",
+      "severity": "INFO",
+      "action": "INCLUDE_RESIDUAL_COSTS",
+      "confidence": "HIGH",
+      "description": "Stopping EC2 instances does not remove EBS, snapshot, Elastic IP, or some network costs. Model residual costs before presenting net savings."
+    }
+  ],
+  "formulas": {
+    "stopped_hours_per_month": "off_hours_per_week * 4.345",
+    "gross_instance_savings": "instance_count * instance_hourly_price * stopped_hours_per_month",
+    "net_savings": "gross_instance_savings - ebs_monthly - eip_monthly - snapshot_monthly - scheduler_monthly"
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Check workload role, SLA, checkpointing, and warm-up time.",
+      "Verify ASG scheduled actions do not conflict with target tracking policies.",
+      "Model residual EBS, EIP, snapshot, NAT, and data transfer costs."
+    ]
+  }
+}

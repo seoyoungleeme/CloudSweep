@@ -17,6 +17,8 @@ data or static rule prices.
 | Domain | service_code |
 |--------|-------------|
 | lambda | `AWSLambda` |
+| bedrock | `AmazonBedrock` |
+| sagemaker | `AmazonSageMaker` |
 | dynamodb | `AmazonDynamoDB` |
 | s3 | `AmazonS3` |
 | elb | `AWSELB` |

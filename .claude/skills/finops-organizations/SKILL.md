@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review ownership, sharing policy, and commitment scope; do not rerun rule arithmetic.
+
 Improve discount sharing, volume discount aggregation, commitment planning,
 cost visibility, and governance without crossing legal, security, commercial,
 or chargeback boundaries.

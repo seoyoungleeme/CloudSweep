@@ -1,0 +1,66 @@
+{
+  "schema_version": "2.0", "rule_id": "SAGEMAKER_SCALING_POLICY", "domain": "sagemaker",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "sagemaker.extract", "savings": "sagemaker.savings", "remediation": "sagemaker.remediation"},
+  "rule_name": "sagemaker_endpoint_autoscaling_policy",
+  "description": "Detects SageMaker real-time endpoint variants that run fixed GPU or accelerator capacity without target tracking or scheduled scaling.",
+  "version": "1.0.0",
+  "thresholds": {
+    "low_invocations_per_instance_p95": 5.0,
+    "low_gpu_utilization_avg_pct": 25.0,
+    "low_gpu_memory_utilization_p95_pct": 60.0,
+    "latency_sla_headroom_pct": 25.0,
+    "minimum_observation_days": 14,
+    "off_hours_per_month_default": 360,
+    "autoscaling_target_value_default": 70.0
+  },
+  "severity_rules": [
+    {
+      "id": "SM1",
+      "name": "missing_target_tracking_autoscaling",
+      "condition": "production_variant_exists == true AND initial_instance_count > 1 AND no_appautoscaling_target_or_policy == true",
+      "severity": "HIGH",
+      "action": "ADD_TARGET_TRACKING",
+      "confidence": "HIGH",
+      "description": "Endpoint capacity is fixed. Add Application Auto Scaling target tracking for SageMakerVariantInvocationsPerInstance or a validated custom metric."
+    },
+    {
+      "id": "SM2",
+      "name": "missing_scheduled_scaling",
+      "condition": "predictable_low_traffic_windows == true AND no_scheduled_scaling_action == true",
+      "severity": "MEDIUM",
+      "action": "ADD_SCHEDULED_SCALING",
+      "confidence": "MEDIUM",
+      "description": "Endpoint capacity remains high during predictable off-hours. Add scheduled scaling to reduce to the minimum safe capacity."
+    },
+    {
+      "id": "SM3",
+      "name": "gpu_endpoint_underutilized",
+      "condition": "gpu_or_accelerator_instance == true AND gpu_utilization_avg_pct < 25 AND gpu_memory_utilization_p95_pct < 60 AND p95_latency_has_headroom == true AND errors == 0",
+      "severity": "HIGH",
+      "action": "RIGHTSIZE_VARIANT",
+      "confidence": "MEDIUM",
+      "description": "GPU endpoint appears over-provisioned. Review smaller instance types, fewer instances, batching, or alternate inference mode."
+    },
+    {
+      "id": "SM4",
+      "name": "always_on_endpoint_for_bursty_workload",
+      "condition": "real_time_endpoint == true AND idle_or_bursty_traffic == true AND strict_low_latency_sla_absent == true",
+      "severity": "LOW",
+      "action": "EVALUATE_ASYNC_SERVERLESS_BATCH",
+      "confidence": "LOW",
+      "description": "Always-on real-time endpoint may not fit workload shape. Compare async inference, serverless inference, batch transform, Bedrock, or self-hosted options."
+    }
+  ],
+  "formulas": {
+    "endpoint_instance_savings": "(current_instance_count - target_instance_count) * instance_hourly_price * hours_reduced_per_month",
+    "scheduled_savings": "reduced_instances * instance_hourly_price * off_hours_per_month"
+  },
+  "policy_controls": {
+    "validation_before_change": [
+      "Check p95/p99 latency, model load time, errors, throttles, and GPU memory.",
+      "Use canary or shadow testing before reducing production capacity.",
+      "Keep minimum safe capacity for workloads that require 24x7 low latency."
+    ]
+  }
+}

@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review retention, Object Lock, replication, restore, and compliance safety; do not rerun rule arithmetic.
+
 Reduce noncurrent version accumulation and stale storage while preserving
 restore windows, legal hold, Object Lock, replication, backup, audit, and
 compliance requirements.

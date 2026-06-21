@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review backup, AMI, legal-hold, and DR dependencies; do not rerun rule arithmetic.
+
 Reduce unnecessary snapshot storage, archive eligible long-term backups, and
 improve lifecycle governance without deleting recovery points still required
 for AMIs, launch templates, AWS Backup, DR, audit, legal hold, or compliance.

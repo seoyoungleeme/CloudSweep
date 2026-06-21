@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "LAMBDA_RIGHTSIZE_POLICY", "domain": "lambda",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "lambda.extract", "savings": "lambda.savings", "remediation": "lambda.remediation"},
   "rule_name": "lambda_cost_rightsizing_policy",
   "description": "Identifies Lambda cost inefficiencies from memory over-allocation, timeout misconfiguration, provisioned concurrency, ephemeral storage, architecture choice, and retry/error behavior.",
   "version": "1.1.0",

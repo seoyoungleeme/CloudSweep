@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "CLOUDWATCH_ALARM_POLICY", "domain": "cloudwatch-alarm",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "cloudwatch-alarm.extract", "savings": "cloudwatch-alarm.savings", "remediation": "cloudwatch-alarm.remediation"},
   "rule_name": "cloudwatch_metric_alarm_high_resolution",
   "description": "Identifies aws_cloudwatch_metric_alarm resources using high-resolution (1-second) period when standard resolution (60-second) is sufficient, generating avoidable custom metric cost.",
   "version": "1.0.0",

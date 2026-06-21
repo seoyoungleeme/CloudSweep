@@ -1,0 +1,25 @@
+Implementation Hints for LV-001: Cost Spike Detection
+
+1. Spike Detection Algorithm:
+   - Calculate rolling average (e.g., 6-hour window) and standard deviation
+   - Flag hours where cost exceeds mean + 2*stddev as anomalies
+   - Consider using percentage change from previous hour as secondary signal
+
+2. Drill-down Strategy:
+   - First GroupBy SERVICE to identify top cost contributor
+   - Then GroupBy USAGE_TYPE within that service to find specific resource type
+   - Use LINKED_ACCOUNT dimension if multi-account environment
+
+3. CloudTrail Correlation:
+   - Look for events 30-60 minutes BEFORE the spike starts
+   - Filter by event sources matching the anomalous service (e.g., ec2.amazonaws.com)
+   - Key events: RunInstances, CreateAutoScalingGroup, UpdateService
+
+4. API Pagination:
+   - GetCostAndUsage returns max 1 day of HOURLY data per request
+   - Use NextPageToken for pagination
+   - GetAnomalies supports DateInterval filter
+
+5. Architecture Suggestion:
+   - Use a pipeline: detect() -> drilldown() -> correlate() -> report()
+   - Each step should be independently testable with mock data

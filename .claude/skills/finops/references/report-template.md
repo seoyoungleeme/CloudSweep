@@ -86,6 +86,12 @@ For detected cascades, include the appropriate fix from `references/cross-servic
 - **CloudFront cache tuning** — TTL, cache key, compression to reach > 80% CacheHitRate
 - **Cost Anomaly Detection** — monitor + alert for detected spike type
 - **VPC Flow Logs + Athena** — when network cost attribution needs traffic analysis
+- **GenAI prompt / semantic cache** — when repeated prompts or similar queries
+  drive Bedrock tokens
+- **LLM TCO review** — when Bedrock API spend and hosted accelerator cost are
+  both material enough to compare
+- **SageMaker / EC2 accelerator scheduling** — when GPU endpoints or instances
+  run through predictable idle windows
 
 ---
 

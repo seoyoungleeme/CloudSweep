@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review SLA, DR, memory, I/O, and maintenance-window safety; do not rerun rule arithmetic.
+
 Reduce unnecessary database spend while preserving availability, durability,
 performance, backup/restore, compliance, and maintenance requirements.
 

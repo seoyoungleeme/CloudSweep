@@ -1,0 +1,18 @@
+{
+  "scenario_id": "GENAI-001",
+  "currency": "USD",
+  "period_months": 1,
+  "monthly_data": [
+    {
+      "month_offset": 0,
+      "label": "M-0",
+      "total_spend_usd": 4185.68,
+      "services": [
+        {"service": "Amazon Bedrock", "spend_usd": 1250.0, "contains_waste": true},
+        {"service": "Amazon SageMaker AI", "spend_usd": 2055.68, "contains_waste": true},
+        {"service": "Amazon EC2", "spend_usd": 880.0, "contains_waste": true}
+      ]
+    }
+  ],
+  "pricing_note": "Fixture prices are static test evidence and must be verified before production recommendations."
+}

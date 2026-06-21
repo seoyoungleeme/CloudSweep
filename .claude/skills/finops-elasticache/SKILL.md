@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review HA, eviction, memory, and latency safety; do not rerun rule arithmetic.
+
 Reduce node hours for Redis/Valkey or Memcached without compromising
 availability, latency, memory headroom, failover posture, or cache effectiveness.
 

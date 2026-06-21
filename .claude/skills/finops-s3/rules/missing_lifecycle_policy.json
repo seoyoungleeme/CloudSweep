@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "S3_LIFECYCLE_POLICY", "domain": "s3",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "s3.extract", "savings": "s3.savings", "remediation": "s3.remediation"},
   "rule_name": "s3_lifecycle_governance_policy",
   "description": "Identifies S3 buckets with versioning and growing noncurrent versions, incomplete multipart uploads, storage-class mismatch, or lifecycle governance gaps while protecting retention and compliance requirements.",
   "version": "1.1.0",

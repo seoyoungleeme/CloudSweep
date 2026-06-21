@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "CLOUDWATCH_RETENTION_POLICY", "domain": "cloudwatch",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "cloudwatch.extract", "savings": "cloudwatch.savings", "remediation": "cloudwatch.remediation"},
   "rule_name": "cloudwatch_log_group_retention_policy",
   "description": "Identifies CloudWatch Log Groups with missing, infinite, excessive, or unsafe retention settings. The rule focuses on storage waste while preserving operational, audit, security, and compliance requirements.",
   "version": "1.1.0",

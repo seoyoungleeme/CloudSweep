@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review client timeout, retry, DLQ, and visibility safety; do not rerun rule arithmetic.
+
 Reduce unnecessary API requests and retry waste while preserving latency,
 consumer throughput, message visibility, FIFO ordering, DLQ behavior, and
 application timeouts.

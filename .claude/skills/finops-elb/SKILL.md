@@ -12,6 +12,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review DNS, listener, DR, and blue/green dependencies; do not rerun rule arithmetic.
+
 Detect idle/unused load balancers from a FinOps perspective. Remove truly idle
 LBs and related fixed costs without breaking DNS, TLS, routing, WAF, private
 connectivity, health checks, or blue/green paths.

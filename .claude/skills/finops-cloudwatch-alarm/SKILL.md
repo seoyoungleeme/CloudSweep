@@ -16,6 +16,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review SLA evidence and explain machine findings; do not rerun rule arithmetic.
+
 Reduce unnecessary custom-metric cost by downgrading alarms from high-resolution
 (`period = 1`, $0.90/metric/month) to standard (`period = 60`, $0.30/metric/month)
 when sub-minute granularity has no operational benefit.

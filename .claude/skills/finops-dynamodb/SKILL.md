@@ -16,6 +16,8 @@ user_invocable: false
 
 ## Scope
 
+> **Review-only authority:** LangGraph owns detection and calculations. Review throttling and safety evidence; do not rerun rule arithmetic.
+
 Reduce unused provisioned capacity and avoid expensive billing-mode choices
 without increasing throttling risk or breaking workload reliability.
 

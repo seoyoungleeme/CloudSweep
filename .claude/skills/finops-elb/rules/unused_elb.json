@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "ELB_USAGE_POLICY", "domain": "elb",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "elb.extract", "savings": "elb.savings", "remediation": "elb.remediation"},
   "rule_name": "elb_idle_load_balancer_policy",
   "description": "Identifies idle or potentially unused load balancers while requiring traffic, DNS, listener, target, and owner validation before deletion.",
   "version": "1.1.0",

@@ -1,0 +1,54 @@
+{
+  "ResultsByTime": [
+    {
+      "TimePeriod": { "Start": "2026-05-26T00:00:00Z", "End": "2026-05-26T01:00:00Z" },
+      "Total": { "UnblendedCost": { "Amount": "12.34", "Unit": "USD" } },
+      "Groups": [
+        { "Keys": ["Amazon Elastic Compute Cloud"], "Metrics": { "UnblendedCost": { "Amount": "8.50", "Unit": "USD" } } },
+        { "Keys": ["Amazon S3"], "Metrics": { "UnblendedCost": { "Amount": "2.10", "Unit": "USD" } } },
+        { "Keys": ["Amazon RDS"], "Metrics": { "UnblendedCost": { "Amount": "1.74", "Unit": "USD" } } }
+      ]
+    },
+    {
+      "TimePeriod": { "Start": "2026-05-26T06:00:00Z", "End": "2026-05-26T07:00:00Z" },
+      "Total": { "UnblendedCost": { "Amount": "11.89", "Unit": "USD" } },
+      "Groups": [
+        { "Keys": ["Amazon Elastic Compute Cloud"], "Metrics": { "UnblendedCost": { "Amount": "8.20", "Unit": "USD" } } },
+        { "Keys": ["Amazon S3"], "Metrics": { "UnblendedCost": { "Amount": "1.95", "Unit": "USD" } } },
+        { "Keys": ["Amazon RDS"], "Metrics": { "UnblendedCost": { "Amount": "1.74", "Unit": "USD" } } }
+      ]
+    },
+    {
+      "TimePeriod": { "Start": "2026-05-26T12:00:00Z", "End": "2026-05-26T13:00:00Z" },
+      "Total": { "UnblendedCost": { "Amount": "13.01", "Unit": "USD" } },
+      "Groups": [
+        { "Keys": ["Amazon Elastic Compute Cloud"], "Metrics": { "UnblendedCost": { "Amount": "9.10", "Unit": "USD" } } },
+        { "Keys": ["Amazon S3"], "Metrics": { "UnblendedCost": { "Amount": "2.15", "Unit": "USD" } } },
+        { "Keys": ["Amazon RDS"], "Metrics": { "UnblendedCost": { "Amount": "1.76", "Unit": "USD" } } }
+      ]
+    },
+    {
+      "TimePeriod": { "Start": "2026-05-27T01:00:00Z", "End": "2026-05-27T02:00:00Z" },
+      "Total": { "UnblendedCost": { "Amount": "58.74", "Unit": "USD" } },
+      "Groups": [
+        { "Keys": ["Amazon Elastic Compute Cloud"], "Metrics": { "UnblendedCost": { "Amount": "45.30", "Unit": "USD" } } },
+        { "Keys": ["Amazon S3"], "Metrics": { "UnblendedCost": { "Amount": "9.80", "Unit": "USD" } } },
+        { "Keys": ["Amazon RDS"], "Metrics": { "UnblendedCost": { "Amount": "3.64", "Unit": "USD" } } }
+      ]
+    },
+    {
+      "TimePeriod": { "Start": "2026-05-27T06:00:00Z", "End": "2026-05-27T07:00:00Z" },
+      "Total": { "UnblendedCost": { "Amount": "62.15", "Unit": "USD" } },
+      "Groups": [
+        { "Keys": ["Amazon Elastic Compute Cloud"], "Metrics": { "UnblendedCost": { "Amount": "48.90", "Unit": "USD" } } },
+        { "Keys": ["Amazon S3"], "Metrics": { "UnblendedCost": { "Amount": "9.45", "Unit": "USD" } } },
+        { "Keys": ["Amazon RDS"], "Metrics": { "UnblendedCost": { "Amount": "3.80", "Unit": "USD" } } }
+      ]
+    }
+  ],
+  "DimensionValueAttributes": [],
+  "ResponseMetadata": {
+    "RequestId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "HTTPStatusCode": 200
+  }
+}

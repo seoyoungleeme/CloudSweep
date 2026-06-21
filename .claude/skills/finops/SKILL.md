@@ -17,6 +17,27 @@ cloud cost or FinOps analysis. Inspect inputs, identify domains, then route to
 a single service skill (single-domain) or dispatch parallel subagents
 (multi-domain).
 
+## Mandatory Hybrid Runtime
+
+The LangGraph runtime is the sole authority for parsing, thresholds, severity,
+confidence defaults, savings arithmetic, and Terraform remediation candidates.
+Always run `python -m cloudsweep <WORK_DIR>` first and read
+`result/cloudsweep_graph_state.json`. Do not independently recalculate a
+migrated finding.
+
+Claude owns review and explanation. For every machine finding, record
+`accepted`, `rejected`, or `needs_evidence` plus rationale in
+`result/claude_review.json`. Call pricing/docs MCP only when the machine state
+is `evidence_only` or `unavailable`. Then run:
+
+```text
+python -m cloudsweep finalize <WORK_DIR> --review <WORK_DIR>/result/claude_review.json
+```
+
+All detected domains are implemented in the analyzer registry. A missing
+analyzer is a runtime error, not a reason to silently perform a second cost
+calculation in Claude.
+
 ## Input Slice Contract
 
 **Multi-domain mode** — subagents receive inline slices only:
@@ -31,17 +52,25 @@ a single service skill (single-domain) or dispatch parallel subagents
 **Standalone mode** (single domain, no inline slices) — full file access is
 permitted; the domain skill's own Step 1 file-location rules apply.
 
-## Inputs
+## Input Evidence
 
-| File | Purpose |
-|------|---------|
-| `main.tf` | Terraform infrastructure definition |
-| `metrics.json` | CloudWatch or scenario metrics |
-| `cost_report.json` | Monthly cost and waste evidence |
-| `findings.json` | Existing analyzer output, when available |
-| `parsed_input.json` | Existing parser output, when available |
+This orchestrator is evidence-driven, not locked to a single closed mode. First
+inventory available evidence, then choose the analyzers needed for the question.
 
-If required evidence is missing, state exactly what is unavailable.
+| Evidence | Files | Enables |
+|----------|-------|---------|
+| Cost Explorer time series | `mock_responses/get_cost_and_usage*.json` | Spike detection, service spend drilldown |
+| Cost anomaly results | `mock_responses/get_anomalies.json` | Anomaly confirmation, impact, RootCauses |
+| CloudTrail events | `mock_responses/cloudtrail*.json` or `cloudtrail.json` | Event correlation for triggering actions |
+| Terraform | `main.tf` | Resource mapping, domain detection, IaC remediation |
+| Metrics | `metrics.json` or `metrics/metrics.json` | Utilization, request, error, and safety validation |
+| Cost report | `cost_report.json` | Monthly waste evidence and pricing note |
+| GenAI usage evidence | `metrics.json`, usage exports, `cost_report.json` | Token spend, cache hit rate, LLM TCO, Bedrock/SageMaker routing |
+| Prior analyzer output | `findings.json`, `parsed_input.json` | Reuse existing parsed/analyzed evidence |
+
+If evidence required by a planned analyzer is missing, state exactly what is
+unavailable. Do not reject Cost Explorer incident analysis just because
+Terraform-mode files are absent.
 
 ## Output Directory
 
@@ -50,9 +79,38 @@ Example: `sample/season2/MA-001` → `sample/season2/MA-001/result/`.
 
 ---
 
+## Evidence-Driven Routing
+
+Run this planning step **before** Domain Detection and before enforcing
+Terraform-mode required files.
+
+1. Build `evidence_available` from the table above.
+2. Infer `analysis_intent` from the user request and README/task text:
+   - `cost_spike_incident`: Cost Explorer, anomaly, hourly billing, spike, CloudTrail correlation.
+   - `waste_optimization`: overprovisioning, lifecycle, rightsizing, idle/unused resource, Terraform remediation.
+   - `blended`: both incident evidence and Terraform/resource remediation evidence are present.
+3. Build `execution_plan` from evidence, not from a single mutually exclusive mode:
+
+| Evidence / intent | Execution plan |
+|-------------------|----------------|
+| Cost Explorer time series or anomaly results, no Terraform | Run `finops-anomaly` standalone; do not require `main.tf`. |
+| `get_cost_and_usage*.json` exists | Run `finops-anomaly` full path: detect spike, drill down, reconcile anomalies, correlate CloudTrail if present. |
+| `get_anomalies.json` only | Run `finops-anomaly` degraded path: anomaly summary only; spike detection unavailable. |
+| Terraform exists, no Cost Explorer incident evidence | Continue to Domain Detection and existing Terraform FinOps routing. |
+| Terraform + Cost Explorer incident evidence | Run `finops-anomaly` first, then continue to Domain Detection. Pass anomaly summary, spike window, top services, UsageTypes, and CloudTrail gaps as `RELATED_CONTEXT` to domain analyzers and aggregation. |
+| CloudTrail exists with a spike or anomaly | Use it as correlation evidence; never invent triggering events when it is absent. |
+
+**Do not** route to anomaly analysis solely because `main.tf` is absent. Require
+positive Cost Explorer evidence. **Do not** skip Terraform/domain analysis solely
+because Cost Explorer evidence exists; mixed evidence should produce a blended
+execution plan.
+
+---
+
 ## Domain Detection
 
-After reading `main.tf`, list every service domain present:
+Run this section only when Terraform evidence is present. After reading
+`main.tf`, list every service domain present:
 
 | Resource keyword | Domain | Skill |
 |-----------------|--------|-------|
@@ -70,6 +128,9 @@ After reading `main.tf`, list every service domain present:
 | AWS Organizations, RI/SP pooling | organizations | `finops-organizations` |
 | `aws_cloudwatch_metric_alarm`, high-resolution metric | cloudwatch-alarm | `finops-cloudwatch-alarm` |
 | `aws_cloudwatch_log_group` (non-lambda-scoped) | cloudwatch | `finops-cloudwatch` |
+| `aws_bedrock*`, `aws_bedrockagent*`, Bedrock token spend | bedrock | `finops-bedrock` |
+| `aws_sagemaker_endpoint`, endpoint config/model, SageMaker endpoint spend | sagemaker | `finops-sagemaker` |
+| `aws_instance`, `aws_launch_template`, `aws_autoscaling_group` with GPU/Inferentia/Trainium evidence | ec2 | `finops-ec2` |
 | `aws_sfn_state_machine`; `aws_cloudwatch_event_target` with `states` arn | stepfunctions | cross-service |
 | `aws_cloudfront_distribution`, cache/origin | cloudfront | cross-service |
 | `aws_vpc_endpoint`, private subnet → AWS svc via NAT | vpc-endpoint | via nat |
@@ -78,7 +139,8 @@ After reading `main.tf`, list every service domain present:
 
 ## Cross-Service Coupling
 
-Run **after** domain detection, **before** routing.
+Run **after** Domain Detection, **before** single-domain routing or
+multi-domain dispatch.
 
 This step must infer workload behavior from Terraform, metrics, cost, and
 RELATED_CONTEXT. Do not use scenario IDs, filenames, assignment titles, or
@@ -96,6 +158,7 @@ Trace: caller → network → compute → storage/API → egress.
 | Network | `aws_vpc`, subnets, `aws_nat_gateway`, `aws_vpc_endpoint`, `aws_ec2_transit_gateway` |
 | Storage/DB | `aws_s3_bucket`, `aws_dynamodb_table`, `aws_db_instance`, `aws_elasticache_replication_group` |
 | Orchestration | `aws_sfn_state_machine`, `aws_cloudwatch_event_rule` |
+| GenAI | `aws_bedrock*`, `aws_sagemaker_endpoint`, GPU `aws_instance` |
 | Egress | `aws_internet_gateway`, `aws_nat_gateway`, `aws_cloudfront_distribution` |
 
 Build `caller → [NAT|Endpoint] → compute → [S3|DynamoDB|RDS] → egress` and
@@ -111,8 +174,9 @@ Evidence to derive when present:
   downstream_request_count / compute_invocation_count`
 - co-movement of compute duration/cost and downstream request rate
 - request-cost share versus storage/capacity share
-- cache layer evidence: CloudFront, ElastiCache, DAX, API Gateway cache,
-  Lambda execution-context/extension cache, or app-level cache metric
+- cache layer evidence: Bedrock prompt cache, semantic cache, CloudFront,
+  ElastiCache, DAX, API Gateway cache, Lambda execution-context/extension
+  cache, or app-level cache metric
 
 If request metrics exist but invocation/cache metrics are missing, report the
 finding as `Suspected request amplification` with instrumentation required
@@ -131,15 +195,23 @@ memory rightsizing, lifecycle, or capacity changes.
 | Low CloudFront hit → origin | CF spend | Origin compute | CacheHitRate < 80% |
 | Retry loop | Lambda/ECS errors | DB writes + NAT + logs | Errors + ConsumedWCU spike |
 | ECS → S3/DynamoDB via NAT | NAT GB | Gateway Endpoint eliminates it | Private subnet, no endpoint |
+| Bedrock repeated prompt context | Bedrock input tokens | Missing prompt caching | repeated prefix tokens, cacheReadInputTokens = 0 |
+| Bedrock repeated/similar query | Bedrock input/output tokens | Missing semantic cache | duplicate/similar query rate, no cache hit metric |
+| SageMaker endpoint fixed GPU capacity | SageMaker instance-hours | Missing target tracking or schedule | static variant count, low off-hour traffic |
+| EC2 GPU off-hours | EC2 instance-hours | Missing Instance Scheduler/SSM schedule | accelerator instance running nights/weekends |
 
 Formulas (NAT/Endpoint, Step Functions, CloudFront) and remediation templates:
-`references/cross-service-playbooks.md`.
+`references/cross-service-playbooks.md`. LLM TCO and cache-specific formulas:
+`references/llm-tco-playbook.md` and `references/genai-cache-playbook.md`.
 
 ---
 
 ## Pricing & MCP
 
-Default policy: scenario `cost_report` → aws-pricing MCP → rule fallback →
+**Anomaly mode exception**: when routed to `finops-anomaly`, this policy does not apply —
+CE data already reflects actual spend; that skill's own Pricing / Docs MCP section governs.
+
+Default policy (Terraform mode): scenario `cost_report` → aws-pricing MCP → rule fallback →
 `[estimate]`. MCP unavailable → fall back immediately, never block. Cite
 `mcp__aws-docs__search_documentation` URL for each remediation. Service codes,
 call template, and full pricing rules: `references/pricing-policy.md`.
@@ -163,7 +235,9 @@ Never pass an unsliced full file to any subagent.
 **1-a. TF chunk** — Extract `resource` blocks from `main.tf` whose type matches
 this domain's keywords. Include associated resources: autoscaling
 targets/policies, lifecycle rules, log groups, route tables, endpoint
-associations, target groups, listeners, GSI blocks. Preserve comment headers.
+associations, target groups, listeners, GSI blocks, Bedrock inference profiles,
+SageMaker endpoint configs/models, EC2 launch templates, scheduler tags/actions.
+Preserve comment headers.
 **Verify**: ≥ 1 `resource` block — empty chunk means false detection, remove domain.
 
 **1-b. Metrics slice** — Identifiers per domain from the TF chunk:
@@ -210,8 +284,9 @@ domain summaries, then pass the relevant subset to each subagent.
   request-cost share, storage/capacity share when available
 - derived ratios: downstream requests per invocation, cache hit rate, and
   co-movement notes; use `Not available` for missing inputs
-- cache evidence: CloudFront, ElastiCache, DAX, API Gateway cache, Lambda
-  extension/execution-context cache, or app-level cache metric
+- cache evidence: Bedrock prompt cache, semantic cache, CloudFront,
+  ElastiCache, DAX, API Gateway cache, Lambda extension/execution-context cache,
+  or app-level cache metric
 
 Never fill RELATED_CONTEXT from scenario ID alone. If the ratio cannot be
 computed, preserve the question for the subagent as an instrumentation gap.
@@ -240,6 +315,8 @@ Step 4 — Cross-service check: using WORKLOAD_PATH and RELATED_CONTEXT, identif
   Always run the generic request-amplification/cache-miss check when compute
   and storage/API domains are both present. Do not infer it from scenario_id;
   cite invocation/request/cache evidence or mark the instrumentation gap.
+  For GenAI domains, also check Bedrock prompt caching, semantic cache, and
+  managed API vs hosted inference TCO when token or accelerator evidence exists.
 
 Step 5 — Per finding output:
   1. Resource name, rule ID, severity, evidence (+ cascade sub-row if any).
@@ -292,6 +369,8 @@ scoring rules: `references/scoring.md`.
 | Building cost slice | `references/domain-aliases.md` | service alias table |
 | Pricing / MCP call | `references/pricing-policy.md` | service codes, call template |
 | Cascade formulas, remediations | `references/cross-service-playbooks.md` | Request-Amplification, Cost Formulas, VPC Endpoint, SFN, CloudFront, Athena, Anomaly |
+| LLM TCO comparison | `references/llm-tco-playbook.md` | API vs hosted inference, break-even, sensitivity |
+| GenAI cache choices | `references/genai-cache-playbook.md` | prompt cache, semantic cache, instrumentation |
 | Report writing | `references/report-template.md` | 4-section layout, Agent Performance JSON |
 | Aggregation / scoring | `references/scoring.md` | guardrails, recall denominator, aggregation steps |
 

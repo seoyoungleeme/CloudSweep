@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "KINESIS_EFO_POLICY", "domain": "kinesis",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "kinesis.extract", "savings": "kinesis.savings", "remediation": "kinesis.remediation"},
   "rule_name": "kinesis_stream_cost_policy",
   "description": "Identifies potentially unnecessary Enhanced Fan-Out, shard overcapacity, retention overuse, and billing mode mismatches while protecting throughput and latency requirements.",
   "version": "1.1.0",

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloudsweep.local/schemas/claude-review.schema.json",
+  "title": "CloudSweep Claude Review",
+  "type": "object",
+  "required": ["schema_version", "run_id", "finding_reviews", "cross_domain_review", "final_summary"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "finding_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "disposition", "rationale"],
+        "properties": {
+          "finding_id": {"type": "string", "minLength": 1},
+          "disposition": {"enum": ["accepted", "rejected", "needs_evidence"]},
+          "rationale": {"type": "string"},
+          "review_confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+          "pricing_verification": {"type": "object"},
+          "documentation_urls": {"type": "array", "items": {"type": "string", "format": "uri"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "cross_domain_review": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["statement", "status", "fact_ids"],
+        "properties": {
+          "statement": {"type": "string"},
+          "status": {"enum": ["observed", "hypothesis"]},
+          "fact_ids": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "final_summary": {"type": "string"}
+  },
+  "additionalProperties": false
+}

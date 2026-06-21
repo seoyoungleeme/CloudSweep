@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "RDS_RIGHTSIZE_POLICY", "domain": "rds",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "rds.extract", "savings": "rds.savings", "remediation": "rds.remediation"},
   "rule_name": "rds_cost_rightsizing_policy",
   "description": "Identifies RDS cost inefficiencies from instance over-sizing, nonessential Multi-AZ, storage/IOPS over-provisioning, Extended Support, and reserved instance coverage gaps while protecting availability and performance.",
   "version": "1.1.0",

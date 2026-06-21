@@ -1,4 +1,7 @@
 {
+  "schema_version": "2.0", "rule_id": "SQS_POLLING_POLICY", "domain": "sqs",
+  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "sqs.extract", "savings": "sqs.savings", "remediation": "sqs.remediation"},
   "rule_name": "sqs_polling_and_request_efficiency_policy",
   "description": "Identifies SQS cost inefficiencies from short polling, excessive empty receives, missing batching, and retry/visibility behavior while preserving latency and consumer safety.",
   "version": "1.1.0",
