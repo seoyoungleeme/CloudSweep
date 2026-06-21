@@ -454,7 +454,7 @@ flowchart LR
 
 | 실패 | 처리 |
 |------|------|
-| Domain analyzer 미구현 | warning 후 다른 domain 계속 |
+| Domain analyzer 미구현 | 실행 오류. Skill fallback으로 재계산하지 않음 |
 | Pricing provider 예외 | 해당 finding만 local fallback |
 | Docs provider 예외 | URL unavailable, finding 유지 |
 | 승인 대기 | checkpoint 후 caller에 interrupt 반환 |
@@ -465,11 +465,55 @@ flowchart LR
 
 ---
 
-## 9. 현재 구현과 운영 전 남은 연결
+## 9. Rule v2와 Claude Review 경계
+
+현재 18개 서비스 도메인은 모두 `AnalyzerRegistry`에 등록되어 있다.
+
+```text
+lambda, s3, dynamodb, bedrock, sagemaker, ec2
+ebs, elb, rds, cloudwatch, cloudwatch-alarm, sqs, kinesis
+ecs, elasticache, nat, tgw, organizations
+```
+
+`schemas/finops-rule-v2.schema.json`은 fact, 구조화 predicate, outcome,
+named handler 계약을 정의한다. 시작할 때 모든 rule 파일과 handler 이름을
+검증하므로 알 수 없는 fact나 handler가 있으면 분석 전에 실패한다.
+
+분석 뒤의 책임 경계는 다음과 같다.
+
+```mermaid
+flowchart LR
+    E[Evidence] --> G[LangGraph + AnalyzerRegistry]
+    G --> S[cloudsweep_graph_state.json]
+    S --> C[Claude review]
+    C --> J[claude_review.json]
+    S --> F[Deterministic finalizer]
+    J --> F
+    F --> R[finops_report.md]
+    F --> T[main_optimized.tf]
+```
+
+Claude는 finding마다 `accepted`, `rejected`, `needs_evidence`와 설명만
+기록한다. machine 절감액을 수정할 수 없고, observed cross-domain 설명은
+반드시 `fact_id`를 인용해야 한다. Terraform patch는 원본 source hash가
+일치할 때만 반영된다.
+
+```powershell
+python -m cloudsweep <WORK_DIR>
+python -m cloudsweep finalize <WORK_DIR> --review <WORK_DIR>\result\claude_review.json
+```
+
+---
+
+## 10. 현재 구현과 운영 전 남은 연결
 
 완료된 구조:
 
 ```text
+18개 domain AnalyzerRegistry 등록
+서비스 Skill review-only 전환
+legacy parser/analyzer/formatter 제거
+structured Claude review + deterministic finalizer
 MCP provider interface
 local fallback
 callable MCP adapter
@@ -492,4 +536,4 @@ MCP timeout/retry/circuit breaker 정책
 checkpoint 보존 기간과 암호화 정책
 ```
 
-즉, 그래프 아키텍처와 교체 지점은 구현됐고 실제 MCP transport와 운영 저장소는 배포 환경에서 연결하면 된다.
+즉, 로컬 분석·검토·최종화 경계는 구현됐고 실제 MCP transport와 운영 저장소는 배포 환경에서 연결하면 된다.

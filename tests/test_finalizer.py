@@ -42,6 +42,41 @@ class FinalizerTests(unittest.TestCase):
             with self.assertRaisesRegex(ReviewValidationError, "run_id"):
                 finalize(work_dir, review_path)
 
+    def test_rejects_terraform_patch_when_source_changed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work_dir = Path(tmp)
+            source = ROOT / "sample" / "season2" / "MA-001"
+            shutil.copy2(source / "main.tf", work_dir / "main.tf")
+            shutil.copy2(source / "cost_report.json", work_dir / "cost_report.json")
+            shutil.copytree(source / "metrics", work_dir / "metrics")
+            state = run_graph(work_dir, write=True)
+            replacement_id = next(
+                finding["finding_id"]
+                for finding in state["findings"]
+                if finding.get("remediation_patch", {}).get("kind") == "replace_resource"
+            )
+            review = {
+                "schema_version": "1.0",
+                "run_id": state["run_id"],
+                "finding_reviews": [
+                    {
+                        "finding_id": finding["finding_id"],
+                        "disposition": "accepted" if finding["finding_id"] == replacement_id else "rejected",
+                        "rationale": "Review complete.",
+                    }
+                    for finding in state["findings"]
+                ],
+                "cross_domain_review": [],
+                "final_summary": "Source change test.",
+            }
+            review_path = work_dir / "result" / "claude_review.json"
+            review_path.write_text(json.dumps(review), encoding="utf-8")
+            tf_text = (work_dir / "main.tf").read_text(encoding="utf-8")
+            (work_dir / "main.tf").write_text(tf_text.replace("memory_size = 3008", "memory_size = 2900", 1), encoding="utf-8")
+
+            with self.assertRaisesRegex(ReviewValidationError, "source hash mismatch"):
+                finalize(work_dir, review_path)
+
 
 if __name__ == "__main__":
     unittest.main()

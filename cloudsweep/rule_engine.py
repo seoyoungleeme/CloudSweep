@@ -5,7 +5,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 
 
 RULE_SCHEMA_VERSION = "2.0"
@@ -14,6 +14,18 @@ SUPPORTED_OPERATORS = {"eq", "ne", "gt", "gte", "lt", "lte", "in", "exists"}
 
 class RuleValidationError(ValueError):
     pass
+
+
+class FactExtractor(Protocol):
+    def __call__(self, source: dict[str, Any]) -> dict[str, Any]: ...
+
+
+class SavingsCalculator(Protocol):
+    def __call__(self, facts: dict[str, Any], rule: dict[str, Any]) -> float: ...
+
+
+class RemediationPatchBuilder(Protocol):
+    def __call__(self, facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None: ...
 
 
 def stable_id(*parts: Any) -> str:
@@ -115,6 +127,52 @@ def load_rule(path: str | Path, handler_names: set[str] | None = None) -> dict[s
     document = json.loads(Path(path).read_text(encoding="utf-8"))
     validate_rule_document(document, handler_names)
     return document
+
+
+class RuleEngine:
+    """Evaluate v2 rules through named, startup-validated handlers."""
+
+    def __init__(
+        self,
+        extractors: dict[str, FactExtractor],
+        savings_calculators: dict[str, SavingsCalculator],
+        remediation_builders: dict[str, RemediationPatchBuilder],
+    ) -> None:
+        self.extractors = extractors
+        self.savings_calculators = savings_calculators
+        self.remediation_builders = remediation_builders
+
+    @property
+    def handler_names(self) -> set[str]:
+        return set(self.extractors) | set(self.savings_calculators) | set(self.remediation_builders)
+
+    def validate(self, rule: dict[str, Any]) -> None:
+        validate_rule_document(rule, self.handler_names)
+        handlers = rule["handlers"]
+        if handlers["extractor"] not in self.extractors:
+            raise RuleValidationError(f"Unknown extractor '{handlers['extractor']}'")
+        if handlers["savings"] not in self.savings_calculators:
+            raise RuleValidationError(f"Unknown savings handler '{handlers['savings']}'")
+        if handlers["remediation"] not in self.remediation_builders:
+            raise RuleValidationError(f"Unknown remediation handler '{handlers['remediation']}'")
+
+    def evaluate(self, rule: dict[str, Any], source: dict[str, Any]) -> dict[str, Any] | None:
+        self.validate(rule)
+        handlers = rule["handlers"]
+        facts = self.extractors[handlers["extractor"]](source)
+        if not evaluate_predicate(rule["predicate"], facts, rule.get("thresholds")):
+            return None
+        return {
+            "rule_id": rule["rule_id"],
+            "domain": rule["domain"],
+            "rule_version": rule["version"],
+            "facts": facts,
+            "outcome": dict(rule["outcome"]),
+            "estimated_monthly_saving_usd": round(
+                float(self.savings_calculators[handlers["savings"]](facts, rule)), 2
+            ),
+            "remediation_patch": self.remediation_builders[handlers["remediation"]](facts, rule),
+        }
 
 
 @dataclass(frozen=True)

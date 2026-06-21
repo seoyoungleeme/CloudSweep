@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CloudSweep Skill Analysis Output",
+  "description": "Structured output written by a Claude domain skill before LangGraph runs. LangGraph reads this file and assigns finding_id, savings_group, and evidence_facts.",
+  "type": "object",
+  "required": ["schema_version", "domain", "findings"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["rds", "elb", "ecs", "elasticache"]
+    },
+    "skill_version": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "resource", "severity", "confidence", "estimated_monthly_saving_usd", "evidence", "recommendation"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "resource": { "type": "string" },
+          "severity": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "INFO"] },
+          "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+          "estimated_monthly_saving_usd": { "type": "number", "minimum": 0 },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "recommendation": { "type": "string" },
+          "optimized_replacement": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "required": ["resource", "text"],
+                "properties": {
+                  "resource": { "type": "string" },
+                  "text": { "type": "string" }
+                }
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

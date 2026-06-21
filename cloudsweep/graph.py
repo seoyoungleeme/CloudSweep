@@ -23,7 +23,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Send, interrupt
 
 from .enrichment import EnrichmentProvider, FallbackEnrichmentProvider
-from .rule_engine import AnalyzerRegistration, AnalyzerRegistry, RuleValidationError, stable_id
+from .rule_engine import AnalyzerRegistration, AnalyzerRegistry, RuleValidationError, load_rule, stable_id
 
 
 DOMAIN_KEYWORDS: dict[str, tuple[str, ...]] = {
@@ -1724,6 +1724,24 @@ def _analyze_organizations(blocks: list[ResourceBlock], cost_summary: dict[str, 
     ]
 
 
+_COMPLEX_DOMAINS = frozenset({"rds", "elb", "ecs", "elasticache"})
+
+
+def _load_skill_analysis(work_dir: Path, domain: str) -> list[dict[str, Any]]:
+    """Load Claude skill output for a complex domain if it exists."""
+    path = work_dir / "result" / f"{domain}_skill_analysis.json"
+    if not path.exists():
+        return []
+    try:
+        data = _load_json(path)
+    except Exception:
+        return []
+    if not isinstance(data, dict) or data.get("domain") != domain:
+        return []
+    findings = data.get("findings", [])
+    return [f for f in findings if isinstance(f, dict) and f.get("rule_id")]
+
+
 def _load_existing_findings(path: str | None) -> list[dict[str, Any]]:
     if not path:
         return []
@@ -1746,7 +1764,7 @@ def _load_existing_findings(path: str | None) -> list[dict[str, Any]]:
     return findings
 
 
-def _analyze_single_domain(domain: str, evidence: dict[str, Any]) -> dict[str, Any]:
+def _analyze_single_domain(domain: str, evidence: dict[str, Any], work_dir: Path | None = None) -> dict[str, Any]:
     tf_path = evidence.get("terraform")
     blocks = _resource_blocks(_read_text(Path(tf_path))) if tf_path else []
     metrics = _load_metric_resources(evidence.get("metrics"))
@@ -1769,10 +1787,6 @@ def _analyze_single_domain(domain: str, evidence: dict[str, Any]) -> dict[str, A
         findings.extend(_analyze_ec2(blocks, analysis_resources, cost_summary))
     elif domain == "ebs":
         findings.extend(_analyze_ebs(blocks, cost_summary))
-    elif domain == "elb":
-        findings.extend(_analyze_elb(blocks, metrics, cost_summary))
-    elif domain == "rds":
-        findings.extend(_analyze_rds(blocks, metrics, cost_summary))
     elif domain == "cloudwatch":
         findings.extend(_analyze_cloudwatch(blocks, cost_summary))
     elif domain == "cloudwatch-alarm":
@@ -1781,16 +1795,28 @@ def _analyze_single_domain(domain: str, evidence: dict[str, Any]) -> dict[str, A
         findings.extend(_analyze_sqs(blocks, cost_summary))
     elif domain == "kinesis":
         findings.extend(_analyze_kinesis(blocks, cost_summary))
-    elif domain == "ecs":
-        findings.extend(_analyze_ecs(blocks, metrics, cost_summary))
-    elif domain == "elasticache":
-        findings.extend(_analyze_elasticache(blocks, metrics, cost_summary))
     elif domain == "nat":
         findings.extend(_analyze_nat(blocks, cost_summary))
     elif domain == "tgw":
         findings.extend(_analyze_tgw(blocks, cost_summary))
     elif domain == "organizations":
         findings.extend(_analyze_organizations(blocks, cost_summary))
+    elif domain in _COMPLEX_DOMAINS:
+        # Claude skill output takes priority; Python stub is the fallback for CLI-only runs.
+        skill_findings = _load_skill_analysis(work_dir, domain) if work_dir else []
+        if skill_findings:
+            for sf in skill_findings:
+                sf.setdefault("domain", domain)
+            findings.extend(skill_findings)
+        else:
+            if domain == "elb":
+                findings.extend(_analyze_elb(blocks, metrics, cost_summary))
+            elif domain == "rds":
+                findings.extend(_analyze_rds(blocks, metrics, cost_summary))
+            elif domain == "ecs":
+                findings.extend(_analyze_ecs(blocks, metrics, cost_summary))
+            elif domain == "elasticache":
+                findings.extend(_analyze_elasticache(blocks, metrics, cost_summary))
     else:
         warnings.append(
             f"No built-in graph analyzer yet for domain '{domain}'; load existing findings or service skill output."
@@ -1805,23 +1831,38 @@ def _analyze_single_domain(domain: str, evidence: dict[str, Any]) -> dict[str, A
 
 def _registry_handler(domain: str):
     def analyze(context: dict[str, Any]) -> list[dict[str, Any]]:
-        return _analyze_single_domain(domain, context["evidence"])["findings"]
+        work_dir = Path(context["work_dir"]) if context.get("work_dir") else None
+        return _analyze_single_domain(domain, context["evidence"], work_dir)["findings"]
 
     return analyze
 
 
 def _build_analyzer_registry() -> AnalyzerRegistry:
     registry = AnalyzerRegistry()
-    for domain in (
+    repo_root = Path(__file__).resolve().parents[1]
+    domains = (
         "lambda", "s3", "dynamodb", "bedrock", "sagemaker", "ec2",
         "ebs", "elb", "rds", "cloudwatch", "cloudwatch-alarm", "sqs",
         "kinesis", "ecs", "elasticache", "nat", "tgw", "organizations",
-    ):
+    )
+    handler_names = {
+        f"{domain}.{kind}"
+        for domain in domains
+        for kind in ("extract", "savings", "remediation")
+    }
+    for domain in domains:
+        rule_dir = repo_root / ".claude" / "skills" / f"finops-{domain}" / "rules"
+        rule_files = tuple(str(path) for path in sorted(rule_dir.glob("*.json")))
+        for rule_file in rule_files:
+            document = load_rule(rule_file, handler_names)
+            if document["domain"] != domain:
+                raise RuleValidationError(f"Rule domain mismatch in {rule_file}")
         registry.register(
             AnalyzerRegistration(
                 domain=domain,
                 version="2.0.0",
                 analyzer=_registry_handler(domain),
+                rule_files=rule_files,
             )
         )
     return registry
@@ -1834,7 +1875,7 @@ def analyze_domain_node(state: CloudSweepState) -> dict[str, Any]:
     domain = state["analysis_domain"]
     try:
         registration = ANALYZER_REGISTRY.get(domain)
-        findings = registration.analyzer({"evidence": state["evidence"]})
+        findings = registration.analyzer({"evidence": state["evidence"], "work_dir": state.get("work_dir", "")})
         result = {"domain": domain, "findings": findings, "warnings": [], "analyzer_version": registration.version}
     except RuleValidationError as exc:
         result = {"domain": domain, "findings": [], "warnings": [str(exc)], "analyzer_version": ""}
@@ -1851,6 +1892,7 @@ def _dispatch_domain_analysis(state: CloudSweepState) -> list[Send] | str:
             {
                 "analysis_domain": domain,
                 "evidence": state["evidence"],
+                "work_dir": state.get("work_dir", ""),
             },
         )
         for domain in domains
@@ -2144,25 +2186,78 @@ def _build_dependency_facts(state: CloudSweepState) -> list[dict[str, Any]]:
     if not tf_path:
         return []
     blocks = _resource_blocks(_read_text(Path(tf_path)))
-    by_name = {block["name"]: block for block in blocks}
+    by_address = {(block["type"], block["name"]): block for block in blocks}
     facts: list[dict[str, Any]] = []
     for source in blocks:
-        refs = re.findall(r"aws_[A-Za-z0-9_]+\.([A-Za-z0-9_-]+)\.", source["text"])
-        for target_name in sorted(set(refs)):
-            target = by_name.get(target_name)
-            if not target or target_name == source["name"]:
+        refs = re.findall(r"(aws_[A-Za-z0-9_]+)\.([A-Za-z0-9_-]+)\.", source["text"])
+        for target_type, target_name in sorted(set(refs)):
+            target = by_address.get((target_type, target_name))
+            if not target or (target_type, target_name) == (source["type"], source["name"]):
                 continue
-            fact_id = stable_id(state.get("run_id"), "dependency", source["name"], target_name)
+            source_address = f"{source['type']}.{source['name']}"
+            target_address = f"{target_type}.{target_name}"
+            fact_id = stable_id(state.get("run_id"), "dependency", source_address, target_address)
             facts.append({
                 "fact_id": fact_id,
                 "kind": "terraform_reference",
-                "source": source["name"],
+                "source": source_address,
                 "source_type": source["type"],
-                "target": target_name,
+                "target": target_address,
                 "target_type": target["type"],
                 "status": "observed",
             })
-    return sorted(facts, key=lambda fact: (fact["source"], fact["target"], fact["fact_id"]))
+
+    resources, _ = _load_analysis_resources(state.get("evidence", {}))
+    for resource_name, record in sorted(resources.items()):
+        metrics = record.get("metrics", {})
+        if not isinstance(metrics, dict):
+            continue
+
+        def metric_average(*names: str) -> float | None:
+            for name in names:
+                value = _avg(_series(metrics.get(name)))
+                if value is not None:
+                    return value
+            return None
+
+        invocations = metric_average("invocations", "invocation_count")
+        requests = metric_average("downstream_requests", "request_count", "requests")
+        retries = metric_average("retries", "retry_count")
+        cache_hit_rate = metric_average("cache_hit_rate_pct", "cache_hit_rate")
+
+        derived: list[tuple[str, float, dict[str, Any]]] = []
+        if invocations is not None and invocations > 0 and requests is not None:
+            derived.append((
+                "request_invocation_ratio",
+                round(requests / invocations, 4),
+                {"requests_avg": requests, "invocations_avg": invocations},
+            ))
+        if invocations is not None and invocations > 0 and retries is not None:
+            derived.append((
+                "retry_amplification_ratio",
+                round(retries / invocations, 4),
+                {"retries_avg": retries, "invocations_avg": invocations},
+            ))
+        if cache_hit_rate is not None:
+            derived.append(("cache_hit_rate_pct", round(cache_hit_rate, 4), {}))
+
+        for kind, value, inputs in derived:
+            facts.append({
+                "fact_id": stable_id(state.get("run_id"), "dependency_metric", resource_name, kind),
+                "kind": kind,
+                "resource": resource_name,
+                "value": value,
+                "inputs": inputs,
+                "status": "observed",
+            })
+    return sorted(
+        facts,
+        key=lambda fact: (
+            str(fact.get("source", fact.get("resource", ""))),
+            str(fact.get("target", fact.get("kind", ""))),
+            fact["fact_id"],
+        ),
+    )
 
 
 def cross_domain_node(state: CloudSweepState) -> dict[str, Any]:

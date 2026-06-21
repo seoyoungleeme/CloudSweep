@@ -1,10 +1,10 @@
 ---
 name: finops-elb
 description: >
-  FinOps ELB Analysis Skill. Detects idle or potentially unused AWS load
-  balancers using Terraform, CloudWatch metrics, DNS/listener/target evidence,
-  and AWS cost reports. Supports ALB-focused analysis and flags when NLB/CLB
-  metrics need separate treatment.
+  FinOps ELB Analysis Skill. Detects cost waste in idle or underutilized AWS
+  load balancers (ALB/NLB/CLB) using Terraform, CloudWatch metrics, and AWS
+  cost reports. Checks DNS, listener, target group, blue-green, and DR
+  dependencies before flagging for deletion.
 user_invocable: false
 ---
 
@@ -12,63 +12,71 @@ user_invocable: false
 
 ## Scope
 
-> **Review-only authority:** LangGraph owns detection and calculations. Review DNS, listener, DR, and blue/green dependencies; do not rerun rule arithmetic.
-
-Detect idle/unused load balancers from a FinOps perspective. Remove truly idle
-LBs and related fixed costs without breaking DNS, TLS, routing, WAF, private
-connectivity, health checks, or blue/green paths.
-
-## Input Mode
-
-- **Orchestrator subagent mode** (prompt contains `=== TERRAFORM ===`): use
-  inline slices only — do not scan WORK_DIR.
-- **Standalone mode** (no inline slices): scan `WORK_DIR` for full inputs.
+Identify idle or overprovisioned load balancers while preserving active
+traffic paths, blue-green deployments, DR standby capacity, and
+certificate/WAF dependencies.
 
 ## Required Evidence
 
 | File | Used For | If Missing |
 |------|----------|------------|
-| `main.tf` | `aws_lb`, listeners, listener rules, target groups, DNS, SGs, WAF, certs, tags | Cannot analyze; ask for path |
-| `metrics.json` | RequestCount, connections, ProcessedBytes, LCU, healthy hosts, target responses | Mark metrics unavailable |
-| `cost_report.json` | Monthly ELB cost, fixed LB-hours, LCU/NLCU/GLCU, pricing notes | Mark cost unavailable |
+| `main.tf` | `aws_lb`, `aws_alb`, `aws_elb`, listeners, target groups, certificates, WAF, DNS records | Cannot analyze; ask for path |
+| `metrics.json` | RequestCount, ActiveConnectionCount, NewConnectionCount, ProcessedBytes, HealthyHostCount, UnHealthyHostCount | Mark metrics unavailable |
+| `cost_report.json` | Monthly ELB/ALB cost per resource | Mark cost unavailable |
 
-Base every conclusion on provided files. Missing facts → write
-`Not available in the provided data; verify in the real environment.`
+Missing facts → write `Not available in the provided data; verify in the real environment.`
 
-## Detection Rules (apply `rules/unused_elb.json`)
+## Detection Rules
 
 | Rule | Condition | Severity | Action |
 |------|-----------|----------|--------|
-| LB1 | Full window has zero requests/connections/bytes/LCU and no target/DNS evidence | HIGH | REVIEW_DELETE |
-| LB2 | No requests but connections, healthy hosts, DNS, or listener deps exist | MEDIUM | INVESTIGATE |
-| LB3 | Low traffic but nonzero LCU or processed bytes | LOW | OPTIMIZE_OR_SHARE |
-| LB4 | LB lacks owner/environment/purpose tags | MEDIUM | ADD_GOVERNANCE_TAGS |
-| LB5 | Deletion protection enabled or deployment/DR role identified | INFO | DO_NOT_DELETE_WITHOUT_OWNER |
+| LB1 | Zero requests AND zero active connections over observation period | HIGH | REVIEW_DELETE_IDLE_ALB |
+| LB2 | Very low request rate (<100/day) with all healthy targets | MEDIUM | REVIEW_CONSOLIDATE |
+| LB3 | NLB with no TLS offload or WAF requirement (ALB features unused) | LOW | REVIEW_DOWNGRADE_TO_NLB |
+| LB4 | Classic Load Balancer (CLB) still in use | MEDIUM | MIGRATE_TO_ALB |
+| LB5 | Listener exists but all target groups are empty | HIGH | REVIEW_DELETE_STALE_LISTENER |
 
 ## Safety Guardrails
 
-- Do not recommend immediate deletion based only on average request/connection
-  metrics. Require full observation window with zero traffic AND dependency
-  checks (DNS, listeners, target groups, certs, WAF, access logs, SGs, deploy workflows).
-- Prefer sum/min/max over average for zero-traffic detection.
+- Do not flag for deletion when DNS records (Route 53 or external) point to
+  the load balancer — check `aws_route53_record` aliases in the Terraform slice.
+- Do not flag when blue-green or canary deployment evidence is present (multiple
+  target groups, weighted routing, or `deployment_group` references).
+- Do not flag when the load balancer is a DR standby (tagged `Environment=dr`
+  or `Purpose=standby`).
+- Treat incomplete metrics (observation window <7 days) as confidence=LOW.
+- NLB metrics differ from ALB — `ActiveFlowCount` replaces `ActiveConnectionCount`;
+  adjust rule LB1 accordingly.
 
-Full deletion checklist: `references/details.md` § Required Deletion Checks.
+## Output Contract
 
-## Output
+Write `result/elb_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json` before running LangGraph.
 
-Write to `WORK_DIR/result/`:
-- `finops_report.md` — report template in `references/report.md`.
-- `main_optimized.tf` — preserve real names; comment deletion candidates with
-  verification steps; never silently delete; preserve active LBs and deletion
-  protection. Full rules: `references/details.md` § Optimized Terraform.
+LangGraph reads this file and assigns `finding_id`, `savings_group`, and
+`evidence_facts`. Do not include those fields in the skill output.
 
-## Reference Index
+```json
+{
+  "schema_version": "1.0",
+  "domain": "elb",
+  "skill_version": "2.0",
+  "findings": [
+    {
+      "rule_id": "ELB_LB1_UNUSED",
+      "resource": "<tf_resource_name>",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": ["request_count_sum=0", "active_connection_count_max=0", "no Route53 alias found"],
+      "recommendation": "Verify DNS, certificates, WAF, and DR dependencies, then delete if confirmed idle.",
+      "optimized_replacement": null
+    }
+  ]
+}
+```
 
-| When | File | Search for |
-|------|------|------------|
-| Pre-deletion validation | `references/details.md` | Required Deletion Checks |
-| Evidence sections to cover | `references/details.md` | Deep Architectural Analysis |
-| Savings formula | `references/details.md` | Savings Calculation |
-| Report writing | `references/report.md` | full markdown template |
+Allowed `rule_id` values: `ELB_LB1_UNUSED`, `ELB_LB2_LOW_UTILIZATION`,
+`ELB_LB3_REVIEW_NLB_DOWNGRADE`, `ELB_LB4_MIGRATE_CLB`, `ELB_LB5_STALE_LISTENER`.
 
-Generated by: finops-elb skill
+Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable.

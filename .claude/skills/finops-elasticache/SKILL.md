@@ -1,10 +1,10 @@
 ---
 name: finops-elasticache
 description: >
-  FinOps ElastiCache Analysis Skill. Detects ElastiCache cost waste from
-  over-provisioned nodes, excessive replicas or shards, oversized node classes,
-  missing reserved node coverage, and cache clusters whose topology no longer
-  matches observed workload needs.
+  FinOps ElastiCache Analysis Skill. Detects cost waste in ElastiCache clusters
+  from excess replicas, overprovisioned node types, missing reserved node
+  coverage, and HA mismatches using Terraform, CloudWatch metrics, and AWS
+  cost reports.
 user_invocable: false
 ---
 
@@ -12,62 +12,72 @@ user_invocable: false
 
 ## Scope
 
-> **Review-only authority:** LangGraph owns detection and calculations. Review HA, eviction, memory, and latency safety; do not rerun rule arithmetic.
-
-Reduce node hours for Redis/Valkey or Memcached without compromising
-availability, latency, memory headroom, failover posture, or cache effectiveness.
-
-## Input Mode
-
-- **Orchestrator subagent mode** (`=== TERRAFORM ===` present): inline slices only.
-- **Standalone mode**: scan `WORK_DIR` for full inputs.
+Reduce ElastiCache spend while preserving cache hit rates, read throughput,
+eviction limits, replication lag, Multi-AZ availability, and failover
+requirements.
 
 ## Required Evidence
 
 | File | Used For | If Missing |
 |------|----------|------------|
-| `main.tf` | `aws_elasticache_replication_group`, `aws_elasticache_cluster`, subnet/SG, tags | Cannot analyze; ask for path |
-| `metrics.json` | Cache hit rate, evictions, memory, CPU, network, connections, replication lag, node count | Mark metrics unavailable |
-| `cost_report.json` | Monthly ElastiCache cost, pricing notes, reserved-node coverage | Mark cost unavailable |
+| `main.tf` | `aws_elasticache_replication_group`, node type, num_cache_clusters, Multi-AZ, parameter group, engine version | Cannot analyze; ask for path |
+| `metrics.json` | CacheHitRate, Evictions, CPUUtilization, DatabaseMemoryUsagePercentage, ReplicationLag, NetworkBytesIn/Out | Mark metrics unavailable |
+| `cost_report.json` | Monthly ElastiCache cost, reserved node coverage | Mark cost unavailable |
 
 Missing facts → write `Not available in the provided data; verify in the real environment.`
 
-## Detection Rules (apply `rules/overprovisioned_elasticache.json`)
+## Detection Rules
 
 | Rule | Condition | Severity | Action |
 |------|-----------|----------|--------|
-| EC1 | Excess replicas/nodes with low memory pressure, low evictions, low CPU/network, HA min preserved | HIGH | REDUCE_REPLICAS |
-| EC2 | Node class oversized based on memory, CPU, network, p95 usage | HIGH | DOWNSIZE_NODE_TYPE |
-| EC3 | Too many shards for keyspace/throughput evidence | MEDIUM | REVIEW_SHARD_COUNT |
-| EC4 | Reserved-node coverage missing for retained steady baseline | LOW | CONSIDER_RESERVED_NODES |
-| EC5 | Evictions, high memory/CPU/connections, or replication lag present | INFO | DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE |
+| EC1 | num_cache_clusters >2 AND read replica traffic is low (p95 connections <30% of primary) | HIGH | REVIEW_REDUCE_REPLICAS |
+| EC2 | DatabaseMemoryUsagePercentage p95 <50% AND CPUUtilization avg <20% | HIGH | REVIEW_DOWNSIZE_NODE |
+| EC3 | Steady baseline with no reserved node purchase AND monthly cost >$200 | LOW | MODEL_RESERVED_NODE |
+| EC4 | Single node, no replica, no Multi-AZ, production workload | INFO | REVIEW_HA_POSTURE |
+| EC5 | Engine version eligible for upgrade AND current version EOL or approaching EOL | MEDIUM | UPGRADE_ENGINE |
 
 ## Safety Guardrails
 
-- Do not reduce node count from high `cache_hit_rate_pct` alone. Confirm low
-  memory pressure, low evictions, acceptable CPU, network/connection headroom,
-  and replication/failover safety.
-- Don't hard-code flagged replication groups to `num_cache_clusters = 2` —
-  preserve minimum topology for engine, shard count, failover, Multi-AZ, SLA.
+- Do not reduce replicas when eviction count is >0 in any observation window,
+  or when replication lag exceeds 100ms at p95.
+- Do not downsize node type when cache hit rate drops below 95% or when
+  evictions are non-zero — these indicate memory pressure.
+- EC1 and EC2 may co-occur; report both. Do not combine their savings.
+- EC4 is informational; set `estimated_monthly_saving_usd` to 0.0.
+- For EC3, model savings conservatively: 1-year reserved is typically 30% off
+  on-demand. Only recommend if the cluster has been stable for ≥60 days.
 
-Full pre-change checklist: `references/details.md` § Required Safety Checks.
+## Output Contract
 
-## Output
+Write `result/elasticache_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json` before running LangGraph.
 
-Write to `WORK_DIR/result/`:
-- `finops_report.md` — template in `references/report.md`.
-- `main_optimized.tf` — preserve real names; change replica count or node type
-  only when metrics show enough headroom; if evidence incomplete, produce
-  review plan. Full rules: `references/details.md` § Optimized Terraform.
+LangGraph reads this file and assigns `finding_id`, `savings_group`, and
+`evidence_facts`. Do not include those fields in the skill output.
 
-## Reference Index
+```json
+{
+  "schema_version": "1.0",
+  "domain": "elasticache",
+  "skill_version": "2.0",
+  "findings": [
+    {
+      "rule_id": "ELASTICACHE_EC1_REDUCE_REPLICAS",
+      "resource": "<tf_resource_name>",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": ["num_cache_clusters=4", "replica_connection_p95_pct=18", "evictions=0", "replication_lag_ms_p95=12"],
+      "recommendation": "Reduce to 2 replicas after confirming eviction=0, lag<100ms, and hit rate >95%.",
+      "optimized_replacement": null
+    }
+  ]
+}
+```
 
-| When | File | Search for |
-|------|------|------------|
-| Pre-change validation | `references/details.md` | Required Safety Checks |
-| Evidence sections | `references/details.md` | Deep Architectural Analysis |
-| Savings formula, reserved-node logic | `references/details.md` | Savings Calculation |
-| Preventive actions | `references/details.md` | Preventive Actions |
-| Report writing | `references/report.md` | full markdown template |
+Allowed `rule_id` values: `ELASTICACHE_EC1_REDUCE_REPLICAS`,
+`ELASTICACHE_EC2_DOWNSIZE_NODE`, `ELASTICACHE_EC3_NO_RESERVED_NODE`,
+`ELASTICACHE_EC4_NO_HA`, `ELASTICACHE_EC5_ENGINE_UPGRADE`.
 
-Generated by: finops-elasticache skill
+Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable or
+when the rule is informational (EC4).
