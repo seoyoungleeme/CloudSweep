@@ -1,6 +1,11 @@
 {
   "schema_version": "2.0", "rule_id": "CLOUDWATCH_RETENTION_POLICY", "domain": "cloudwatch",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "facts": {
+    "analyzable": {"type": "boolean", "required": true},
+    "retention_in_days": {"type": "integer"},
+    "retention_days_scenario_attr": {"type": "boolean"}
+  },
+  "predicate": {"fact": "analyzable", "op": "eq", "value": true},
   "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "cloudwatch.extract", "savings": "cloudwatch.savings", "remediation": "cloudwatch.remediation"},
   "rule_name": "cloudwatch_log_group_retention_policy",
   "description": "Identifies CloudWatch Log Groups with missing, infinite, excessive, or unsafe retention settings. The rule focuses on storage waste while preserving operational, audit, security, and compliance requirements.",
@@ -116,11 +121,20 @@
     {
       "id": "C1",
       "name": "missing_or_infinite_retention",
+      "rule_type": "finding",
+      "savings_fraction": 0.5,
+      "predicate": {
+        "any": [
+          {"not": {"fact": "retention_in_days", "op": "exists"}},
+          {"fact": "retention_in_days", "op": "eq", "value": 0}
+        ]
+      },
       "condition": "retention_in_days is missing OR retention_in_days == 0",
       "severity": "HIGH",
       "action": "SET_RETENTION",
       "confidence": "HIGH",
-      "description": "Log group has no bounded expiry policy. Logs accumulate indefinitely and create growing storage cost. Apply an environment-appropriate retention_in_days unless audit/security/compliance policy requires a different path."
+      "description": "Log group has no bounded expiry policy. Logs accumulate indefinitely and create growing storage cost. Apply an environment-appropriate retention_in_days unless audit/security/compliance policy requires a different path.",
+      "recommendation": "Set a retention period after validating audit and compliance requirements."
     },
     {
       "id": "C2",

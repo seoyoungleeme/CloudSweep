@@ -23,7 +23,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Send, interrupt
 
 from .enrichment import EnrichmentProvider, FallbackEnrichmentProvider
-from .rule_engine import AnalyzerRegistration, AnalyzerRegistry, RuleValidationError, load_rule, stable_id
+from .evidence_normalization import normalize_environment
+from .rule_engine import AnalyzerRegistration, AnalyzerRegistry, RuleEngine, RuleValidationError, load_rule, stable_id
 
 
 DOMAIN_KEYWORDS: dict[str, tuple[str, ...]] = {
@@ -764,7 +765,7 @@ def _analyze_lambda(blocks: list[ResourceBlock], metrics: dict[str, dict[str, An
             {
                 "domain": "lambda",
                 "resource": block["name"],
-                "rule_id": "LAMBDA_MEMORY_RIGHTSIZE",
+                "rule_id": "LAMBDA_RIGHTSIZE_POLICY:L1",
                 "severity": "HIGH",
                 "confidence": "MEDIUM" if metric_summary["p99"] is not None else "LOW",
                 "estimated_monthly_saving_usd": per_resource,
@@ -843,7 +844,7 @@ def _analyze_s3(blocks: list[ResourceBlock], metrics: dict[str, dict[str, Any]],
             {
                 "domain": "s3",
                 "resource": block["name"],
-                "rule_id": "S3_MISSING_LIFECYCLE",
+                "rule_id": "S3_LIFECYCLE_POLICY:V1",
                 "severity": "MEDIUM",
                 "confidence": "MEDIUM",
                 "estimated_monthly_saving_usd": per_resource,
@@ -901,7 +902,7 @@ def _analyze_dynamodb(blocks: list[ResourceBlock], metrics: dict[str, dict[str, 
             {
                 "domain": "dynamodb",
                 "resource": block["name"],
-                "rule_id": "DYNAMODB_PROVISIONED_RIGHTSIZE",
+                "rule_id": "DYNAMODB_CAPACITY_POLICY:D1",
                 "severity": "HIGH",
                 "confidence": "MEDIUM",
                 "estimated_monthly_saving_usd": per_resource,
@@ -1561,170 +1562,825 @@ def _split_domain_cost(cost_summary: dict[str, Any], domain: str, count: int, fr
 
 
 def _analyze_ebs(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    flagged = [block for block in blocks if block["type"] == "aws_ebs_snapshot" and "sourcevolumestatus" in block["text"].lower() and "deleted" in block["text"].lower()]
-    saving = _split_domain_cost(cost_summary, "ebs", len(flagged))
-    return [
-        _finding("ebs", block["name"], "EBS_S1_ORPHANED_SNAPSHOT", "HIGH", "MEDIUM", saving,
-                 ["SourceVolumeStatus=deleted", "no AMI/Backup/DLM dependency evidence in Terraform slice"],
-                 "Verify AMI, AWS Backup, DLM, legal hold, audit, and DR dependencies before deleting the snapshot.")
-        for block in flagged
-    ]
+    snapshots = [b for b in blocks if b["type"] == "aws_ebs_snapshot"]
+    sources = [{"block": b, "all_blocks": blocks} for b in snapshots]
+    return _findings_from_engine(
+        "ebs", _get_rule_doc("ebs", "orphaned_snapshot.json"),
+        _EBS_ENGINE, sources, cost_summary,
+        frozenset({"has_deleted_source_volume", "has_ami_reference", "has_backup_reference"}),
+    )
 
 
 def _analyze_elb(blocks: list[ResourceBlock], metrics: dict[str, dict[str, Any]], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
     lbs = [block for block in blocks if block["type"] in {"aws_lb", "aws_elb", "aws_alb"}]
+    listeners = [block for block in blocks if block["type"] == "aws_lb_listener"]
+    tg_blocks = [block for block in blocks if block["type"] == "aws_lb_target_group"]
+    tg_attachments = [block for block in blocks if block["type"] == "aws_lb_target_group_attachment"]
+    waf_assocs = [block for block in blocks if block["type"] in {"aws_wafv2_web_acl_association", "aws_waf_web_acl"}]
     findings: list[dict[str, Any]] = []
+    lb_cost = _split_domain_cost(cost_summary, "elb", len(lbs))
+
     for block in lbs:
+        is_clb = block["type"] == "aws_elb"
+        lb_type = (_attr(block["text"], "load_balancer_type") or "application").lower()
+        is_alb = lb_type == "application" and not is_clb
+        env = (_tag_value(block["text"], "Environment") or "").lower()
+        purpose = (_tag_value(block["text"], "Purpose") or "").lower()
+        is_dr = env in {"dr", "disaster-recovery"} or "dr" in env or purpose in {"standby", "dr"}
+
         record = _metric_record(metrics, block) or {}
-        requests = _series(record.get("metrics", {}).get("request_count", {})) or _series(record.get("metrics", {}).get("request_count_sum", {}))
-        connections = _series(record.get("metrics", {}).get("active_connection_count", {}))
+        requests = (
+            _series(record.get("metrics", {}).get("request_count", {}))
+            or _series(record.get("metrics", {}).get("request_count_sum", {}))
+        )
+        connections = (
+            _series(record.get("metrics", {}).get("active_connection_count", {}))
+            or _series(record.get("metrics", {}).get("active_flow_count", {}))
+        )
         is_problem = bool(record.get("is_problem"))
-        if (requests and sum(requests) == 0 and (not connections or max(connections) == 0)) or is_problem:
-            findings.append(_finding("elb", block["name"], "ELB_LB1_UNUSED", "HIGH", "HIGH" if requests else "MEDIUM",
-                                     _split_domain_cost(cost_summary, "elb", len(lbs)),
-                                     [f"request_count_sum={sum(requests) if requests else 'not_available'}", f"active_connection_count_max={max(connections) if connections else 'not_available'}"],
-                                     "Check DNS, listener, target group, blue/green, and DR dependencies before deletion."))
+
+        # LB4: Classic Load Balancer — always flag for migration
+        if is_clb:
+            findings.append(_finding(
+                "elb", block["name"], "ELB_LB4_MIGRATE_CLB", "MEDIUM", "HIGH", lb_cost,
+                ["load_balancer_type=classic (aws_elb)"],
+                "Migrate from Classic Load Balancer to ALB for advanced routing, gRPC, WebSockets, and WAF support.",
+            ))
+            continue
+
+        # LB1: Completely idle — zero requests and zero active connections
+        zero_requests = bool(requests) and sum(requests) == 0
+        zero_connections = not connections or max(connections) == 0
+        if not is_dr and ((zero_requests and zero_connections) or is_problem):
+            findings.append(_finding(
+                "elb", block["name"], "ELB_LB1_UNUSED", "HIGH",
+                "HIGH" if requests else "MEDIUM", lb_cost,
+                [
+                    f"request_count_sum={sum(requests) if requests else 'not_available'}",
+                    f"active_connection_count_max={max(connections) if connections else 'not_available'}",
+                ],
+                "Verify DNS, certificates, WAF, blue/green, and DR dependencies before deletion.",
+            ))
+            continue
+
+        # LB2: Very low request rate but not zero
+        if requests and not zero_requests:
+            req_avg = _avg(requests) or 0.0
+            if req_avg < 100 and not is_dr:
+                findings.append(_finding(
+                    "elb", block["name"], "ELB_LB2_LOW_UTILIZATION", "MEDIUM", "MEDIUM",
+                    lb_cost * 0.5,
+                    [f"request_count_avg={round(req_avg, 1)}", "target_health=all_healthy_assumed"],
+                    "Review consolidation opportunities. Validate blue/green, canary, and weighted routing dependencies.",
+                ))
+
+        # LB3: ALB that may not need ALB features (no WAF, no TLS offload in slice)
+        if is_alb:
+            lb_name = _attr(block["text"], "name") or block["name"]
+            has_waf = any(
+                block["name"] in a["text"] or lb_name in a["text"]
+                for a in waf_assocs
+            )
+            has_tls = any(
+                (block["name"] in lst["text"] or lb_name in lst["text"])
+                and "ssl_policy" in lst["text"]
+                for lst in listeners
+            )
+            if not has_waf and not has_tls:
+                findings.append(_finding(
+                    "elb", block["name"], "ELB_LB3_REVIEW_NLB_DOWNGRADE", "LOW", "LOW",
+                    lb_cost * 0.2,
+                    [f"load_balancer_type={lb_type}", "waf_association=not_found_in_slice",
+                     "ssl_policy=not_found_in_slice"],
+                    "Evaluate NLB if only TCP/UDP forwarding is needed; confirm no WAF, TLS offload, or host/path routing requirements.",
+                ))
+
+    # LB5: Listeners present but no target group attachments found in slice
+    if listeners and tg_blocks and not tg_attachments:
+        for lst in listeners:
+            findings.append(_finding(
+                "elb", lst["name"], "ELB_LB5_STALE_LISTENER", "HIGH", "MEDIUM", 0.0,
+                ["aws_lb_listener present", "aws_lb_target_group present",
+                 "no aws_lb_target_group_attachment found in Terraform slice"],
+                "Verify target group membership. Delete or re-register targets after confirming no blue/green deployment dependency.",
+            ))
+
     return findings
+
+
+_RDS_EXTENDED_SUPPORT_ENGINES: dict[str, set[str]] = {
+    "mysql": {"5.7"},
+    "mariadb": {"10.3", "10.4", "10.5"},
+    "postgres": {"11", "12"},
+}
+
+
+def _rds_in_extended_support(engine: str, engine_version: str) -> bool:
+    engine_lc = (engine or "").lower().replace("aurora-", "")
+    major = (engine_version or "").split(".")[0]
+    major_minor = ".".join((engine_version or "").split(".")[:2])
+    versions = _RDS_EXTENDED_SUPPORT_ENGINES.get(engine_lc, set())
+    return major in versions or major_minor in versions
 
 
 def _analyze_rds(blocks: list[ResourceBlock], metrics: dict[str, dict[str, Any]], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
     dbs = [block for block in blocks if block["type"] == "aws_db_instance"]
     findings: list[dict[str, Any]] = []
+    domain_monthly = _domain_cost(cost_summary, "rds")
+    monthly = _split_domain_cost(cost_summary, "rds", len(dbs))
+
     for block in dbs:
-        env = (_tag_value(block["text"], "Environment") or "unknown").lower()
+        env = normalize_environment(_tag_value(block["text"], "Environment")) or "unknown"
         multi_az = _attr_bool(block["text"], "multi_az")
-        monthly = _split_domain_cost(cost_summary, "rds", len(dbs))
-        if multi_az and env in {"dev", "test", "staging", "sandbox", "nonprod"}:
-            findings.append(_finding("rds", block["name"], "RDS_R1_NONPROD_MULTI_AZ", "MEDIUM", "MEDIUM", monthly * 0.5,
-                                     ["multi_az=true", f"environment={env}", "SLA/DR/compliance requirement not available"],
-                                     "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ.",
-                                     optimized_replacement={"resource": block["name"], "text": _replace_attr(block["text"], "multi_az", "false")}))
+        instance_class = _attr(block["text"], "instance_class") or ""
+        engine = _attr(block["text"], "engine") or ""
+        engine_version = _attr(block["text"], "engine_version") or ""
+        storage_type = _attr(block["text"], "storage_type") or "gp2"
+        is_replica = bool(_attr(block["text"], "replicate_source_db"))
+        is_prod = env in {"prod", "production", "prd"}
+        is_nonprod = env in {"dev", "test", "staging", "sandbox", "nonprod"}
+        in_extended_support = _rds_in_extended_support(engine, engine_version)
+
         record = _metric_record(metrics, block) or {}
-        cpu = _series(record.get("metrics", {}).get("cpu_utilization", {}))
+        metric_map = record.get("metrics", {})
+        cpu = _series(metric_map.get("cpu_utilization", {})) or _series(metric_map.get("cpuutilization", {}))
+        connections = _series(record.get("metrics", {}).get("database_connections", {}))
+
+        # R1: Non-production with Multi-AZ
+        if multi_az and is_nonprod:
+            findings.append(_finding(
+                "rds", block["name"], "RDS_R1_NONPROD_MULTI_AZ", "MEDIUM", "MEDIUM",
+                monthly * 0.5,
+                ["multi_az=true", f"environment={env}", "SLA/DR/compliance requirement not available"],
+                "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ.",
+                optimized_replacement={"resource": block["name"], "text": _replace_attr(block["text"], "multi_az", "false")},
+            ))
+
+        # R2: Low CPU utilization → rightsize instance class
         if cpu and (_avg(cpu) or 100) < 20 and (_pctl(cpu, 0.95) or 100) < 40:
-            findings.append(_finding("rds", block["name"], "RDS_R2_LOW_UTILIZATION", "HIGH", "MEDIUM", monthly * 0.25,
-                                     [f"cpu_avg_pct={_avg(cpu)}", f"cpu_p95_pct={_pctl(cpu, 0.95)}"],
-                                     "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency."))
+            findings.append(_finding(
+                "rds", block["name"], "RDS_R2_LOW_UTILIZATION", "HIGH", "MEDIUM",
+                monthly * 0.25,
+                [f"cpu_avg_pct={_avg(cpu)}", f"cpu_p95_pct={_pctl(cpu, 0.95)}"],
+                "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency.",
+            ))
+
+        # R3: No Reserved Instance for steady production workload
+        if (
+            is_prod
+            and not is_replica
+            and not in_extended_support
+            and domain_monthly > 100
+            and "micro" not in instance_class
+            and "small" not in instance_class
+        ):
+            cpu_avg = _avg(cpu)
+            if cpu_avg is None or cpu_avg > 5:
+                findings.append(_finding(
+                    "rds", block["name"], "RDS_R3_NO_RESERVED_INSTANCE", "LOW", "MEDIUM",
+                    monthly * 0.30,
+                    [f"environment={env}", f"instance_class={instance_class}",
+                     f"avg_monthly_rds_spend_usd={round(domain_monthly, 2)}",
+                     "reserved_instance_coverage=not_evidenced_in_terraform"],
+                    "Model 1-year Reserved Instance savings (~30% off on-demand) after confirming stable instance class for 60+ days.",
+                ))
+
+        # R4: Extended Support charges — engine version past mainstream support
+        if in_extended_support:
+            findings.append(_finding(
+                "rds", block["name"], "RDS_R4_EXTENDED_SUPPORT", "HIGH", "HIGH",
+                monthly * 0.20,
+                [f"engine={engine}", f"engine_version={engine_version}",
+                 "extended_support_charges=active"],
+                f"Upgrade to a supported major version to eliminate Extended Support charges. Validate application compatibility before migrating.",
+            ))
+
+        # R5: gp2 storage → gp3 provides better baseline performance at lower cost
+        if storage_type == "gp2":
+            findings.append(_finding(
+                "rds", block["name"], "RDS_R5_GP2_STORAGE", "MEDIUM", "HIGH",
+                monthly * 0.10,
+                [f"storage_type={storage_type}", "gp3 offers higher baseline IOPS and 20% lower cost than gp2"],
+                "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance.",
+                optimized_replacement={"resource": block["name"], "text": _replace_attr(block["text"], "storage_type", '"gp3"')},
+            ))
+
+        # R6: Read replica with very low connection count — possibly unused
+        if is_replica:
+            conn_avg = _avg(connections)
+            if conn_avg is not None and conn_avg < 5:
+                findings.append(_finding(
+                    "rds", block["name"], "RDS_R6_UNDERUSED_READ_REPLICA", "MEDIUM", "LOW",
+                    monthly,
+                    [f"replicate_source_db=set", f"database_connections_avg={round(conn_avg, 1)}"],
+                    "Verify application read traffic is routed to this replica. Delete if unused after confirming no DR or reporting dependency.",
+                ))
+
+    return findings
+
+
+# ── CloudWatch / CloudWatch-Alarm: RuleEngine-driven analyzers ───────────────
+
+def _cw_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    return {
+        "analyzable": True,
+        "retention_in_days": _attr_int(block["text"], "retention_in_days"),
+        "retention_days_scenario_attr": _attr(block["text"], "retention_days") is not None,
+        "_block": block,
+    }
+
+
+def _cw_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    # The rule document contains a per-GB price, not a saving amount. Without
+    # observed stored volume or a cost report, reporting that unit price as a
+    # monthly saving is dimensionally incorrect.
+    return 0.0
+
+
+def _cw_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    block = facts.get("_block")
+    if block is None:
+        return None
+    attr = "retention_days" if facts.get("retention_days_scenario_attr") else "retention_in_days"
+    return {"resource": block["name"], "text": _replace_attr(block["text"], attr, 30)}
+
+
+def _cwalarm_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    return {
+        "analyzable": True,
+        "resolution_seconds": _attr_int(block["text"], "resolution_seconds"),
+        "actual_required_resolution_seconds": _attr_int(block["text"], "actual_required_resolution_seconds"),
+        "metric_type": _attr(block["text"], "metric_type"),
+        "evaluation_period_minutes": _attr_int(block["text"], "evaluation_period_minutes"),
+        "_block": block,
+    }
+
+
+def _cwalarm_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return rule.get("cost", {}).get("savings_per_metric_per_month_usd", 0.60)
+
+
+def _cwalarm_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    block = facts.get("_block")
+    if block is None:
+        return None
+    return {"resource": block["name"], "text": _replace_attr(block["text"], "resolution_seconds", 60)}
+
+
+_CW_ENGINE = RuleEngine(
+    extractors={"cloudwatch.extract": _cw_extractor},
+    savings_calculators={"cloudwatch.savings": _cw_savings},
+    remediation_builders={"cloudwatch.remediation": _cw_remediation},
+)
+
+_CWALARM_ENGINE = RuleEngine(
+    extractors={"cloudwatch-alarm.extract": _cwalarm_extractor},
+    savings_calculators={"cloudwatch-alarm.savings": _cwalarm_savings},
+    remediation_builders={"cloudwatch-alarm.remediation": _cwalarm_remediation},
+)
+
+
+# ── SQS ──────────────────────────────────────────────────────────────
+
+def _sqs_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    wait = _attr_int(block["text"], "receive_wait_time_seconds")
+    return {
+        "analyzable": True,
+        "receive_wait_time_seconds": wait if wait is not None else 0,
+        "empty_receives_per_day": _attr_int(block["text"], "empty_receives_per_day") or 0,
+        "_block": block,
+    }
+
+
+def _sqs_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0  # computed from savings_fraction by _findings_from_engine
+
+
+def _sqs_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    block = facts.get("_block")
+    if block is None:
+        return None
+    return {"resource": block["name"], "text": _replace_attr(block["text"], "receive_wait_time_seconds", 20)}
+
+
+_SQS_ENGINE = RuleEngine(
+    extractors={"sqs.extract": _sqs_extractor},
+    savings_calculators={"sqs.savings": _sqs_savings},
+    remediation_builders={"sqs.remediation": _sqs_remediation},
+)
+
+
+# ── Kinesis ───────────────────────────────────────────────────────────
+
+def _kinesis_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    throttles = (
+        bool(_attr_bool(block["text"], "write_throttles"))
+        or bool(_attr_bool(block["text"], "read_throttles"))
+        or bool(_attr_bool(block["text"], "has_throttles"))
+    )
+    return {
+        "analyzable": True,
+        "enhanced_fan_out": bool(_attr_bool(block["text"], "enhanced_fan_out")),
+        "processing_interval_minutes": _attr_int(block["text"], "processing_interval_minutes") or 0,
+        "has_throttles": throttles,
+        "_block": block,
+    }
+
+
+def _kinesis_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0
+
+
+def _kinesis_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    return None  # EFO disable requires consumer-level change, no simple attribute patch
+
+
+_KINESIS_ENGINE = RuleEngine(
+    extractors={"kinesis.extract": _kinesis_extractor},
+    savings_calculators={"kinesis.savings": _kinesis_savings},
+    remediation_builders={"kinesis.remediation": _kinesis_remediation},
+)
+
+
+# ── EBS ───────────────────────────────────────────────────────────────
+
+def _ebs_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    all_blocks: list[Any] = source.get("all_blocks", [])
+    text_lower = block["text"].lower()
+    snapshot_ref = f"aws_ebs_snapshot.{block['name']}"
+    has_deleted = "sourcevolumestatus" in text_lower and "deleted" in text_lower
+    has_ami = any(
+        b["type"] in {"aws_ami", "aws_launch_template"} and snapshot_ref in b["text"]
+        for b in all_blocks
+    )
+    has_backup = any(
+        b["type"] in {"aws_backup_plan", "aws_backup_selection", "aws_dlm_lifecycle_policy"}
+        and block["name"] in b["text"]
+        for b in all_blocks
+    )
+    return {
+        "analyzable": True,
+        "has_deleted_source_volume": has_deleted,
+        "has_ami_reference": has_ami,
+        "has_backup_reference": has_backup,
+        "_block": block,
+    }
+
+
+def _ebs_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0
+
+
+def _ebs_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    return None  # snapshot deletion has no Terraform replacement block
+
+
+_EBS_ENGINE = RuleEngine(
+    extractors={"ebs.extract": _ebs_extractor},
+    savings_calculators={"ebs.savings": _ebs_savings},
+    remediation_builders={"ebs.remediation": _ebs_remediation},
+)
+
+
+# ── NAT ───────────────────────────────────────────────────────────────
+
+def _nat_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    return {
+        "analyzable": True,
+        "nat_gateway_present": True,
+        "has_s3_endpoint": source.get("has_s3_endpoint", False),
+        "has_dynamodb_endpoint": source.get("has_dynamodb_endpoint", False),
+        "_block": block,
+    }
+
+
+def _nat_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0
+
+
+def _nat_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    block = facts.get("_block")
+    if block is None:
+        return None
+    return {
+        "resource": block["name"],
+        "action": "add_s3_gateway_endpoint",
+        "append": 'resource "aws_vpc_endpoint" "s3" {\n  vpc_id       = aws_vpc.<vpc>.id\n  service_name = "com.amazonaws.<region>.s3"\n}',
+    }
+
+
+_NAT_ENGINE = RuleEngine(
+    extractors={"nat.extract": _nat_extractor},
+    savings_calculators={"nat.savings": _nat_savings},
+    remediation_builders={"nat.remediation": _nat_remediation},
+)
+
+
+# ── TGW ───────────────────────────────────────────────────────────────
+
+def _tgw_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    return {
+        "analyzable": True,
+        "attachment_count": source.get("attachment_count", 0),
+        "has_peering": source.get("has_peering", False),
+        "_block": block,
+    }
+
+
+def _tgw_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0
+
+
+def _tgw_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    return None
+
+
+_TGW_ENGINE = RuleEngine(
+    extractors={"tgw.extract": _tgw_extractor},
+    savings_calculators={"tgw.savings": _tgw_savings},
+    remediation_builders={"tgw.remediation": _tgw_remediation},
+)
+
+
+# ── Organizations ─────────────────────────────────────────────────────
+
+def _orgs_extractor(source: dict[str, Any]) -> dict[str, Any]:
+    block = source["block"]
+    cb = _attr_bool(block["text"], "consolidated_billing")
+    spend = _attr_float(block["text"], "monthly_spend_usd") or 0.0
+    return {
+        "analyzable": True,
+        "consolidated_billing": cb,
+        "monthly_spend_usd": spend,
+        "_block": block,
+    }
+
+
+def _orgs_savings(facts: dict[str, Any], rule: dict[str, Any]) -> float:
+    return 0.0
+
+
+def _orgs_remediation(facts: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any] | None:
+    return None
+
+
+_ORGS_ENGINE = RuleEngine(
+    extractors={"organizations.extract": _orgs_extractor},
+    savings_calculators={"organizations.savings": _orgs_savings},
+    remediation_builders={"organizations.remediation": _orgs_remediation},
+)
+
+
+_ENGINE_RULE_DOCS: dict[str, dict[str, Any]] = {}
+
+
+def _get_rule_doc(domain: str, filename: str) -> dict[str, Any]:
+    key = f"{domain}/{filename}"
+    if key not in _ENGINE_RULE_DOCS:
+        repo_root = Path(__file__).resolve().parents[1]
+        _ENGINE_RULE_DOCS[key] = json.loads(
+            (repo_root / ".claude" / "skills" / f"finops-{domain}" / "rules" / filename)
+            .read_text(encoding="utf-8")
+        )
+    return _ENGINE_RULE_DOCS[key]
+
+
+def _findings_from_engine(
+    domain: str,
+    rule_doc: dict[str, Any],
+    engine: RuleEngine,
+    sources: list[dict[str, Any]],
+    cost_summary: dict[str, Any],
+    evidence_keys: frozenset[str],
+) -> list[dict[str, Any]]:
+    """Run evaluate_severity_rules per source; split domain cost across triggered sub-rules.
+
+    Each source is a dict containing at least {"block": ResourceBlock} plus any
+    cross-block context (e.g. has_s3_endpoint, attachment_count) the extractor needs.
+    Per-source blockers suppress findings listed in their blocked_by list.
+    If a fact named _savings_ratio is present it overrides the savings_fraction formula.
+    """
+    all_pairs: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for src in sources:
+        src_results = engine.evaluate_severity_rules(rule_doc, src)
+        src_blocked: set[str] = set()
+        for sr in src_results:
+            if sr["rule_type"] == "blocker":
+                src_blocked.update(sr.get("blocked_by", []))
+        for sr in src_results:
+            if sr["rule_type"] != "finding":
+                continue
+            if sr["sub_rule_id"] in src_blocked:
+                continue
+            all_pairs.append((src, sr))
+    if not all_pairs:
+        return []
+
+    domain_monthly = cost_summary.get(domain, {}).get("monthly_usd", 0.0)
+    counts: dict[str, int] = {}
+    for _, sr in all_pairs:
+        counts[sr["sub_rule_id"]] = counts.get(sr["sub_rule_id"], 0) + 1
+
+    findings = []
+    for src, sr in all_pairs:
+        block = src.get("block") or {}
+        n = counts[sr["sub_rule_id"]]
+        facts = sr["facts"]
+        per_resource_ratio = facts.get("_savings_ratio")
+        if domain_monthly > 0 and n > 0:
+            if per_resource_ratio is not None:
+                savings = round(domain_monthly * per_resource_ratio / n, 2)
+            elif sr["savings_fraction"] > 0:
+                savings = round(domain_monthly * sr["savings_fraction"] / n, 2)
+            else:
+                savings = sr["estimated_monthly_saving_usd"]
+        else:
+            savings = sr["estimated_monthly_saving_usd"]
+        evidence = [f"{k}={v}" for k, v in facts.items() if k in evidence_keys and v is not None]
+        resource_name = block.get("name", "") if isinstance(block, dict) else ""
+        findings.append({
+            "domain": domain,
+            "resource": resource_name,
+            "rule_id": f"{rule_doc['rule_id']}:{sr['sub_rule_id']}",
+            "severity": sr["severity"],
+            "confidence": sr["confidence"],
+            "estimated_monthly_saving_usd": savings,
+            "evidence": evidence,
+            "recommendation": sr.get("recommendation") or sr.get("description", ""),
+            "optimized_replacement": sr.get("remediation_patch"),
+        })
     return findings
 
 
 def _analyze_cloudwatch(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    groups = [block for block in blocks if block["type"] == "aws_cloudwatch_log_group"]
-    flagged = [block for block in groups if (_attr_int(block["text"], "retention_in_days") or _attr_int(block["text"], "retention_days") or 0) == 0]
-    findings = []
-    for block in flagged:
-        replacement = _replace_attr(block["text"], "retention_days" if _attr(block["text"], "retention_days") is not None else "retention_in_days", 30)
-        findings.append(_finding("cloudwatch", block["name"], "CLOUDWATCH_C1_MISSING_RETENTION", "HIGH", "HIGH",
-                                 _split_domain_cost(cost_summary, "cloudwatch", len(flagged), 0.5),
-                                 ["retention is missing or unlimited"], "Set a retention period after validating audit and compliance requirements.",
-                                 optimized_replacement={"resource": block["name"], "text": replacement}))
-    return findings
+    groups = [b for b in blocks if b["type"] == "aws_cloudwatch_log_group"]
+    return _findings_from_engine(
+        "cloudwatch",
+        _get_rule_doc("cloudwatch", "missing_retention_policy.json"),
+        _CW_ENGINE,
+        [{"block": b} for b in groups],
+        cost_summary,
+        frozenset({"retention_in_days", "retention_days_scenario_attr"}),
+    )
 
 
 def _analyze_cloudwatch_alarm(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    alarms = [block for block in blocks if block["type"] == "aws_cloudwatch_metric_alarm"]
-    flagged = [block for block in alarms if (_attr_int(block["text"], "resolution_seconds") or 60) == 1 and (_attr_int(block["text"], "actual_required_resolution_seconds") or 60) >= 60]
-    return [
-        _finding("cloudwatch-alarm", block["name"], "CLOUDWATCH_M1_HIGH_RESOLUTION", "HIGH", "HIGH",
-                 _split_domain_cost(cost_summary, "cloudwatch-alarm", len(flagged), 0.6),
-                 ["resolution_seconds=1", "actual_required_resolution_seconds>=60"],
-                 "Use standard-resolution metrics unless a documented sub-minute SLA requires high resolution.",
-                 optimized_replacement={"resource": block["name"], "text": _replace_attr(block["text"], "resolution_seconds", 60)})
-        for block in flagged
-    ]
+    alarms = [b for b in blocks if b["type"] == "aws_cloudwatch_metric_alarm"]
+    return _findings_from_engine(
+        "cloudwatch-alarm",
+        _get_rule_doc("cloudwatch-alarm", "high_resolution_alarm.json"),
+        _CWALARM_ENGINE,
+        [{"block": b} for b in alarms],
+        cost_summary,
+        frozenset({"resolution_seconds", "actual_required_resolution_seconds", "metric_type", "evaluation_period_minutes"}),
+    )
 
 
 def _analyze_sqs(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    queues = [block for block in blocks if block["type"] == "aws_sqs_queue"]
-    flagged = [block for block in queues if (_attr_int(block["text"], "receive_wait_time_seconds") or 0) == 0 and (_attr_int(block["text"], "empty_receives_per_day") or 0) >= 10000]
-    return [
-        _finding("sqs", block["name"], "SQS_Q1_ENABLE_LONG_POLLING", "HIGH", "HIGH",
-                 _split_domain_cost(cost_summary, "sqs", len(flagged), 0.5),
-                 ["receive_wait_time_seconds=0", f"empty_receives_per_day={_attr_int(block['text'], 'empty_receives_per_day')}"],
-                 "Enable long polling and ensure the client read timeout exceeds the wait time.",
-                 optimized_replacement={"resource": block["name"], "text": _replace_attr(block["text"], "receive_wait_time_seconds", 20)})
-        for block in flagged
-    ]
+    queues = [b for b in blocks if b["type"] == "aws_sqs_queue"]
+    return _findings_from_engine(
+        "sqs", _get_rule_doc("sqs", "short_polling_sqs.json"),
+        _SQS_ENGINE, [{"block": b} for b in queues], cost_summary,
+        frozenset({"receive_wait_time_seconds", "empty_receives_per_day"}),
+    )
 
 
 def _analyze_kinesis(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    streams = [block for block in blocks if block["type"] == "aws_kinesis_stream"]
-    findings = []
-    for block in streams:
-        if _attr_bool(block["text"], "enhanced_fan_out") and (_attr_int(block["text"], "processing_interval_minutes") or 0) >= 5:
-            findings.append(_finding("kinesis", block["name"], "KINESIS_K1_REVIEW_EFO", "MEDIUM", "MEDIUM",
-                                     _split_domain_cost(cost_summary, "kinesis", len(streams), 0.4),
-                                     ["enhanced_fan_out=true", f"processing_interval_minutes={_attr_int(block['text'], 'processing_interval_minutes')}"],
-                                     "Validate latency SLA and consumer contention, then compare standard polling cost."))
-    return findings
+    streams = [b for b in blocks if b["type"] == "aws_kinesis_stream"]
+    return _findings_from_engine(
+        "kinesis", _get_rule_doc("kinesis", "efo_waste.json"),
+        _KINESIS_ENGINE, [{"block": b} for b in streams], cost_summary,
+        frozenset({"enhanced_fan_out", "processing_interval_minutes", "has_throttles"}),
+    )
 
 
 def _analyze_ecs(blocks: list[ResourceBlock], metrics: dict[str, dict[str, Any]], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
     services = [block for block in blocks if block["type"] == "aws_ecs_service"]
-    findings = []
+    task_defs = {block["name"]: block for block in blocks if block["type"] == "aws_ecs_task_definition"}
+    scaling_blocks = [
+        block for block in blocks
+        if block["type"] in {"aws_appautoscaling_target", "aws_appautoscaling_policy", "aws_appautoscaling_scheduled_action"}
+    ]
+    findings: list[dict[str, Any]] = []
+    ecs_cost = _split_domain_cost(cost_summary, "ecs", len(services))
+
     for block in services:
-        if (_attr(block["text"], "launch_type") or "").upper() != "FARGATE":
-            continue
+        launch_type = (_attr(block["text"], "launch_type") or "FARGATE").upper()
+        desired_count = _attr_int(block["text"], "desired_count") or 1
+        service_name = _attr(block["text"], "name") or block["name"]
+
+        task_def_block = task_defs.get(block["name"])
+        task_cpu = _attr_int(task_def_block["text"], "cpu") if task_def_block else None
+
+        service_scaling = "\n".join(
+            sb["text"] for sb in scaling_blocks
+            if block["name"] in sb["text"] or service_name in sb["text"]
+        )
+        has_scaling_target = "aws_appautoscaling_target" in service_scaling
+        has_scaling_policy = "aws_appautoscaling_policy" in service_scaling
+
         record = _metric_record(metrics, block) or {}
-        cpu = _series(record.get("metrics", {}).get("cpu_utilization_pct", {})) or _series(record.get("metrics", {}).get("cpu_utilization", {}))
-        if bool(record.get("is_problem")) or (cpu and (_avg(cpu) or 100) < 20 and (_pctl(cpu, .95) or 100) < 50):
-            findings.append(_finding("ecs", block["name"], "ECS_E1_FARGATE_RIGHTSIZE", "HIGH", "MEDIUM",
-                                     _split_domain_cost(cost_summary, "ecs", len(services), 0.4),
-                                     [f"cpu_avg_pct={_avg(cpu) if cpu else 'not_available'}", f"desired_count={_attr_int(block['text'], 'desired_count')}"],
-                                     "Select a valid smaller Fargate CPU/memory shape and canary while monitoring p95/p99 and errors."))
+        cpu = (
+            _series(record.get("metrics", {}).get("cpu_utilization_pct", {}))
+            or _series(record.get("metrics", {}).get("cpu_utilization", {}))
+            or _series(record.get("metrics", {}).get("cpu_percent", {}))
+        )
+        errors = _series(record.get("metrics", {}).get("errors", {}))
+        throttles = _series(record.get("metrics", {}).get("throttles", {}))
+        is_problem = bool(record.get("is_problem"))
+        cpu_avg = _avg(cpu)
+        cpu_p95 = _pctl(cpu, 0.95)
+        has_errors = bool(errors and sum(errors) > 0)
+        has_throttles = bool(throttles and sum(throttles) > 0)
+
+        # E1: Fargate task overprovisioned — low CPU with no error/throttle signal
+        if launch_type == "FARGATE":
+            if is_problem or (
+                cpu_avg is not None
+                and cpu_avg < 20
+                and (cpu_p95 is None or cpu_p95 < 50)
+                and not has_errors
+                and not has_throttles
+            ):
+                findings.append(_finding(
+                    "ecs", block["name"], "ECS_E1_FARGATE_RIGHTSIZE", "HIGH", "MEDIUM",
+                    ecs_cost * 0.4,
+                    [
+                        f"cpu_avg_pct={round(cpu_avg, 1) if cpu_avg is not None else 'not_available'}",
+                        f"cpu_p95_pct={round(cpu_p95, 1) if cpu_p95 is not None else 'not_available'}",
+                        f"desired_count={desired_count}",
+                        f"task_cpu={task_cpu}",
+                    ],
+                    "Select a valid smaller Fargate CPU/memory shape and canary while monitoring p95/p99 latency and errors.",
+                ))
+
+        # E2: EC2 launch type with low CPU and no capacity provider strategy
+        elif launch_type == "EC2":
+            has_capacity_provider = "capacity_provider_strategy" in block["text"]
+            if cpu_avg is not None and cpu_avg < 15 and not has_capacity_provider and not has_errors:
+                findings.append(_finding(
+                    "ecs", block["name"], "ECS_E2_EC2_UNDERUTILIZED", "MEDIUM", "MEDIUM",
+                    ecs_cost * 0.3,
+                    [f"launch_type=EC2", f"cpu_avg_pct={round(cpu_avg, 1)}", "capacity_provider_strategy=not_set"],
+                    "Add a Capacity Provider strategy or migrate to Fargate to reduce EC2 instance waste.",
+                ))
+
+        # E3: Multi-instance service with no autoscaling configured
+        if desired_count >= 2 and not (has_scaling_target and has_scaling_policy):
+            findings.append(_finding(
+                "ecs", block["name"], "ECS_E3_MISSING_AUTOSCALING", "MEDIUM", "HIGH",
+                ecs_cost * 0.2,
+                [
+                    f"desired_count={desired_count}",
+                    f"autoscaling_target={has_scaling_target}",
+                    f"autoscaling_policy={has_scaling_policy}",
+                ],
+                "Add Application Auto Scaling target and target-tracking policy (CPUUtilization or RequestCountPerTarget).",
+            ))
+
     return findings
+
+
+_ELASTICACHE_EOL_VERSIONS: dict[str, set[str]] = {
+    "redis": {"2.6", "2.8", "3.2", "4.0", "5.0", "6.0"},
+    "memcached": {"1.4", "1.5"},
+}
+
+
+def _elasticache_is_eol(engine: str, engine_version: str) -> bool:
+    engine_lc = (engine or "").lower()
+    major_minor = ".".join((engine_version or "").split(".")[:2])
+    return major_minor in _ELASTICACHE_EOL_VERSIONS.get(engine_lc, set())
 
 
 def _analyze_elasticache(blocks: list[ResourceBlock], metrics: dict[str, dict[str, Any]], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
     groups = [block for block in blocks if block["type"] == "aws_elasticache_replication_group"]
-    findings = []
+    findings: list[dict[str, Any]] = []
+    domain_monthly = _domain_cost(cost_summary, "elasticache")
+    per_group = domain_monthly / max(len(groups), 1)
+
     for block in groups:
         count = _attr_int(block["text"], "num_cache_clusters") or 1
+        node_type = _attr(block["text"], "node_type") or ""
+        engine = _attr(block["text"], "engine") or "redis"
+        engine_version = _attr(block["text"], "engine_version") or ""
+        auto_failover = _attr_bool(block["text"], "automatic_failover_enabled")
+        multi_az = _attr_bool(block["text"], "multi_az_enabled") or auto_failover
+        env = (_tag_value(block["text"], "Environment") or "").lower()
+        is_prod = env in {"prod", "production", "prd"}
+
         record = _metric_record(metrics, block) or {}
-        if count > 2 and bool(record.get("is_problem")):
-            findings.append(_finding("elasticache", block["name"], "ELASTICACHE_EC1_REDUCE_REPLICAS", "HIGH", "MEDIUM",
-                                     _split_domain_cost(cost_summary, "elasticache", len(groups), (count - 2) / count),
-                                     [f"num_cache_clusters={count}", "metrics.is_problem=true"],
-                                     "Reduce replicas only after checking memory p95, evictions, CPU, network, replication lag, and HA requirements."))
+        hit_rate = _series(record.get("metrics", {}).get("cache_hit_rate_pct", {}))
+        cpu = _series(record.get("metrics", {}).get("cpu_percent", {}))
+        is_problem = bool(record.get("is_problem"))
+        cpu_avg = _avg(cpu)
+        hit_rate_min = min(hit_rate) if hit_rate else None
+
+        # EC1: Too many replicas with demonstrably low load
+        if count > 2:
+            low_load = cpu_avg is not None and cpu_avg < 20
+            if low_load or is_problem:
+                replica_savings = per_group * (count - 2) / count
+                findings.append(_finding(
+                    "elasticache", block["name"], "ELASTICACHE_EC1_REDUCE_REPLICAS", "HIGH", "MEDIUM",
+                    replica_savings,
+                    [f"num_cache_clusters={count}", f"cpu_avg_pct={round(cpu_avg, 1) if cpu_avg is not None else 'not_available'}",
+                     f"node_type={node_type}"],
+                    "Reduce to 2 replicas only after confirming evictions=0, replication lag <100ms, and cache hit rate >95%.",
+                ))
+
+        # EC2: Node type overprovisioned — low CPU and high hit rate (no memory pressure)
+        if (
+            cpu_avg is not None and cpu_avg < 20
+            and hit_rate_min is not None and hit_rate_min >= 95
+            and not is_problem
+        ):
+            findings.append(_finding(
+                "elasticache", block["name"], "ELASTICACHE_EC2_DOWNSIZE_NODE", "HIGH", "MEDIUM",
+                per_group * 0.35,
+                [f"cpu_avg_pct={round(cpu_avg, 1)}", f"cache_hit_rate_min_pct={round(hit_rate_min, 1)}",
+                 f"node_type={node_type}"],
+                "Test the next smaller node type in a non-production replica; promote after confirming evictions=0 and hit rate stable.",
+            ))
+
+        # EC3: No Reserved Node for steady-state cache with meaningful spend
+        if per_group > 200:
+            is_steady = cpu_avg is None or cpu_avg > 5
+            if is_steady:
+                findings.append(_finding(
+                    "elasticache", block["name"], "ELASTICACHE_EC3_NO_RESERVED_NODE", "LOW", "MEDIUM",
+                    per_group * 0.30,
+                    [f"node_type={node_type}", f"avg_monthly_spend_usd={round(per_group, 2)}",
+                     "reserved_node_coverage=not_evidenced_in_terraform"],
+                    "Evaluate 1-year Reserved Node purchase (~30% savings) after confirming stable node type and count for 60+ days.",
+                ))
+
+        # EC4: Single-node production cluster with no HA (informational)
+        if count == 1 and not multi_az and is_prod:
+            findings.append(_finding(
+                "elasticache", block["name"], "ELASTICACHE_EC4_NO_HA", "INFO", "HIGH",
+                0.0,
+                [f"num_cache_clusters={count}", "automatic_failover_enabled=false", f"environment={env}"],
+                "Add at least one replica and enable automatic_failover_enabled for production clusters to support failover.",
+            ))
+
+        # EC5: Engine version at or past end-of-life
+        if _elasticache_is_eol(engine, engine_version):
+            findings.append(_finding(
+                "elasticache", block["name"], "ELASTICACHE_EC5_ENGINE_UPGRADE", "MEDIUM", "HIGH",
+                0.0,
+                [f"engine={engine}", f"engine_version={engine_version}", "version_status=EOL"],
+                f"Upgrade {engine} to the latest supported version. Test with a replica cluster before promoting to production.",
+            ))
+
     return findings
 
 
 def _analyze_nat(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    gateways = [block for block in blocks if block["type"] == "aws_nat_gateway"]
-    endpoints = [block for block in blocks if block["type"] == "aws_vpc_endpoint"]
-    has_s3 = any("s3" in block["text"].lower() for block in endpoints)
-    if not gateways or has_s3:
-        return []
-    monthly = _domain_cost(cost_summary, "nat")
-    return [_finding("nat", block["name"], "NAT_N1_S3_GATEWAY_ENDPOINT", "HIGH", "LOW", monthly * 0.5,
-                     ["aws_nat_gateway present", "no S3 gateway endpoint evidence"],
-                     "Confirm same-region S3 traffic and route tables, then add an S3 Gateway Endpoint.") for block in gateways]
+    gateways = [b for b in blocks if b["type"] == "aws_nat_gateway"]
+    endpoints = [b for b in blocks if b["type"] == "aws_vpc_endpoint"]
+    has_s3 = any("s3" in b["text"].lower() for b in endpoints)
+    has_dynamodb = any("dynamodb" in b["text"].lower() for b in endpoints)
+    sources = [{"block": g, "has_s3_endpoint": has_s3, "has_dynamodb_endpoint": has_dynamodb} for g in gateways]
+    return _findings_from_engine(
+        "nat", _get_rule_doc("nat", "s3_nat_bypass.json"),
+        _NAT_ENGINE, sources, cost_summary,
+        frozenset({"nat_gateway_present", "has_s3_endpoint"}),
+    )
 
 
 def _analyze_tgw(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    gateways = [block for block in blocks if block["type"] == "aws_ec2_transit_gateway"]
-    attachments = [block for block in blocks if block["type"] == "aws_ec2_transit_gateway_vpc_attachment"]
-    peering = [block for block in blocks if block["type"] == "aws_vpc_peering_connection"]
-    if not gateways or len(attachments) > 5 or not peering:
+    gateways = [b for b in blocks if b["type"] == "aws_ec2_transit_gateway"]
+    attachments = [b for b in blocks if b["type"] == "aws_ec2_transit_gateway_vpc_attachment"]
+    peering = [b for b in blocks if b["type"] == "aws_vpc_peering_connection"]
+    if not gateways:
         return []
-    return [_finding("tgw", gateways[0]["name"], "TGW_T2_PEERING_CANDIDATE", "MEDIUM", "MEDIUM",
-                     _domain_cost(cost_summary, "tgw") * 0.5,
-                     [f"attachment_count={len(attachments)}", "same-region VPC peering evidence present"],
-                     "Validate transitive routing, inspection, and multi-account requirements before migrating traffic to VPC peering.")]
+    sources = [{"block": gateways[0], "attachment_count": len(attachments), "has_peering": bool(peering)}]
+    return _findings_from_engine(
+        "tgw", _get_rule_doc("tgw", "tgw_rightsizing.json"),
+        _TGW_ENGINE, sources, cost_summary,
+        frozenset({"attachment_count", "has_peering"}),
+    )
 
 
 def _analyze_organizations(blocks: list[ResourceBlock], cost_summary: dict[str, Any]) -> list[dict[str, Any]]:
-    accounts = [block for block in blocks if block["type"] == "aws_account"]
-    flagged = [block for block in accounts if _attr_bool(block["text"], "consolidated_billing") is False and (_attr_float(block["text"], "monthly_spend_usd") or 0) > 0]
-    return [
-        _finding("organizations", block["name"], "ORG_O1_CONSOLIDATED_BILLING", "HIGH", "MEDIUM", 0.0,
-                 ["consolidated_billing=false", f"monthly_spend_usd={_attr_float(block['text'], 'monthly_spend_usd')}"],
-                 "Model eligible spend and organizational ownership before enabling consolidated billing or discount sharing.")
-        for block in flagged
-    ]
+    accounts = [b for b in blocks if b["type"] == "aws_account"]
+    return _findings_from_engine(
+        "organizations", _get_rule_doc("organizations", "consolidated_billing.json"),
+        _ORGS_ENGINE, [{"block": b} for b in accounts], cost_summary,
+        frozenset({"consolidated_billing", "monthly_spend_usd"}),
+    )
 
 
 _COMPLEX_DOMAINS = frozenset({"rds", "elb", "ecs", "elasticache"})
+_SKILL_REVIEW_STATUS = "needs_skill_review"
 
 
 def _load_skill_analysis(work_dir: Path, domain: str) -> list[dict[str, Any]]:
@@ -1740,6 +2396,110 @@ def _load_skill_analysis(work_dir: Path, domain: str) -> list[dict[str, Any]]:
         return []
     findings = data.get("findings", [])
     return [f for f in findings if isinstance(f, dict) and f.get("rule_id")]
+
+
+def _load_skill_decisions(work_dir: Path, domain: str) -> list[dict[str, Any]]:
+    """Load contextual decisions; accept legacy findings as accepted reviews."""
+    path = work_dir / "result" / f"{domain}_skill_analysis.json"
+    if not path.exists():
+        return []
+    try:
+        data = _load_json(path)
+    except Exception:
+        return []
+    if not isinstance(data, dict) or data.get("domain") != domain:
+        return []
+    decisions = data.get("decisions")
+    if isinstance(decisions, list):
+        return [
+            decision
+            for decision in decisions
+            if isinstance(decision, dict)
+            and decision.get("rule_id")
+            and decision.get("resource")
+            and decision.get("disposition") in {"accepted", "rejected", "needs_evidence"}
+        ]
+
+    # Backward compatibility: a legacy Skill finding is an accepted contextual
+    # decision, but its saving and Terraform fields are intentionally ignored.
+    legacy_findings = data.get("findings", [])
+    if not isinstance(legacy_findings, list):
+        return []
+    return [
+        {
+            "rule_id": finding.get("rule_id"),
+            "resource": finding.get("resource"),
+            "disposition": "accepted",
+            "confidence": finding.get("confidence", "LOW"),
+            "rationale": finding.get("recommendation", "Accepted by legacy Skill output."),
+            "evidence": finding.get("evidence", []),
+        }
+        for finding in legacy_findings
+        if isinstance(finding, dict) and finding.get("rule_id") and finding.get("resource")
+    ]
+
+
+def _complex_fallback_candidates(domain: str, findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Downgrade deterministic complex-domain matches until a Skill adjudicates them."""
+    candidates: list[dict[str, Any]] = []
+    for finding in findings:
+        candidate = dict(finding)
+        candidate["analysis_source"] = "langgraph_candidate"
+        candidate["review_status"] = _SKILL_REVIEW_STATUS
+        candidate["confidence"] = "LOW"
+        candidate["estimated_monthly_saving_usd"] = 0.0
+        candidate.pop("optimized_replacement", None)
+        candidate.pop("optimized_append", None)
+        candidate["evidence"] = [
+            *candidate.get("evidence", []),
+            f"{domain} Skill output missing; contextual guardrails were not adjudicated",
+        ]
+        candidates.append(candidate)
+    return candidates
+
+
+def _apply_skill_decisions(
+    domain: str,
+    candidates: list[dict[str, Any]],
+    decisions: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    by_key = {
+        (str(decision["rule_id"]), str(decision["resource"])): decision
+        for decision in decisions
+    }
+    matched: set[tuple[str, str]] = set()
+    findings: list[dict[str, Any]] = []
+    for candidate in candidates:
+        key = (str(candidate.get("rule_id")), str(candidate.get("resource")))
+        decision = by_key.get(key)
+        if decision is None:
+            findings.extend(_complex_fallback_candidates(domain, [candidate]))
+            continue
+        matched.add(key)
+        merged = dict(candidate)
+        disposition = str(decision["disposition"])
+        merged["analysis_source"] = "langgraph+claude_skill"
+        merged["review_status"] = f"skill_{disposition}"
+        merged["skill_disposition"] = disposition
+        merged["skill_rationale"] = str(decision.get("rationale") or "")
+        merged["confidence"] = str(decision.get("confidence") or merged.get("confidence") or "LOW")
+        merged["evidence"] = [
+            *merged.get("evidence", []),
+            *[str(item) for item in decision.get("evidence", []) if item],
+            f"Skill disposition={disposition}: {merged['skill_rationale']}",
+        ]
+        if disposition != "accepted":
+            merged["estimated_monthly_saving_usd"] = 0.0
+            merged.pop("optimized_replacement", None)
+            merged.pop("optimized_append", None)
+        findings.append(merged)
+
+    unmatched = sorted(set(by_key) - matched)
+    warnings = [
+        f"Skill decision did not match a LangGraph candidate: {domain}/{rule_id}/{resource}"
+        for rule_id, resource in unmatched
+    ]
+    return findings, warnings
 
 
 def _load_existing_findings(path: str | None) -> list[dict[str, Any]]:
@@ -1802,25 +2562,37 @@ def _analyze_single_domain(domain: str, evidence: dict[str, Any], work_dir: Path
     elif domain == "organizations":
         findings.extend(_analyze_organizations(blocks, cost_summary))
     elif domain in _COMPLEX_DOMAINS:
-        # Claude skill output takes priority; Python stub is the fallback for CLI-only runs.
-        skill_findings = _load_skill_analysis(work_dir, domain) if work_dir else []
-        if skill_findings:
-            for sf in skill_findings:
-                sf.setdefault("domain", domain)
-            findings.extend(skill_findings)
+        # LangGraph owns deterministic candidate detection and arithmetic. The
+        # domain Skill only adjudicates contextual safety and missing evidence.
+        candidates: list[dict[str, Any]] = []
+        if domain == "elb":
+            candidates.extend(_analyze_elb(blocks, metrics, cost_summary))
+        elif domain == "rds":
+            candidates.extend(_analyze_rds(blocks, metrics, cost_summary))
+        elif domain == "ecs":
+            candidates.extend(_analyze_ecs(blocks, metrics, cost_summary))
+        elif domain == "elasticache":
+            candidates.extend(_analyze_elasticache(blocks, metrics, cost_summary))
+
+        skill_decisions = _load_skill_decisions(work_dir, domain) if work_dir else []
+        if skill_decisions:
+            decided_findings, decision_warnings = _apply_skill_decisions(domain, candidates, skill_decisions)
+            findings.extend(decided_findings)
+            warnings.extend(decision_warnings)
         else:
-            if domain == "elb":
-                findings.extend(_analyze_elb(blocks, metrics, cost_summary))
-            elif domain == "rds":
-                findings.extend(_analyze_rds(blocks, metrics, cost_summary))
-            elif domain == "ecs":
-                findings.extend(_analyze_ecs(blocks, metrics, cost_summary))
-            elif domain == "elasticache":
-                findings.extend(_analyze_elasticache(blocks, metrics, cost_summary))
+            findings.extend(_complex_fallback_candidates(domain, candidates))
+            warnings.append(
+                f"Complex domain '{domain}' requires result/{domain}_skill_analysis.json; "
+                "LangGraph findings are candidates only and are excluded from savings and Terraform changes."
+            )
     else:
         warnings.append(
             f"No built-in graph analyzer yet for domain '{domain}'; load existing findings or service skill output."
         )
+
+    for finding in findings:
+        finding.setdefault("analysis_source", "langgraph")
+        finding.setdefault("review_status", "machine_analyzed")
 
     return {
         "domain": domain,
@@ -1875,8 +2647,9 @@ def analyze_domain_node(state: CloudSweepState) -> dict[str, Any]:
     domain = state["analysis_domain"]
     try:
         registration = ANALYZER_REGISTRY.get(domain)
-        findings = registration.analyzer({"evidence": state["evidence"], "work_dir": state.get("work_dir", "")})
-        result = {"domain": domain, "findings": findings, "warnings": [], "analyzer_version": registration.version}
+        work_dir = Path(state["work_dir"]) if state.get("work_dir") else None
+        result = _analyze_single_domain(domain, state["evidence"], work_dir)
+        result["analyzer_version"] = registration.version
     except RuleValidationError as exc:
         result = {"domain": domain, "findings": [], "warnings": [str(exc)], "analyzer_version": ""}
     return {"domain_results": [result]}
@@ -1923,6 +2696,8 @@ def collect_domain_results_node(state: CloudSweepState) -> dict[str, Any]:
             }
             for index, statement in enumerate(finding.get("evidence", []))
         ]
+        if finding.get("review_status") == _SKILL_REVIEW_STATUS:
+            continue
         replacement = finding.get("optimized_replacement")
         if replacement:
             original = tf_blocks.get(str(replacement.get("resource")))
@@ -2293,6 +3068,8 @@ def _render_optimized_tf(state: CloudSweepState) -> str:
     tf_text = _read_text(Path(tf_path))
     append_blocks: list[str] = []
     for finding in state.get("findings", []):
+        if finding.get("review_status") == _SKILL_REVIEW_STATUS:
+            continue
         replacement = finding.get("optimized_replacement")
         if replacement:
             old_block = next((block["text"] for block in _resource_blocks(tf_text) if block["name"] == replacement["resource"]), None)
@@ -2309,15 +3086,17 @@ def _finding_table(findings: list[dict[str, Any]]) -> list[str]:
     if not findings:
         return ["No findings generated from the available evidence."]
     lines = [
-        "| Domain | Resource | Rule | Severity | Confidence | Monthly Savings |",
-        "|--------|----------|------|----------|------------|-----------------|",
+        "| Domain | Resource | Rule | Source | Status | Severity | Confidence | Monthly Savings |",
+        "|--------|----------|------|--------|--------|----------|------------|-----------------|",
     ]
     for finding in findings:
         lines.append(
-            "| {domain} | {resource} | {rule_id} | {severity} | {confidence} | ${saving:.2f} |".format(
+            "| {domain} | {resource} | {rule_id} | {source} | {status} | {severity} | {confidence} | ${saving:.2f} |".format(
                 domain=finding.get("domain", ""),
                 resource=finding.get("resource", ""),
                 rule_id=finding.get("rule_id", ""),
+                source=finding.get("analysis_source", "unknown"),
+                status=finding.get("review_status", "unknown"),
                 severity=finding.get("severity", ""),
                 confidence=finding.get("confidence", ""),
                 saving=float(finding.get("estimated_monthly_saving_usd", 0.0) or 0.0),
@@ -2330,6 +3109,8 @@ def _conservative_monthly_savings(findings: list[dict[str, Any]]) -> float:
     grouped: dict[str, float] = {}
     ungrouped = 0.0
     for finding in findings:
+        if finding.get("review_status") == _SKILL_REVIEW_STATUS:
+            continue
         savings = float(finding.get("estimated_monthly_saving_usd", 0.0) or 0.0)
         group = finding.get("savings_group")
         if group:
@@ -2398,6 +3179,22 @@ def _render_report(state: CloudSweepState) -> str:
             "",
         ]
     )
+    pending_domains = sorted({
+        str(finding.get("domain"))
+        for finding in findings
+        if finding.get("review_status") == _SKILL_REVIEW_STATUS
+    })
+    if pending_domains:
+        lines.extend(
+            [
+                "",
+                "## Skill Review Required",
+                "",
+                f"Pending complex domains: {', '.join(pending_domains)}",
+                "",
+                "These candidates are excluded from savings and Terraform changes until the domain Skill writes its analysis file.",
+            ]
+        )
     enrichment_status = state.get("enrichment_status", {})
     for label in ("pricing", "documentation"):
         details = enrichment_status.get(label, {})
@@ -2436,6 +3233,42 @@ def _render_report(state: CloudSweepState) -> str:
     return "\n".join(lines)
 
 
+def _skill_review_requests(state: CloudSweepState) -> dict[str, dict[str, Any]]:
+    requests: dict[str, dict[str, Any]] = {}
+    for domain in sorted(_COMPLEX_DOMAINS):
+        candidates = [
+            finding
+            for finding in state.get("findings", [])
+            if finding.get("domain") == domain
+            and finding.get("review_status") == _SKILL_REVIEW_STATUS
+        ]
+        if not candidates:
+            continue
+        requests[domain] = {
+            "schema_version": "1.0",
+            "domain": domain,
+            "status": _SKILL_REVIEW_STATUS,
+            "evidence": state.get("evidence", {}),
+            "candidates": [
+                {
+                    "rule_id": finding.get("rule_id"),
+                    "resource": finding.get("resource"),
+                    "severity": finding.get("severity"),
+                    "deterministic_monthly_saving_usd": finding.get("estimated_monthly_saving_usd", 0.0),
+                    "evidence": finding.get("evidence", []),
+                    "recommendation": finding.get("recommendation"),
+                }
+                for finding in candidates
+            ],
+            "required_output": str(Path(state["result_dir"]) / f"{domain}_skill_analysis.json"),
+            "decision_contract": {
+                "dispositions": ["accepted", "rejected", "needs_evidence"],
+                "note": "Do not calculate or override savings or Terraform. Decide each candidate using contextual evidence.",
+            },
+        }
+    return requests
+
+
 def render_node(state: CloudSweepState) -> dict[str, Any]:
     result_dir = Path(state["result_dir"])
     standard = bool(state.get("standard_output", False))
@@ -2446,6 +3279,11 @@ def render_node(state: CloudSweepState) -> dict[str, Any]:
         "optimized_tf": str(result_dir / tf_name),
         "state": str(result_dir / "cloudsweep_graph_state.json"),
     }
+    skill_requests = _skill_review_requests(state)
+    output_paths["skill_requests"] = {
+        domain: str(result_dir / f"{domain}_skill_request.json")
+        for domain in skill_requests
+    }
     optimized_tf = _render_optimized_tf(state)
     report = _render_report({**state, "optimized_tf": optimized_tf, "output_paths": output_paths})
 
@@ -2453,6 +3291,11 @@ def render_node(state: CloudSweepState) -> dict[str, Any]:
         result_dir.mkdir(parents=True, exist_ok=True)
         Path(output_paths["report"]).write_text(report, encoding="utf-8")
         Path(output_paths["optimized_tf"]).write_text(optimized_tf, encoding="utf-8")
+        for domain, request in skill_requests.items():
+            Path(output_paths["skill_requests"][domain]).write_text(
+                json.dumps(request, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
         state_payload = {
             "schema_version": state.get("schema_version"),
             "run_id": state.get("run_id"),
@@ -2658,15 +3501,47 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Write result/finops_report.md and result/main_optimized.tf instead of graph-specific filenames.",
     )
+    parser.add_argument(
+        "--from-ministack",
+        action="store_true",
+        help="Collect read-only MiniStack evidence into work_dir before running the graph.",
+    )
+    parser.add_argument(
+        "--collect-only",
+        action="store_true",
+        help="Collect MiniStack evidence and exit before graph analysis; requires --from-ministack.",
+    )
     args = parser.parse_args(args_list)
+    if args.collect_only and not args.from_ministack:
+        parser.error("--collect-only requires --from-ministack")
 
-    state = run_graph(args.work_dir, write=not args.dry_run, standard_output=args.standard_output)
+    work_dir: str | Path = args.work_dir
+    if args.from_ministack:
+        from .ministack_collector import collect_ministack
+
+        work_dir = collect_ministack(work_dir)
+        print(f"MiniStack evidence: {work_dir}")
+        if args.collect_only:
+            print("Collection complete: graph analysis not run.")
+            return
+
+    state = run_graph(work_dir, write=not args.dry_run, standard_output=args.standard_output)
     print(f"Intent: {state.get('intent')}")
     print(f"Plan: {' -> '.join(state.get('execution_plan', []))}")
     print(f"Domains: {', '.join(state.get('domains', [])) or 'none'}")
     print(f"Findings: {len(state.get('findings', []))}")
+    pending_skills = sorted({
+        str(finding.get("domain"))
+        for finding in state.get("findings", [])
+        if finding.get("review_status") == _SKILL_REVIEW_STATUS
+    })
+    if pending_skills:
+        print(f"Skill review required: {', '.join(pending_skills)}")
     if args.dry_run:
-        print("Dry run: no files written.")
+        if args.from_ministack:
+            print("Dry run: evidence files written; graph result files not written.")
+        else:
+            print("Dry run: no files written.")
     else:
         print(f"Report: {state['output_paths']['report']}")
         print(f"Optimized Terraform: {state['output_paths']['optimized_tf']}")

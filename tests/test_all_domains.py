@@ -117,11 +117,73 @@ class AllDomainCoverageTests(unittest.TestCase):
             self.assertEqual([], loaded)
 
     def test_complex_domain_falls_back_to_python_stub_without_skill_output(self):
-        """Without a skill output file, the Python fallback analyzer runs for complex domains."""
+        """Without Skill output, complex-domain Python analysis is candidate-only."""
         with tempfile.TemporaryDirectory() as tmp:
             work_dir = Path(tmp)
             loaded = _load_skill_analysis(work_dir, "rds")
-            self.assertEqual([], loaded, "No skill file → empty list, Python stub should be used")
+            self.assertEqual([], loaded, "No Skill file should produce no authoritative Skill findings")
+
+    def test_complex_domain_skill_output_is_authoritative_in_graph(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work_dir = Path(tmp)
+            (work_dir / "main.tf").write_text(
+                '''resource "aws_db_instance" "orders" {
+  identifier     = "orders"
+  engine         = "mysql"
+  engine_version = "5.7"
+  instance_class = "db.r5.large"
+  storage_type   = "gp3"
+  multi_az       = false
+
+  tags = {
+    Environment = "development"
+  }
+}
+''',
+                encoding="utf-8",
+            )
+            (work_dir / "cost_report.json").write_text(
+                json.dumps(
+                    {
+                        "period_months": 1,
+                        "monthly_data": [
+                            {"services": [{"service": "RDS", "spend_usd": 1000.0}]}
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result_dir = work_dir / "result"
+            result_dir.mkdir()
+            (result_dir / "rds_skill_analysis.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0",
+                        "domain": "rds",
+                        "skill_version": "2.0",
+                        "decisions": [
+                            {
+                                "rule_id": "RDS_R4_EXTENDED_SUPPORT",
+                                "resource": "orders",
+                                "disposition": "accepted",
+                                "confidence": "HIGH",
+                                "evidence": ["engine_version requires Extended Support"],
+                                "rationale": "The workload owner confirmed an upgrade window.",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            state = run_graph(work_dir, write=False)
+
+        self.assertEqual(1, len(state["findings"]))
+        finding = state["findings"][0]
+        self.assertEqual("langgraph+claude_skill", finding["analysis_source"])
+        self.assertEqual("skill_accepted", finding["review_status"])
+        self.assertEqual(200.0, finding["estimated_monthly_saving_usd"])
+        self.assertFalse(any("requires result/rds_skill_analysis.json" in warning for warning in state["warnings"]))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,43 @@
 {
-  "schema_version": "2.0", "rule_id": "S3_LIFECYCLE_POLICY", "domain": "s3",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "s3.extract", "savings": "s3.savings", "remediation": "s3.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "S3_LIFECYCLE_POLICY",
+  "domain": "s3",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "has_lifecycle": {
+      "type": "boolean"
+    },
+    "is_problem": {
+      "type": "boolean"
+    },
+    "has_domain_cost": {
+      "type": "boolean"
+    },
+    "bucket_name_suggests_archive": {
+      "type": "boolean"
+    },
+    "has_object_lock": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "s3.extract",
+    "savings": "s3.savings",
+    "remediation": "s3.remediation"
+  },
   "rule_name": "s3_lifecycle_governance_policy",
   "description": "Identifies S3 buckets with versioning and growing noncurrent versions, incomplete multipart uploads, storage-class mismatch, or lifecycle governance gaps while protecting retention and compliance requirements.",
   "version": "1.1.0",
@@ -29,7 +65,40 @@
       "severity": "HIGH",
       "action": "ADD_SAFE_LIFECYCLE_POLICY",
       "confidence": "MEDIUM",
-      "description": "Versioning is enabled and noncurrent versions are growing. Add a noncurrent lifecycle policy only after validating restore, Object Lock, replication, legal hold, backup, and compliance requirements."
+      "description": "Versioning is enabled and noncurrent versions are growing. Add a noncurrent lifecycle policy only after validating restore, Object Lock, replication, legal hold, backup, and compliance requirements.",
+      "rule_type": "finding",
+      "savings_fraction": 0.75,
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "fact": "has_lifecycle",
+              "op": "eq",
+              "value": true
+            }
+          },
+          {
+            "any": [
+              {
+                "fact": "is_problem",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "fact": "has_domain_cost",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "fact": "bucket_name_suggests_archive",
+                "op": "eq",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "recommendation": "Add lifecycle transitions only after validating restore, compliance, and access patterns."
     },
     {
       "id": "V2",
@@ -47,7 +116,20 @@
       "severity": "INFO",
       "action": "DO_NOT_EXPIRE_WITHOUT_POLICY_REVIEW",
       "confidence": "HIGH",
-      "description": "Retention or replication evidence exists. Do not expire noncurrent versions until the retention policy allows it."
+      "description": "Retention or replication evidence exists. Do not expire noncurrent versions until the retention policy allows it.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "V1",
+        "V2",
+        "V4"
+      ],
+      "predicate": {
+        "fact": "has_object_lock",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Object Lock or legal hold is active — storage tier changes require compliance review."
     },
     {
       "id": "V4",

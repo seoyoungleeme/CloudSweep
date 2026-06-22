@@ -1,7 +1,43 @@
 {
-  "schema_version": "2.0", "rule_id": "DYNAMODB_CAPACITY_POLICY", "domain": "dynamodb",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "dynamodb.extract", "savings": "dynamodb.savings", "remediation": "dynamodb.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "DYNAMODB_CAPACITY_POLICY",
+  "domain": "dynamodb",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "billing_mode": {
+      "type": "string"
+    },
+    "has_autoscaling": {
+      "type": "boolean"
+    },
+    "max_capacity_utilization": {
+      "type": "number"
+    },
+    "is_problem": {
+      "type": "boolean"
+    },
+    "has_throttles": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "dynamodb.extract",
+    "savings": "dynamodb.savings",
+    "remediation": "dynamodb.remediation"
+  },
   "rule_name": "dynamodb_capacity_and_billing_mode_policy",
   "description": "Identifies DynamoDB tables and GSIs with over-provisioned capacity, missing or unsafe Auto Scaling, suboptimal billing mode, or non-capacity cost drivers that require separate FinOps analysis.",
   "version": "1.1.0",
@@ -17,7 +53,8 @@
     "require_p95_or_peak_for_capacity_reduction": true,
     "require_cost_model_for_billing_mode_change": true,
     "require_gsi_analysis": true,
-    "auto_scaling_target_utilization_pct": 70
+    "auto_scaling_target_utilization_pct": 70,
+    "capacity_utilization_threshold": 0.5
   },
   "cost": {
     "region": "us-east-1",
@@ -52,7 +89,40 @@
       "severity": "HIGH",
       "action": "REDUCE_WCU or ADD_WRITE_AUTOSCALING",
       "confidence": "HIGH",
-      "description": "Write capacity is chronically underutilized with no write throttling evidence. Reduce WCU or tune write Auto Scaling while preserving peak headroom."
+      "description": "Write capacity is chronically underutilized with no write throttling evidence. Reduce WCU or tune write Auto Scaling while preserving peak headroom.",
+      "rule_type": "finding",
+      "savings_fraction": 0.0,
+      "predicate": {
+        "all": [
+          {
+            "fact": "billing_mode",
+            "op": "eq",
+            "value": "PROVISIONED"
+          },
+          {
+            "not": {
+              "fact": "has_autoscaling",
+              "op": "eq",
+              "value": true
+            }
+          },
+          {
+            "any": [
+              {
+                "fact": "is_problem",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "fact": "max_capacity_utilization",
+                "op": "lt",
+                "threshold": "capacity_utilization_threshold"
+              }
+            ]
+          }
+        ]
+      },
+      "recommendation": "Set read/write capacity to recommended values and add Application Auto Scaling."
     },
     {
       "id": "D2",
@@ -106,7 +176,20 @@
       "severity": "INFO",
       "action": "DO_NOT_REDUCE_CAPACITY_REVIEW_THROTTLING",
       "confidence": "HIGH",
-      "description": "Throttling evidence exists. Do not reduce capacity until traffic shape, hot partitions, key design, and Auto Scaling behavior are reviewed."
+      "description": "Throttling evidence exists. Do not reduce capacity until traffic shape, hot partitions, key design, and Auto Scaling behavior are reviewed.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "predicate": {
+        "fact": "has_throttles",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Resolve throttling before rightsizing capacity."
     },
     {
       "id": "D8",

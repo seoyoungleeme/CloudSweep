@@ -1,7 +1,46 @@
 {
-  "schema_version": "2.0", "rule_id": "ELASTICACHE_CAPACITY_POLICY", "domain": "elasticache",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "elasticache.extract", "savings": "elasticache.savings", "remediation": "elasticache.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "ELASTICACHE_CAPACITY_POLICY",
+  "domain": "elasticache",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "node_count": {
+      "type": "integer"
+    },
+    "cpu_avg_pct": {
+      "type": "number"
+    },
+    "cache_hit_rate_pct": {
+      "type": "number"
+    },
+    "is_eol_version": {
+      "type": "boolean"
+    },
+    "engine": {
+      "type": "string"
+    },
+    "engine_version": {
+      "type": "string"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "elasticache.extract",
+    "savings": "elasticache.savings",
+    "remediation": "elasticache.remediation"
+  },
   "rule_name": "elasticache_topology_and_node_rightsizing_policy",
   "description": "Identifies ElastiCache cost waste from excessive replicas, excessive shards, oversized node types, or missing reserved node coverage while protecting availability and performance.",
   "version": "1.1.0",
@@ -26,18 +65,42 @@
     "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
     "note": "ElastiCache nodes are billed per node-hour. Pricing varies by engine, node type, region, reserved node coverage, and serverless/node-based deployment model.",
     "node_types": {
-      "cache.t3.micro": { "hourly_usd": 0.017 },
-      "cache.t3.small": { "hourly_usd": 0.034 },
-      "cache.t3.medium": { "hourly_usd": 0.068 },
-      "cache.t4g.micro": { "hourly_usd": 0.016 },
-      "cache.t4g.small": { "hourly_usd": 0.032 },
-      "cache.t4g.medium": { "hourly_usd": 0.065 },
-      "cache.r6g.large": { "hourly_usd": 0.192 },
-      "cache.r6g.xlarge": { "hourly_usd": 0.384 },
-      "cache.r5.large": { "hourly_usd": 0.228 },
-      "cache.r5.xlarge": { "hourly_usd": 0.456 },
-      "cache.m6g.large": { "hourly_usd": 0.154 },
-      "cache.m5.large": { "hourly_usd": 0.169 }
+      "cache.t3.micro": {
+        "hourly_usd": 0.017
+      },
+      "cache.t3.small": {
+        "hourly_usd": 0.034
+      },
+      "cache.t3.medium": {
+        "hourly_usd": 0.068
+      },
+      "cache.t4g.micro": {
+        "hourly_usd": 0.016
+      },
+      "cache.t4g.small": {
+        "hourly_usd": 0.032
+      },
+      "cache.t4g.medium": {
+        "hourly_usd": 0.065
+      },
+      "cache.r6g.large": {
+        "hourly_usd": 0.192
+      },
+      "cache.r6g.xlarge": {
+        "hourly_usd": 0.384
+      },
+      "cache.r5.large": {
+        "hourly_usd": 0.228
+      },
+      "cache.r5.xlarge": {
+        "hourly_usd": 0.456
+      },
+      "cache.m6g.large": {
+        "hourly_usd": 0.154
+      },
+      "cache.m5.large": {
+        "hourly_usd": 0.169
+      }
     }
   },
   "severity_rules": [
@@ -48,7 +111,28 @@
       "severity": "HIGH",
       "action": "REDUCE_REPLICAS",
       "confidence": "HIGH",
-      "description": "Replica count appears higher than required while memory, eviction, CPU, and replication metrics show safe headroom. Preserve at least one replica per shard when HA/failover is required."
+      "description": "Replica count appears higher than required while memory, eviction, CPU, and replication metrics show safe headroom. Preserve at least one replica per shard when HA/failover is required.",
+      "rule_type": "finding",
+      "savings_fraction": 0.3,
+      "predicate": {
+        "all": [
+          {
+            "fact": "node_count",
+            "op": "gt",
+            "threshold": "min_replicas_per_shard_for_ha"
+          },
+          {
+            "fact": "cpu_avg_pct",
+            "op": "exists"
+          },
+          {
+            "fact": "cpu_avg_pct",
+            "op": "lt",
+            "threshold": "cpu_utilization_pct_p95_max"
+          }
+        ]
+      },
+      "recommendation": "Reduce replicas only after confirming evictions=0 and replication lag <100ms."
     },
     {
       "id": "EC2",
@@ -57,7 +141,32 @@
       "severity": "HIGH",
       "action": "DOWNSIZE_NODE_TYPE",
       "confidence": "MEDIUM",
-      "description": "Node type may be larger than required. Downsize only after validating memory, CPU, network, connection headroom, and rollback plan."
+      "description": "Node type may be larger than required. Downsize only after validating memory, CPU, network, connection headroom, and rollback plan.",
+      "rule_type": "finding",
+      "savings_fraction": 0.25,
+      "predicate": {
+        "all": [
+          {
+            "fact": "cpu_avg_pct",
+            "op": "exists"
+          },
+          {
+            "fact": "cpu_avg_pct",
+            "op": "lt",
+            "threshold": "cpu_utilization_pct_p95_max"
+          },
+          {
+            "fact": "cache_hit_rate_pct",
+            "op": "exists"
+          },
+          {
+            "fact": "cache_hit_rate_pct",
+            "op": "gte",
+            "threshold": "cache_hit_rate_pct_min"
+          }
+        ]
+      },
+      "recommendation": "Test the next smaller node type in a non-prod replica before promoting."
     },
     {
       "id": "EC3",
@@ -84,7 +193,20 @@
       "severity": "INFO",
       "action": "DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE",
       "confidence": "HIGH",
-      "description": "Performance or capacity risk evidence exists. Do not downsize until memory pressure, evictions, CPU, network, and replication lag are reviewed."
+      "description": "Performance or capacity risk evidence exists. Do not downsize until memory pressure, evictions, CPU, network, and replication lag are reviewed.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "EC1",
+        "EC2",
+        "EC3"
+      ],
+      "predicate": {
+        "fact": "is_eol_version",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Upgrade engine to the latest supported version before making capacity changes."
     }
   ],
   "policy_controls": {

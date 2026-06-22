@@ -1,7 +1,34 @@
 {
-  "schema_version": "2.0", "rule_id": "SQS_POLLING_POLICY", "domain": "sqs",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "sqs.extract", "savings": "sqs.savings", "remediation": "sqs.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "SQS_POLLING_POLICY",
+  "domain": "sqs",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "receive_wait_time_seconds": {
+      "type": "integer"
+    },
+    "empty_receives_per_day": {
+      "type": "number"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "sqs.extract",
+    "savings": "sqs.savings",
+    "remediation": "sqs.remediation"
+  },
   "rule_name": "sqs_polling_and_request_efficiency_policy",
   "description": "Identifies SQS cost inefficiencies from short polling, excessive empty receives, missing batching, and retry/visibility behavior while preserving latency and consumer safety.",
   "version": "1.1.0",
@@ -19,7 +46,7 @@
   },
   "cost": {
     "region": "us-east-1",
-    "price_per_million_api_calls_usd": 0.40,
+    "price_per_million_api_calls_usd": 0.4,
     "free_tier_million_requests_per_month": 1,
     "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
     "note": "SQS charges per API request. Empty ReceiveMessage responses are billable. Long polling can reduce empty responses, but does not guarantee zero empty receives."
@@ -34,7 +61,24 @@
       "action": "ENABLE_LONG_POLLING",
       "recommended_receive_wait_time_seconds": 20,
       "confidence": "HIGH",
-      "description": "Queue uses short polling and has high empty receives. Enable long polling after validating client read timeout, latency requirements, Lambda/SDK behavior, and backlog metrics."
+      "description": "Queue uses short polling and has high empty receives. Enable long polling after validating client read timeout, latency requirements, Lambda/SDK behavior, and backlog metrics.",
+      "rule_type": "finding",
+      "savings_fraction": 0.5,
+      "predicate": {
+        "all": [
+          {
+            "fact": "receive_wait_time_seconds",
+            "op": "eq",
+            "value": 0
+          },
+          {
+            "fact": "empty_receives_per_day",
+            "op": "gte",
+            "value": 10000
+          }
+        ]
+      },
+      "recommendation": "Enable long polling and ensure the client read timeout exceeds the wait time."
     },
     {
       "id": "Q2",

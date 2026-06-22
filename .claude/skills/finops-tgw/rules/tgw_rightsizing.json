@@ -1,7 +1,34 @@
 {
-  "schema_version": "2.0", "rule_id": "TGW_RIGHTSIZE_POLICY", "domain": "tgw",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "tgw.extract", "savings": "tgw.savings", "remediation": "tgw.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "TGW_RIGHTSIZE_POLICY",
+  "domain": "tgw",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "attachment_count": {
+      "type": "integer"
+    },
+    "has_peering": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "tgw.extract",
+    "savings": "tgw.savings",
+    "remediation": "tgw.remediation"
+  },
   "rule_name": "tgw_cost_rightsizing_policy",
   "description": "Identifies avoidable AWS Transit Gateway data processing and attachment charges where VPC Peering or topology simplification would reduce cost without breaking connectivity.",
   "version": "1.1.0",
@@ -16,7 +43,7 @@
   "cost": {
     "tgw_attachment_hourly_usd": 0.05,
     "tgw_data_processing_per_gb_usd": 0.02,
-    "vpc_peering_same_az_per_gb_usd": 0.00,
+    "vpc_peering_same_az_per_gb_usd": 0.0,
     "vpc_peering_cross_az_per_gb_usd": 0.01,
     "hours_per_month": 720,
     "pricing_region": "us-east-1",
@@ -39,7 +66,24 @@
       "severity": "MEDIUM",
       "action": "EVALUATE_VPC_PEERING_MIGRATION",
       "confidence": "MEDIUM",
-      "description": "A TGW with only 2-3 attachments for simple VPC-to-VPC connectivity may be over-engineered. VPC Peering is simpler and cheaper unless transitive routing, centralized inspection, Direct Connect, or multi-account requirements are present."
+      "description": "A TGW with only 2-3 attachments for simple VPC-to-VPC connectivity may be over-engineered. VPC Peering is simpler and cheaper unless transitive routing, centralized inspection, Direct Connect, or multi-account requirements are present.",
+      "rule_type": "finding",
+      "savings_fraction": 0.5,
+      "predicate": {
+        "all": [
+          {
+            "fact": "attachment_count",
+            "op": "lte",
+            "threshold": "max_attachments_for_peering_replacement"
+          },
+          {
+            "fact": "has_peering",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "recommendation": "Validate transitive routing, inspection, and multi-account requirements before migrating to VPC peering."
     },
     {
       "id": "T3",

@@ -1,7 +1,34 @@
 {
-  "schema_version": "2.0", "rule_id": "ORGANIZATIONS_BILLING_POLICY", "domain": "organizations",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "organizations.extract", "savings": "organizations.savings", "remediation": "organizations.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "ORGANIZATIONS_BILLING_POLICY",
+  "domain": "organizations",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "consolidated_billing": {
+      "type": "boolean"
+    },
+    "monthly_spend_usd": {
+      "type": "number"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "organizations.extract",
+    "savings": "organizations.savings",
+    "remediation": "organizations.remediation"
+  },
   "rule_name": "organizations_discount_governance_policy",
   "description": "Identifies missed AWS Organizations consolidated billing, Reserved Instance/Savings Plans sharing, commitment planning, and cost governance opportunities while requiring billing scope and chargeback validation.",
   "version": "1.1.0",
@@ -27,7 +54,24 @@
       "severity": "HIGH",
       "action": "REVIEW_CONSOLIDATED_BILLING",
       "confidence": "MEDIUM",
-      "description": "Accounts may be missing consolidated billing or discount sharing benefits. Validate legal/billing scope, payer design, Billing Conductor, chargeback, and sharing preferences before changing account structure."
+      "description": "Accounts may be missing consolidated billing or discount sharing benefits. Validate legal/billing scope, payer design, Billing Conductor, chargeback, and sharing preferences before changing account structure.",
+      "rule_type": "finding",
+      "savings_fraction": 0.0,
+      "predicate": {
+        "all": [
+          {
+            "fact": "consolidated_billing",
+            "op": "eq",
+            "value": false
+          },
+          {
+            "fact": "monthly_spend_usd",
+            "op": "gt",
+            "value": 0
+          }
+        ]
+      },
+      "recommendation": "Model eligible spend before enabling consolidated billing or discount sharing."
     },
     {
       "id": "O2",

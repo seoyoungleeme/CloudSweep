@@ -1,0 +1,1278 @@
+{
+  "schema_version": "2.0",
+  "run_id": "cs-c1080a588d78",
+  "work_dir": "C:\\Study\\CloudSweep\\lab01",
+  "intent": "waste_optimization",
+  "execution_plan": [
+    "domain_analysis",
+    "report"
+  ],
+  "domains": [
+    "s3",
+    "lambda",
+    "rds",
+    "cloudwatch"
+  ],
+  "domain_resources": {
+    "s3": [
+      "deprecated_frontend_assets_2eccac5f",
+      "dev_scratch_jan2024_baedda61",
+      "old_migration_dump_v2_92e45c70",
+      "poc_analytics_raw_c8fe879d",
+      "prod_application_logs_b175eb14",
+      "prod_application_logs_b175eb14_lifecycle",
+      "prod_backups_73171b8b",
+      "prod_backups_73171b8b_lifecycle",
+      "prod_user_uploads_12685b76",
+      "prod_user_uploads_12685b76_lifecycle",
+      "staging_logs_backup_713531e3",
+      "temp_data_export_2024q1_8c684d70",
+      "test_results_archive_0218008b",
+      "unused_ml_training_data_d8cafa08",
+      "deprecated-frontend-assets",
+      "dev-scratch-jan2024",
+      "old-migration-dump-v2",
+      "poc-analytics-raw",
+      "prod-application-logs",
+      "prod-backups",
+      "prod-user-uploads",
+      "staging-logs-backup",
+      "temp-data-export-2024q1",
+      "test-results-archive",
+      "unused-ml-training-data"
+    ],
+    "lambda": [
+      "prod_api_handler_7e07f704",
+      "prod_event_processor_abb841c3",
+      "waste_csv_parser_b9b557af",
+      "waste_email_sender_89f0878f",
+      "waste_health_checker_ed3ddab0",
+      "waste_log_forwarder_6027503c",
+      "waste_notification_push_67b6b765",
+      "waste_thumbnail_gen_c7700c49",
+      "arn:aws:lambda:us-east-1:000000000000:function:prod-api-handler",
+      "arn:aws:lambda:us-east-1:000000000000:function:prod-event-processor",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-csv-parser",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-email-sender",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-health-checker",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-log-forwarder",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-notification-push",
+      "arn:aws:lambda:us-east-1:000000000000:function:waste-thumbnail-gen"
+    ],
+    "rds": [
+      "prod_api_db_0e77730c",
+      "dev_analytics_db_64c7c4dc",
+      "dev_reporting_db_2b0272f3",
+      "staging_cache_db_19cba437",
+      "dev-analytics-db",
+      "dev-reporting-db",
+      "prod-api-db",
+      "staging-cache-db"
+    ],
+    "cloudwatch": [
+      "app_access_logs_c7cd043c",
+      "app_debug_logs_a665405d",
+      "aws_ecs_staging_service_9c27ece4",
+      "aws_lambda_waste_email_sender_ad90ae5d",
+      "aws_lambda_waste_thumbnail_gen_e1080972",
+      "aws_rds_dev_analytics_db_55513166",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/app/access-logs:*",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/app/debug-logs:*",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/aws/ecs/staging-service:*",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-email-sender:*",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-thumbnail-gen:*",
+      "arn:aws:logs:us-east-1:000000000000:log-group:/aws/rds/dev-analytics-db:*"
+    ]
+  },
+  "analyzer_coverage": [
+    {
+      "domain": "s3",
+      "status": "implemented",
+      "analyzer_version": "2.0.0"
+    },
+    {
+      "domain": "lambda",
+      "status": "implemented",
+      "analyzer_version": "2.0.0"
+    },
+    {
+      "domain": "rds",
+      "status": "implemented",
+      "analyzer_version": "2.0.0"
+    },
+    {
+      "domain": "cloudwatch",
+      "status": "implemented",
+      "analyzer_version": "2.0.0"
+    }
+  ],
+  "findings": [
+    {
+      "domain": "s3",
+      "resource": "poc_analytics_raw_c8fe879d",
+      "rule_id": "S3_LIFECYCLE_POLICY:V1",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "bucket=poc-analytics-raw",
+        "no aws_s3_bucket_lifecycle_configuration reference found"
+      ],
+      "recommendation": "Add lifecycle transitions only after validating restore, compliance, and access patterns.",
+      "optimized_append": "resource \"aws_s3_bucket_lifecycle_configuration\" \"poc_analytics_raw_c8fe879d_cloudsweep_lifecycle\" {\n  bucket = aws_s3_bucket.poc_analytics_raw_c8fe879d.id\n\n  rule {\n    id     = \"cloudsweep-standard-ia-then-glacier\"\n    status = \"Enabled\"\n\n    transition {\n      days          = 30\n      storage_class = \"STANDARD_IA\"\n    }\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    abort_incomplete_multipart_upload {\n      days_after_initiation = 7\n    }\n  }\n}",
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-a3450c4e6a0f",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-7ef0b5c7b94c",
+          "statement": "bucket=poc-analytics-raw"
+        },
+        {
+          "fact_id": "cs-2eb15c2da432",
+          "statement": "no aws_s3_bucket_lifecycle_configuration reference found"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "append_block",
+        "source_hash": "ed97722fdee2094a6e749b3992d220971a888f8e507a1a8a66383e0d82e89312",
+        "content": "resource \"aws_s3_bucket_lifecycle_configuration\" \"poc_analytics_raw_c8fe879d_cloudsweep_lifecycle\" {\n  bucket = aws_s3_bucket.poc_analytics_raw_c8fe879d.id\n\n  rule {\n    id     = \"cloudsweep-standard-ia-then-glacier\"\n    status = \"Enabled\"\n\n    transition {\n      days          = 30\n      storage_class = \"STANDARD_IA\"\n    }\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    abort_incomplete_multipart_upload {\n      days_after_initiation = 7\n    }\n  }\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "s3",
+      "resource": "test_results_archive_0218008b",
+      "rule_id": "S3_LIFECYCLE_POLICY:V1",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "bucket=test-results-archive",
+        "no aws_s3_bucket_lifecycle_configuration reference found"
+      ],
+      "recommendation": "Add lifecycle transitions only after validating restore, compliance, and access patterns.",
+      "optimized_append": "resource \"aws_s3_bucket_lifecycle_configuration\" \"test_results_archive_0218008b_cloudsweep_lifecycle\" {\n  bucket = aws_s3_bucket.test_results_archive_0218008b.id\n\n  rule {\n    id     = \"cloudsweep-standard-ia-then-glacier\"\n    status = \"Enabled\"\n\n    transition {\n      days          = 30\n      storage_class = \"STANDARD_IA\"\n    }\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    abort_incomplete_multipart_upload {\n      days_after_initiation = 7\n    }\n  }\n}",
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-8054bb8a7f42",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-d13a5790069d",
+          "statement": "bucket=test-results-archive"
+        },
+        {
+          "fact_id": "cs-429e834b8ffa",
+          "statement": "no aws_s3_bucket_lifecycle_configuration reference found"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "append_block",
+        "source_hash": "ed97722fdee2094a6e749b3992d220971a888f8e507a1a8a66383e0d82e89312",
+        "content": "resource \"aws_s3_bucket_lifecycle_configuration\" \"test_results_archive_0218008b_cloudsweep_lifecycle\" {\n  bucket = aws_s3_bucket.test_results_archive_0218008b.id\n\n  rule {\n    id     = \"cloudsweep-standard-ia-then-glacier\"\n    status = \"Enabled\"\n\n    transition {\n      days          = 30\n      storage_class = \"STANDARD_IA\"\n    }\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    abort_incomplete_multipart_upload {\n      days_after_initiation = 7\n    }\n  }\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "lambda",
+      "resource": "waste_csv_parser_b9b557af",
+      "rule_id": "LAMBDA_RIGHTSIZE_POLICY:L1",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "allocated_memory_mb=3008",
+        "p99_memory_used_mb=416.7091",
+        "datapoints=4"
+      ],
+      "recommendation": "Set memory_size to 1024 MB, then validate p95/p99 duration and errors.",
+      "optimized_replacement": {
+        "resource": "waste_csv_parser_b9b557af",
+        "text": "resource \"aws_lambda_function\" \"waste_csv_parser_b9b557af\" {\n  function_name = \"waste-csv-parser\"\n  role          = \"arn:aws:iam::000000000000:role/lambda-execution-role\"\n  handler       = \"handler.handler\"\n  runtime       = \"python3.12\"\n  memory_size = 1024\n  timeout     = 300\n  tags = {\n    Environment = \"production\"\n    Team = \"backend\"\n  }\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-aa2009b7877d",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-0322596d7819",
+          "statement": "allocated_memory_mb=3008"
+        },
+        {
+          "fact_id": "cs-6e4758ba4622",
+          "statement": "p99_memory_used_mb=416.7091"
+        },
+        {
+          "fact_id": "cs-e24b6e43fe57",
+          "statement": "datapoints=4"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "waste_csv_parser_b9b557af",
+        "source_hash": "b671d0d13e6088faa7087b8567e163b78d821f796139d85fc79c02d354761dae",
+        "content": "resource \"aws_lambda_function\" \"waste_csv_parser_b9b557af\" {\n  function_name = \"waste-csv-parser\"\n  role          = \"arn:aws:iam::000000000000:role/lambda-execution-role\"\n  handler       = \"handler.handler\"\n  runtime       = \"python3.12\"\n  memory_size = 1024\n  timeout     = 300\n  tags = {\n    Environment = \"production\"\n    Team = \"backend\"\n  }\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "lambda",
+      "resource": "waste_thumbnail_gen_c7700c49",
+      "rule_id": "LAMBDA_RIGHTSIZE_POLICY:L1",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "allocated_memory_mb=3008",
+        "p99_memory_used_mb=416.7091",
+        "datapoints=4"
+      ],
+      "recommendation": "Set memory_size to 1024 MB, then validate p95/p99 duration and errors.",
+      "optimized_replacement": {
+        "resource": "waste_thumbnail_gen_c7700c49",
+        "text": "resource \"aws_lambda_function\" \"waste_thumbnail_gen_c7700c49\" {\n  function_name = \"waste-thumbnail-gen\"\n  role          = \"arn:aws:iam::000000000000:role/lambda-execution-role\"\n  handler       = \"handler.handler\"\n  runtime       = \"python3.12\"\n  memory_size = 1024\n  timeout     = 300\n  tags = {\n    Environment = \"production\"\n    Team = \"backend\"\n  }\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-231653c690e0",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-bbd2fa17cf1e",
+          "statement": "allocated_memory_mb=3008"
+        },
+        {
+          "fact_id": "cs-3bf53a2a19dd",
+          "statement": "p99_memory_used_mb=416.7091"
+        },
+        {
+          "fact_id": "cs-99c14c1aa3ba",
+          "statement": "datapoints=4"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "waste_thumbnail_gen_c7700c49",
+        "source_hash": "ba9ecae0511f5320a5b5afb44da1d54a510cf5fbd6ca9b6fb6caef121d134495",
+        "content": "resource \"aws_lambda_function\" \"waste_thumbnail_gen_c7700c49\" {\n  function_name = \"waste-thumbnail-gen\"\n  role          = \"arn:aws:iam::000000000000:role/lambda-execution-role\"\n  handler       = \"handler.handler\"\n  runtime       = \"python3.12\"\n  memory_size = 1024\n  timeout     = 300\n  tags = {\n    Environment = \"production\"\n    Team = \"backend\"\n  }\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "prod_api_db_0e77730c",
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:prod_api_db_0e77730c",
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "cpu_datapoints=4",
+        "memory_iops_latency=not_available",
+        "Skill disposition=needs_evidence: Four identical CPU samples are insufficient for production downsizing, and memory, IOPS, latency, and peak data are missing."
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "Four identical CPU samples are insufficient for production downsizing, and memory, IOPS, latency, and peak data are missing.",
+      "finding_id": "cs-e2155cd2eb5c",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-84355f253707",
+          "statement": "cpu_avg_pct=13.1352"
+        },
+        {
+          "fact_id": "cs-38d68e7978bf",
+          "statement": "cpu_p95_pct=14.1031"
+        },
+        {
+          "fact_id": "cs-499ce4f39c2a",
+          "statement": "cpu_datapoints=4"
+        },
+        {
+          "fact_id": "cs-3d7a07145baf",
+          "statement": "memory_iops_latency=not_available"
+        },
+        {
+          "fact_id": "cs-95ca697b442d",
+          "statement": "Skill disposition=needs_evidence: Four identical CPU samples are insufficient for production downsizing, and memory, IOPS, latency, and peak data are missing."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "prod_api_db_0e77730c",
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:prod_api_db_0e77730c",
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "storage_type=gp2",
+        "storage_performance=not_available",
+        "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "finding_id": "cs-7de325c3a5c6",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-8270e8de11c9",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-b9a555f1e555",
+          "statement": "gp3 offers higher baseline IOPS and 20% lower cost than gp2"
+        },
+        {
+          "fact_id": "cs-e2cfa17cdf37",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-8b954adecc2e",
+          "statement": "storage_performance=not_available"
+        },
+        {
+          "fact_id": "cs-27fd8664c766",
+          "statement": "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_analytics_db_64c7c4dc",
+      "evidence": [
+        "multi_az=true",
+        "environment=dev",
+        "SLA/DR/compliance requirement not available",
+        "environment=dev",
+        "multi_az=true",
+        "sla_dr=not_available",
+        "Skill disposition=needs_evidence: The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable."
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable.",
+      "finding_id": "cs-2368782b60b4",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-7c4522c26918",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-99f0390d9351",
+          "statement": "environment=dev"
+        },
+        {
+          "fact_id": "cs-693aa2c49498",
+          "statement": "SLA/DR/compliance requirement not available"
+        },
+        {
+          "fact_id": "cs-305f6d358f2a",
+          "statement": "environment=dev"
+        },
+        {
+          "fact_id": "cs-e14c2bbc1dc6",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-39518f0dfed7",
+          "statement": "sla_dr=not_available"
+        },
+        {
+          "fact_id": "cs-ab7ed5cb5e4b",
+          "statement": "Skill disposition=needs_evidence: The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_analytics_db_64c7c4dc",
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "cpu_datapoints=4",
+        "memory_iops_latency=not_available",
+        "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "finding_id": "cs-bff2441ce6f0",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-d6bbb92e63d2",
+          "statement": "cpu_avg_pct=13.1352"
+        },
+        {
+          "fact_id": "cs-8ca1b428d795",
+          "statement": "cpu_p95_pct=14.1031"
+        },
+        {
+          "fact_id": "cs-f13e880fd695",
+          "statement": "cpu_datapoints=4"
+        },
+        {
+          "fact_id": "cs-065100eb98db",
+          "statement": "memory_iops_latency=not_available"
+        },
+        {
+          "fact_id": "cs-64f5e6f76e2d",
+          "statement": "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_analytics_db_64c7c4dc",
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "storage_type=gp2",
+        "storage_performance=not_available",
+        "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "finding_id": "cs-f36f679149da",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-3589aa75b57b",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-bdcfb2380293",
+          "statement": "gp3 offers higher baseline IOPS and 20% lower cost than gp2"
+        },
+        {
+          "fact_id": "cs-a4fcc370aeb0",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-e0112985716a",
+          "statement": "storage_performance=not_available"
+        },
+        {
+          "fact_id": "cs-c26b05575a49",
+          "statement": "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_reporting_db_2b0272f3",
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_reporting_db_2b0272f3",
+      "evidence": [
+        "multi_az=true",
+        "environment=dev",
+        "SLA/DR/compliance requirement not available",
+        "environment=dev",
+        "multi_az=true",
+        "sla_dr=not_available",
+        "Skill disposition=needs_evidence: The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable."
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable.",
+      "finding_id": "cs-06694fb0c725",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-b58085149240",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-c1d32eb6e5fe",
+          "statement": "environment=dev"
+        },
+        {
+          "fact_id": "cs-e9dca628ce25",
+          "statement": "SLA/DR/compliance requirement not available"
+        },
+        {
+          "fact_id": "cs-a9d476e27b47",
+          "statement": "environment=dev"
+        },
+        {
+          "fact_id": "cs-5468d04f4f93",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-3d3a87847c78",
+          "statement": "sla_dr=not_available"
+        },
+        {
+          "fact_id": "cs-3977878b0626",
+          "statement": "Skill disposition=needs_evidence: The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_reporting_db_2b0272f3",
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_reporting_db_2b0272f3",
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "cpu_datapoints=4",
+        "memory_iops_latency=not_available",
+        "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "finding_id": "cs-5c51d530d87a",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-dd7d90eb71cb",
+          "statement": "cpu_avg_pct=13.1352"
+        },
+        {
+          "fact_id": "cs-fda422862cad",
+          "statement": "cpu_p95_pct=14.1031"
+        },
+        {
+          "fact_id": "cs-f393d80d9802",
+          "statement": "cpu_datapoints=4"
+        },
+        {
+          "fact_id": "cs-abb12772e9dc",
+          "statement": "memory_iops_latency=not_available"
+        },
+        {
+          "fact_id": "cs-0abbf94a7f71",
+          "statement": "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "dev_reporting_db_2b0272f3",
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:dev_reporting_db_2b0272f3",
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "storage_type=gp2",
+        "storage_performance=not_available",
+        "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "finding_id": "cs-7bb79331243f",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-50b8279b4d46",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-9c40cde9b143",
+          "statement": "gp3 offers higher baseline IOPS and 20% lower cost than gp2"
+        },
+        {
+          "fact_id": "cs-526f59e2a8bf",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-05d629d395c6",
+          "statement": "storage_performance=not_available"
+        },
+        {
+          "fact_id": "cs-47609a9856eb",
+          "statement": "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "staging_cache_db_19cba437",
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:staging_cache_db_19cba437",
+      "evidence": [
+        "multi_az=true",
+        "environment=staging",
+        "SLA/DR/compliance requirement not available",
+        "environment=staging",
+        "multi_az=true",
+        "sla_dr=not_available",
+        "Skill disposition=needs_evidence: The database is staging, but its SLA, DR, failover, and cache dependency requirements are unavailable."
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "The database is staging, but its SLA, DR, failover, and cache dependency requirements are unavailable.",
+      "finding_id": "cs-536009537e33",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-5020a8538e22",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-d1c0a6cfd390",
+          "statement": "environment=staging"
+        },
+        {
+          "fact_id": "cs-908df2cf7731",
+          "statement": "SLA/DR/compliance requirement not available"
+        },
+        {
+          "fact_id": "cs-d7643b68ec1e",
+          "statement": "environment=staging"
+        },
+        {
+          "fact_id": "cs-64303a095c4f",
+          "statement": "multi_az=true"
+        },
+        {
+          "fact_id": "cs-4b192e5accea",
+          "statement": "sla_dr=not_available"
+        },
+        {
+          "fact_id": "cs-7a2c69e2812d",
+          "statement": "Skill disposition=needs_evidence: The database is staging, but its SLA, DR, failover, and cache dependency requirements are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "staging_cache_db_19cba437",
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:staging_cache_db_19cba437",
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "cpu_datapoints=4",
+        "memory_iops_latency=not_available",
+        "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "finding_id": "cs-1a55098ca440",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-2155b107081b",
+          "statement": "cpu_avg_pct=13.1352"
+        },
+        {
+          "fact_id": "cs-48e23128223f",
+          "statement": "cpu_p95_pct=14.1031"
+        },
+        {
+          "fact_id": "cs-36f104d3e240",
+          "statement": "cpu_datapoints=4"
+        },
+        {
+          "fact_id": "cs-6167bdf0cb52",
+          "statement": "memory_iops_latency=not_available"
+        },
+        {
+          "fact_id": "cs-5379e9161676",
+          "statement": "Skill disposition=needs_evidence: CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "rds",
+      "resource": "staging_cache_db_19cba437",
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 0.0,
+      "savings_group": "rds:staging_cache_db_19cba437",
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "storage_type=gp2",
+        "storage_performance=not_available",
+        "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance.",
+      "analysis_source": "langgraph+claude_skill",
+      "review_status": "skill_needs_evidence",
+      "skill_disposition": "needs_evidence",
+      "skill_rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "finding_id": "cs-ea8a00878685",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-7241f8485532",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-4fc371f1c56f",
+          "statement": "gp3 offers higher baseline IOPS and 20% lower cost than gp2"
+        },
+        {
+          "fact_id": "cs-daef38386dd4",
+          "statement": "storage_type=gp2"
+        },
+        {
+          "fact_id": "cs-01c05b471a6a",
+          "statement": "storage_performance=not_available"
+        },
+        {
+          "fact_id": "cs-9b185c043ce3",
+          "statement": "Skill disposition=needs_evidence: gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable."
+        }
+      ],
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "app_access_logs_c7cd043c",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "app_access_logs_c7cd043c",
+        "text": "resource \"aws_cloudwatch_log_group\" \"app_access_logs_c7cd043c\" {\n  name = \"/app/access-logs\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-3ab098bfb0d0",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-b1c090a64c9b",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "app_access_logs_c7cd043c",
+        "source_hash": "4e8d282fcae720836d8251fe08a5546539a4653b30ff145c9e523752bc491b58",
+        "content": "resource \"aws_cloudwatch_log_group\" \"app_access_logs_c7cd043c\" {\n  name = \"/app/access-logs\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "app_debug_logs_a665405d",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "app_debug_logs_a665405d",
+        "text": "resource \"aws_cloudwatch_log_group\" \"app_debug_logs_a665405d\" {\n  name = \"/app/debug-logs\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-e4c91b280038",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-ce5aeef59188",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "app_debug_logs_a665405d",
+        "source_hash": "3bacf60ded7ba19734e10dab42226ff17119e910bfe1aaae3c7beff9bd47d9d1",
+        "content": "resource \"aws_cloudwatch_log_group\" \"app_debug_logs_a665405d\" {\n  name = \"/app/debug-logs\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "aws_ecs_staging_service_9c27ece4",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "aws_ecs_staging_service_9c27ece4",
+        "text": "resource \"aws_cloudwatch_log_group\" \"aws_ecs_staging_service_9c27ece4\" {\n  name = \"/aws/ecs/staging-service\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-d6c6103c3f08",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-40e110e4979c",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "aws_ecs_staging_service_9c27ece4",
+        "source_hash": "c4655afcfa82d336bb5ca64433f49cd23526a51253637c81cffcc8d28675325f",
+        "content": "resource \"aws_cloudwatch_log_group\" \"aws_ecs_staging_service_9c27ece4\" {\n  name = \"/aws/ecs/staging-service\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "aws_lambda_waste_email_sender_ad90ae5d",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "aws_lambda_waste_email_sender_ad90ae5d",
+        "text": "resource \"aws_cloudwatch_log_group\" \"aws_lambda_waste_email_sender_ad90ae5d\" {\n  name = \"/aws/lambda/waste-email-sender\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-6353a970cbe8",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-6222678bd550",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "aws_lambda_waste_email_sender_ad90ae5d",
+        "source_hash": "cb82079a070b49fdf0066459db87c7fd810bd85c5aeae6e4a8a3858166032eb8",
+        "content": "resource \"aws_cloudwatch_log_group\" \"aws_lambda_waste_email_sender_ad90ae5d\" {\n  name = \"/aws/lambda/waste-email-sender\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "aws_lambda_waste_thumbnail_gen_e1080972",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "aws_lambda_waste_thumbnail_gen_e1080972",
+        "text": "resource \"aws_cloudwatch_log_group\" \"aws_lambda_waste_thumbnail_gen_e1080972\" {\n  name = \"/aws/lambda/waste-thumbnail-gen\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-e4b8ca1431e1",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-afc3abf12d3e",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "aws_lambda_waste_thumbnail_gen_e1080972",
+        "source_hash": "40797ed567a791f451b8b9964e452baa9ae3ed082e168f882d9935dc1ebfa0d4",
+        "content": "resource \"aws_cloudwatch_log_group\" \"aws_lambda_waste_thumbnail_gen_e1080972\" {\n  name = \"/aws/lambda/waste-thumbnail-gen\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    },
+    {
+      "domain": "cloudwatch",
+      "resource": "aws_rds_dev_analytics_db_55513166",
+      "rule_id": "CLOUDWATCH_RETENTION_POLICY:C1",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "estimated_monthly_saving_usd": 0.0,
+      "evidence": [
+        "retention_days_scenario_attr=False"
+      ],
+      "recommendation": "Set a retention period after validating audit and compliance requirements.",
+      "optimized_replacement": {
+        "resource": "aws_rds_dev_analytics_db_55513166",
+        "text": "resource \"aws_cloudwatch_log_group\" \"aws_rds_dev_analytics_db_55513166\" {\n  name = \"/aws/rds/dev-analytics-db\"\n\n  retention_in_days = 30\n}"
+      },
+      "analysis_source": "langgraph",
+      "review_status": "machine_analyzed",
+      "finding_id": "cs-8057abe376a0",
+      "rule_version": "2.0.0",
+      "analyzer_version": "2.0.0",
+      "evidence_facts": [
+        {
+          "fact_id": "cs-22e2068fdf5a",
+          "statement": "retention_days_scenario_attr=False"
+        }
+      ],
+      "remediation_patch": {
+        "kind": "replace_resource",
+        "resource": "aws_rds_dev_analytics_db_55513166",
+        "source_hash": "b5f45783f45e4ba2867174b18d40d1bb0305623d60a193c49d62f2f62054424a",
+        "content": "resource \"aws_cloudwatch_log_group\" \"aws_rds_dev_analytics_db_55513166\" {\n  name = \"/aws/rds/dev-analytics-db\"\n\n  retention_in_days = 30\n}"
+      },
+      "pricing_verification": {
+        "status": "unavailable",
+        "source": "unavailable",
+        "note": "External AWS pricing verification was not performed."
+      },
+      "documentation": {
+        "status": "unavailable",
+        "urls": [],
+        "note": "AWS documentation MCP was not available."
+      }
+    }
+  ],
+  "dependency_facts": [
+    {
+      "fact_id": "cs-8818435c7316",
+      "kind": "terraform_reference",
+      "source": "aws_s3_bucket_lifecycle_configuration.prod_application_logs_b175eb14_lifecycle",
+      "source_type": "aws_s3_bucket_lifecycle_configuration",
+      "target": "aws_s3_bucket.prod_application_logs_b175eb14",
+      "target_type": "aws_s3_bucket",
+      "status": "observed"
+    },
+    {
+      "fact_id": "cs-d861fb09d370",
+      "kind": "terraform_reference",
+      "source": "aws_s3_bucket_lifecycle_configuration.prod_backups_73171b8b_lifecycle",
+      "source_type": "aws_s3_bucket_lifecycle_configuration",
+      "target": "aws_s3_bucket.prod_backups_73171b8b",
+      "target_type": "aws_s3_bucket",
+      "status": "observed"
+    },
+    {
+      "fact_id": "cs-aa51fe915f65",
+      "kind": "terraform_reference",
+      "source": "aws_s3_bucket_lifecycle_configuration.prod_user_uploads_12685b76_lifecycle",
+      "source_type": "aws_s3_bucket_lifecycle_configuration",
+      "target": "aws_s3_bucket.prod_user_uploads_12685b76",
+      "target_type": "aws_s3_bucket",
+      "status": "observed"
+    }
+  ],
+  "enrichment_status": {
+    "pricing": {
+      "provider": "local-fallback",
+      "finding_count": 21,
+      "failure_count": 0
+    },
+    "documentation": {
+      "provider": "local-fallback",
+      "finding_count": 21,
+      "failure_count": 0
+    }
+  },
+  "approval_status": "not_required",
+  "approval_decision": null,
+  "anomaly": null,
+  "cross_domain_notes": [
+    "Lambda and S3 are both present; check request amplification before treating storage lifecycle as the only driver."
+  ],
+  "warnings": [],
+  "trace": [
+    "inventory: metrics, parsed_input, terraform",
+    "plan: domain_analysis -> report",
+    "domains: s3, lambda, rds, cloudwatch",
+    "domain fan-out: 4 branch(es)",
+    "domain result: s3 (2 finding(s))",
+    "domain result: lambda (2 finding(s))",
+    "domain result: rds (11 finding(s))",
+    "domain result: cloudwatch (6 finding(s))",
+    "domain findings: 21",
+    "pricing enrichment: local-fallback, failures=0",
+    "documentation enrichment: local-fallback, failures=0",
+    "approval gate: not required",
+    "cross-domain notes: 1"
+  ],
+  "output_paths": {
+    "report": "C:\\Study\\CloudSweep\\lab01\\result\\finops_report.md",
+    "optimized_tf": "C:\\Study\\CloudSweep\\lab01\\result\\main_optimized.tf",
+    "state": "C:\\Study\\CloudSweep\\lab01\\result\\cloudsweep_graph_state.json",
+    "skill_requests": {}
+  }
+}

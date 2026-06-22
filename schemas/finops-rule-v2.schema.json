@@ -44,6 +44,10 @@
       },
       "additionalProperties": false
     },
+    "severity_rules": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/severity_rule_item"}
+    },
     "safety_checks": {"type": "array", "items": {"type": "string"}},
     "doc_query": {"type": "string"}
   },
@@ -82,6 +86,62 @@
           "additionalProperties": false
         }
       ]
+    },
+    "severity_rule_item": {
+      "type": "object",
+      "required": ["id", "name", "severity", "action"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short rule identifier within this policy document (e.g. R1, LB3, EC2G1)."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snake-case rule name used in code references."
+        },
+        "rule_type": {
+          "enum": ["finding", "blocker", "review"],
+          "description": "finding: produces a cost-saving candidate. blocker: prevents a downsizing/deletion. review: requires human/Claude judgment before action."
+        },
+        "severity": {"enum": ["HIGH", "MEDIUM", "LOW", "INFO"]},
+        "action": {"type": "string", "minLength": 1},
+        "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+        "predicate": {
+          "$ref": "#/$defs/predicate",
+          "description": "Structured machine-evaluable predicate. When present, replaces the legacy string 'condition' field. References facts defined at the rule document level."
+        },
+        "savings_fraction": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Fraction of the domain monthly cost attributed as savings for this rule. Used by the generic savings handler: domain_monthly * savings_fraction. Set to 0.0 for blockers and review rules."
+        },
+        "blocked_by": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of rule IDs (within this policy) that this blocker rule prevents from being acted upon. A finding with its id in this list must not be recommended if the blocker is triggered."
+        },
+        "review_requirements": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Checklist of items Claude must verify before this finding or review rule can be acted upon. Surfaced in claude_review.json."
+        },
+        "missing_evidence_policy": {
+          "enum": ["skip", "report_unknown", "assume_triggered"],
+          "description": "skip: do not emit if required facts are absent. report_unknown: emit with confidence=LOW and missing_evidence=true. assume_triggered: treat as triggered regardless (safe default for blockers)."
+        },
+        "condition": {
+          "type": "string",
+          "description": "Legacy human-readable condition string. Present on existing rules not yet migrated to structured predicate. Must be removed once predicate is added."
+        },
+        "sizing_formula": {"type": "string"},
+        "metric_required": {"type": "string"},
+        "description": {"type": "string"},
+        "recommendation": {"type": "string"}
+      },
+      "additionalProperties": true
     }
   }
 }

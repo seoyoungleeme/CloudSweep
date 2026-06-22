@@ -43,12 +43,14 @@ CloudSweep는 규칙의 성격에 따라 분석 책임을 나눈다.
 |------|--------|----------------|
 | 단순 정책·관계형 | lambda, s3, dynamodb, cloudwatch, cloudwatch-alarm, sqs, kinesis, ebs, nat, tgw, organizations | Python analyzer |
 | GenAI | bedrock, sagemaker, ec2 | Python rich analyzer |
-| 복잡 판단형 | rds, elb, ecs, elasticache | Claude domain Skill |
+| 복잡 판단형 | rds, elb, ecs, elasticache | Python 후보 + Claude domain Skill 판단 |
 | 비용 이상 | Cost Explorer, anomaly, CloudTrail | LangGraph anomaly workflow |
 
 단순·GenAI 도메인은 Python이 탐지, threshold, 계산을 담당하고 Claude는 결과를 검토한다.
 
-복잡 도메인은 여러 지표, 의존성, SLA 예외를 함께 판단해야 하므로 Claude Skill이 먼저 구조화된 분석 파일을 만든다. LangGraph는 이를 읽어 stable ID, evidence fact, 중복 방지 정보를 부여한다.
+복잡 도메인은 LangGraph가 규칙 후보와 계산을 먼저 만들고 Claude Skill이 여러
+지표, 의존성, SLA 예외를 검토해 `accepted`, `rejected`, `needs_evidence`를
+결정한다. LangGraph는 Skill이 수치나 Terraform을 덮어쓰지 못하게 한다.
 
 ```mermaid
 flowchart TD
@@ -60,7 +62,8 @@ flowchart TD
     DET --> ANOM[Anomaly workflow]
 
     SIMPLE --> PY[Python analyzers]
-    COMPLEX --> SKILL[Claude domain Skills]
+    COMPLEX --> CANDIDATE[LangGraph candidates]
+    CANDIDATE --> SKILL[Claude domain Skills]
     SKILL --> SKILLJSON[result/domain_skill_analysis.json]
 
     PY --> GRAPH[LangGraph analyze_domain]
@@ -87,12 +90,13 @@ Claude Code에서는 `/finops`를 기본 진입점으로 사용한다.
 오케스트레이터는 다음 순서로 동작한다.
 
 1. `WORK_DIR`의 evidence와 도메인을 확인한다.
-2. `rds`, `elb`, `ecs`, `elasticache`가 있으면 해당 Skill을 먼저 실행한다.
-3. Skill은 `result/{domain}_skill_analysis.json`을 작성한다.
-4. `python -m cloudsweep <WORK_DIR>`로 LangGraph를 실행한다.
-5. `cloudsweep_graph_state.json`의 모든 finding을 검토한다.
-6. `result/claude_review.json`을 작성한다.
-7. deterministic finalizer를 실행한다.
+2. LangGraph를 한 번 실행해 `result/{domain}_skill_request.json`을 만든다.
+3. `rds`, `elb`, `ecs`, `elasticache` request가 있으면 해당 Skill을 실행한다.
+4. Skill은 판단만 담은 `result/{domain}_skill_analysis.json`을 작성한다.
+5. `python -m cloudsweep <WORK_DIR>`로 LangGraph를 다시 실행한다.
+6. `cloudsweep_graph_state.json`의 모든 finding을 검토한다.
+7. `result/claude_review.json`을 작성한다.
+8. deterministic finalizer를 실행한다.
 
 복잡 도메인의 Skill 출력 파일:
 
@@ -103,7 +107,16 @@ Claude Code에서는 `/finops`를 기본 진입점으로 사용한다.
 | ECS | `finops-ecs` | `result/ecs_skill_analysis.json` |
 | ElastiCache | `finops-elasticache` | `result/elasticache_skill_analysis.json` |
 
-CLI만 실행해 Skill 파일이 없으면 해당 복잡 도메인은 내장 Python fallback analyzer를 사용한다. 이 경로는 자동화와 독립 실행을 위한 보수적 분석 경로다.
+CLI만 실행해 Skill 파일이 없으면 해당 복잡 도메인의 Python 규칙은
+`needs_skill_review` 후보만 만든다. 이 후보는 절감액 합산과 Terraform 변경에서
+제외되며 `result/{domain}_skill_request.json`에 기록된다. Skill이
+`result/{domain}_skill_analysis.json`을 작성한 뒤 LangGraph를 다시 실행해야 한다.
+
+MiniStack 입력을 Skill보다 먼저 준비할 때는 수집 전용 옵션을 사용한다.
+
+```powershell
+python -m cloudsweep <WORK_DIR> --from-ministack --collect-only
+```
 
 ## 분석과 최종화
 

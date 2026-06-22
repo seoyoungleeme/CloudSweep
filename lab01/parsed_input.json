@@ -1,0 +1,1912 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "collector": "ministack",
+    "collected_at": "2026-06-22T07:50:38.553597+00:00",
+    "endpoint_url": "http://localhost:4566",
+    "region": "us-east-1",
+    "period_days": 30,
+    "resolution": "daily",
+    "collection_errors": []
+  },
+  "region": "us-east-1",
+  "resources": {
+    "deprecated_frontend_assets_2eccac5f": {
+      "resource_id": "deprecated-frontend-assets",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "deprecated-frontend-assets",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    "dev_scratch_jan2024_baedda61": {
+      "resource_id": "dev-scratch-jan2024",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "dev-scratch-jan2024",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "dev-team"
+      },
+      "metrics": {}
+    },
+    "old_migration_dump_v2_92e45c70": {
+      "resource_id": "old-migration-dump-v2",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "old-migration-dump-v2",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    "poc_analytics_raw_c8fe879d": {
+      "resource_id": "poc-analytics-raw",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "poc-analytics-raw",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "data"
+      },
+      "metrics": {}
+    },
+    "prod_application_logs_b175eb14": {
+      "resource_id": "prod-application-logs",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-application-logs",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 90
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 30,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 45,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    "prod_backups_73171b8b": {
+      "resource_id": "prod-backups",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-backups",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 30
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 10,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 15,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "infra",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    "prod_user_uploads_12685b76": {
+      "resource_id": "prod-user-uploads",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-user-uploads",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 365
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 121,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 182,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "product",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    "staging_logs_backup_713531e3": {
+      "resource_id": "staging-logs-backup",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "staging-logs-backup",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "staging",
+        "environment_normalized": "staging"
+      },
+      "tags": {
+        "Environment": "staging",
+        "Team": "infra"
+      },
+      "metrics": {}
+    },
+    "temp_data_export_2024q1_8c684d70": {
+      "resource_id": "temp-data-export-2024q1",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "temp-data-export-2024q1",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development"
+      },
+      "metrics": {}
+    },
+    "test_results_archive_0218008b": {
+      "resource_id": "test-results-archive",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "test-results-archive",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "test",
+        "environment_normalized": "test"
+      },
+      "tags": {
+        "Environment": "test"
+      },
+      "metrics": {}
+    },
+    "unused_ml_training_data_d8cafa08": {
+      "resource_id": "unused-ml-training-data",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "unused-ml-training-data",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    "prod_api_handler_7e07f704": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:prod-api-handler",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "prod-api-handler",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 256,
+        "timeout": 10,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "prod_event_processor_abb841c3": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:prod-event-processor",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "prod-event-processor",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 512,
+        "timeout": 30,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_csv_parser_b9b557af": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-csv-parser",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-csv-parser",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 3008,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_email_sender_89f0878f": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-email-sender",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-email-sender",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 2048,
+        "timeout": 120,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_health_checker_ed3ddab0": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-health-checker",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-health-checker",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 2048,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_log_forwarder_6027503c": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-log-forwarder",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-log-forwarder",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 1024,
+        "timeout": 60,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_notification_push_67b6b765": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-notification-push",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-notification-push",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 1536,
+        "timeout": 60,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "waste_thumbnail_gen_c7700c49": {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-thumbnail-gen",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-thumbnail-gen",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 3008,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    "prod_api_db_0e77730c": {
+      "resource_id": "prod-api-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "prod-api-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.t3.medium",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 7,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    "dev_analytics_db_64c7c4dc": {
+      "resource_id": "dev-analytics-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "dev-analytics-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.r5.xlarge",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 30,
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    "dev_reporting_db_2b0272f3": {
+      "resource_id": "dev-reporting-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "dev-reporting-db",
+        "engine": "mysql",
+        "engine_version": "8.0.33",
+        "instance_class": "db.m5.large",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 21,
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    "staging_cache_db_19cba437": {
+      "resource_id": "staging-cache-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "staging-cache-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.r5.large",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 14,
+        "environment_raw": "staging",
+        "environment_normalized": "staging"
+      },
+      "tags": {
+        "Environment": "staging",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    "app_access_logs_c7cd043c": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/app/access-logs:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/app/access-logs",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    "app_debug_logs_a665405d": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/app/debug-logs:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/app/debug-logs",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    "aws_ecs_staging_service_9c27ece4": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/ecs/staging-service:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/ecs/staging-service",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    "aws_lambda_waste_email_sender_ad90ae5d": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-email-sender:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/lambda/waste-email-sender",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    "aws_lambda_waste_thumbnail_gen_e1080972": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-thumbnail-gen:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/lambda/waste-thumbnail-gen",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    "aws_rds_dev_analytics_db_55513166": {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/rds/dev-analytics-db:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/rds/dev-analytics-db",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    }
+  },
+  "tf_resources": [
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/app/access-logs:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/app/access-logs",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/app/debug-logs:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/app/debug-logs",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/ecs/staging-service:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/ecs/staging-service",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-email-sender:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/lambda/waste-email-sender",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/lambda/waste-thumbnail-gen:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/lambda/waste-thumbnail-gen",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:logs:us-east-1:000000000000:log-group:/aws/rds/dev-analytics-db:*",
+      "service": "cloudwatch",
+      "resource_type": "aws_cloudwatch_log_group",
+      "configuration": {
+        "name": "/aws/rds/dev-analytics-db",
+        "retention_in_days": 0,
+        "stored_bytes": 0
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "deprecated-frontend-assets",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "deprecated-frontend-assets",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    {
+      "resource_id": "dev-analytics-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "dev-analytics-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.r5.xlarge",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 30,
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    {
+      "resource_id": "dev-reporting-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "dev-reporting-db",
+        "engine": "mysql",
+        "engine_version": "8.0.33",
+        "instance_class": "db.m5.large",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 21,
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    {
+      "resource_id": "dev-scratch-jan2024",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "dev-scratch-jan2024",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "dev-team"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "old-migration-dump-v2",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "old-migration-dump-v2",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    {
+      "resource_id": "poc-analytics-raw",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "poc-analytics-raw",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development",
+        "Team": "data"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "prod-api-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "prod-api-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.t3.medium",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 7,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:prod-api-handler",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "prod-api-handler",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 256,
+        "timeout": 10,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "prod-application-logs",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-application-logs",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 90
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 30,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 45,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "prod-backups",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-backups",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 30
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 10,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 15,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "infra",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:prod-event-processor",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "prod-event-processor",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 512,
+        "timeout": 30,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "platform",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "prod-user-uploads",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "prod-user-uploads",
+        "has_lifecycle": true,
+        "lifecycle_rules": [
+          {
+            "Expiration": {
+              "Days": 365
+            },
+            "ID": "auto-tiering",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+              {
+                "Days": 121,
+                "StorageClass": "STANDARD_IA"
+              },
+              {
+                "Days": 182,
+                "StorageClass": "GLACIER"
+              }
+            ]
+          }
+        ],
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "product",
+        "CostCenter": "CC-001",
+        "Project": "main-platform"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "staging-cache-db",
+      "service": "rds",
+      "resource_type": "aws_db_instance",
+      "configuration": {
+        "identifier": "staging-cache-db",
+        "engine": "postgres",
+        "engine_version": "15.3",
+        "instance_class": "db.r5.large",
+        "allocated_storage_gb": 20,
+        "storage_type": "gp2",
+        "multi_az": true,
+        "backup_retention_days": 14,
+        "environment_raw": "staging",
+        "environment_normalized": "staging"
+      },
+      "tags": {
+        "Environment": "staging",
+        "Team": "analytics"
+      },
+      "metrics": {
+        "cpu_utilization": {
+          "unit": "Percent",
+          "statistic": "Average",
+          "datapoints": [
+            14.11598315285495,
+            13.969714085032287,
+            14.030306323624139,
+            10.424692820039951
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "CPUUtilization"
+        },
+        "database_connections": {
+          "unit": "Count",
+          "statistic": "Average",
+          "datapoints": [
+            13.31578947368421,
+            12.427083333333334,
+            12.822916666666666,
+            14.55
+          ],
+          "source_namespace": "AWS/RDS",
+          "source_metric_name": "DatabaseConnections"
+        }
+      }
+    },
+    {
+      "resource_id": "staging-logs-backup",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "staging-logs-backup",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "staging",
+        "environment_normalized": "staging"
+      },
+      "tags": {
+        "Environment": "staging",
+        "Team": "infra"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "temp-data-export-2024q1",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "temp-data-export-2024q1",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "development",
+        "environment_normalized": "dev"
+      },
+      "tags": {
+        "Environment": "development"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "test-results-archive",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "test-results-archive",
+        "has_lifecycle": false,
+        "lifecycle_rules": [],
+        "environment_raw": "test",
+        "environment_normalized": "test"
+      },
+      "tags": {
+        "Environment": "test"
+      },
+      "metrics": {}
+    },
+    {
+      "resource_id": "unused-ml-training-data",
+      "service": "s3",
+      "resource_type": "aws_s3_bucket",
+      "configuration": {
+        "bucket": "unused-ml-training-data",
+        "has_lifecycle": false,
+        "lifecycle_rules": []
+      },
+      "tags": {},
+      "metrics": {}
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-csv-parser",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-csv-parser",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 3008,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-email-sender",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-email-sender",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 2048,
+        "timeout": 120,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-health-checker",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-health-checker",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 2048,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-log-forwarder",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-log-forwarder",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 1024,
+        "timeout": 60,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-notification-push",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-notification-push",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 1536,
+        "timeout": 60,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    },
+    {
+      "resource_id": "arn:aws:lambda:us-east-1:000000000000:function:waste-thumbnail-gen",
+      "service": "lambda",
+      "resource_type": "aws_lambda_function",
+      "configuration": {
+        "function_name": "waste-thumbnail-gen",
+        "runtime": "python3.12",
+        "handler": "handler.handler",
+        "memory_size": 3008,
+        "timeout": 300,
+        "environment_raw": "production",
+        "environment_normalized": "prod"
+      },
+      "tags": {
+        "Environment": "production",
+        "Team": "backend"
+      },
+      "metrics": {
+        "duration": {
+          "unit": "Milliseconds",
+          "statistic": "Average",
+          "datapoints": [
+            1434.7796681608154,
+            1443.197365986516,
+            1446.2618797647513,
+            1440.0039407106979
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Duration"
+        },
+        "memory_used_mb": {
+          "unit": "Megabytes",
+          "statistic": "Maximum",
+          "datapoints": [
+            410.49885185058787,
+            416.8735395992292,
+            411.3910271770352,
+            410.09434548591315
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "MaxMemoryUsed"
+        },
+        "invocations": {
+          "unit": "Count",
+          "statistic": "Sum",
+          "datapoints": [
+            41495.0,
+            52494.0,
+            51559.0,
+            9304.0
+          ],
+          "source_namespace": "AWS/Lambda",
+          "source_metric_name": "Invocations"
+        }
+      }
+    }
+  ],
+  "collection_errors": []
+}

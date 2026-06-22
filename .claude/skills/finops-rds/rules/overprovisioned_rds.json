@@ -1,7 +1,49 @@
 {
-  "schema_version": "2.0", "rule_id": "RDS_RIGHTSIZE_POLICY", "domain": "rds",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "rds.extract", "savings": "rds.savings", "remediation": "rds.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "RDS_RIGHTSIZE_POLICY",
+  "domain": "rds",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "multi_az": {
+      "type": "boolean"
+    },
+    "environment_tag": {
+      "type": "string"
+    },
+    "cpu_avg_pct": {
+      "type": "number"
+    },
+    "cpu_p95_pct": {
+      "type": "number"
+    },
+    "cpu_peak_high": {
+      "type": "boolean"
+    },
+    "freeable_memory_low": {
+      "type": "boolean"
+    },
+    "db_connections_high": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "rds.extract",
+    "savings": "rds.savings",
+    "remediation": "rds.remediation"
+  },
   "rule_name": "rds_cost_rightsizing_policy",
   "description": "Identifies RDS cost inefficiencies from instance over-sizing, nonessential Multi-AZ, storage/IOPS over-provisioning, Extended Support, and reserved instance coverage gaps while protecting availability and performance.",
   "version": "1.1.0",
@@ -14,7 +56,14 @@
     "read_write_iops_utilization_p95_max_pct": 50.0,
     "minimum_headroom_pct_after_downsize": 30.0,
     "evaluation_period_days": 30,
-    "non_prod_env_tags": ["dev", "development", "test", "testing", "staging", "sandbox"],
+    "non_prod_env_tags": [
+      "dev",
+      "development",
+      "test",
+      "testing",
+      "staging",
+      "sandbox"
+    ],
     "require_p95_or_peak_for_downsize": true,
     "require_memory_and_io_check": true,
     "require_sla_dr_review_for_multi_az_change": true
@@ -34,7 +83,32 @@
       "severity": "MEDIUM",
       "action": "REVIEW_SINGLE_AZ",
       "confidence": "MEDIUM",
-      "description": "Multi-AZ may be unnecessary for non-production, but disabling it changes availability and maintenance/failover posture. Validate SLA, RTO/RPO, backup, and owner approval first."
+      "description": "Multi-AZ may be unnecessary for non-production, but disabling it changes availability and maintenance/failover posture. Validate SLA, RTO/RPO, backup, and owner approval first.",
+      "rule_type": "finding",
+      "savings_fraction": 0.3,
+      "predicate": {
+        "all": [
+          {
+            "fact": "multi_az",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "environment_tag",
+            "op": "in",
+            "value": [
+              "dev",
+              "development",
+              "test",
+              "testing",
+              "sandbox",
+              "staging",
+              "stage",
+              "preprod"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "R2",
@@ -43,7 +117,27 @@
       "severity": "HIGH",
       "action": "REVIEW_DOWNSIZE",
       "confidence": "HIGH",
-      "description": "Instance appears oversized across CPU, memory, I/O, and connection evidence. Downsize conservatively during a maintenance window with rollback monitoring."
+      "description": "Instance appears oversized across CPU, memory, I/O, and connection evidence. Downsize conservatively during a maintenance window with rollback monitoring.",
+      "rule_type": "finding",
+      "savings_fraction": 0.3,
+      "predicate": {
+        "all": [
+          {
+            "fact": "cpu_avg_pct",
+            "op": "exists"
+          },
+          {
+            "fact": "cpu_avg_pct",
+            "op": "lt",
+            "threshold": "cpu_utilization_avg_max_pct"
+          },
+          {
+            "fact": "cpu_p95_pct",
+            "op": "lt",
+            "threshold": "cpu_utilization_p95_max_pct_for_downsize"
+          }
+        ]
+      }
     },
     {
       "id": "R3",
@@ -79,7 +173,35 @@
       "severity": "INFO",
       "action": "DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE",
       "confidence": "HIGH",
-      "description": "Performance risk evidence exists. Do not downsize until CPU, memory, I/O, storage, and replica/failover behavior are reviewed."
+      "description": "Performance risk evidence exists. Do not downsize until CPU, memory, I/O, storage, and replica/failover behavior are reviewed.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "R1",
+        "R2",
+        "R3",
+        "R5"
+      ],
+      "predicate": {
+        "any": [
+          {
+            "fact": "cpu_peak_high",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "freeable_memory_low",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "db_connections_high",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "recommendation": "Resolve high CPU/memory/connection pressure before rightsizing."
     }
   ],
   "downsize_recommendations": {

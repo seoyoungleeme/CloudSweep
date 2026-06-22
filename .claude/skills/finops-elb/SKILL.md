@@ -50,33 +50,28 @@ Missing facts → write `Not available in the provided data; verify in the real 
 
 ## Output Contract
 
-Write `result/elb_skill_analysis.json` conforming to
-`schemas/skill-analysis.schema.json` before running LangGraph.
-
-LangGraph reads this file and assigns `finding_id`, `savings_group`, and
-`evidence_facts`. Do not include those fields in the skill output.
+Read `result/elb_skill_request.json`, decide each deterministic candidate, and
+write `result/elb_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json`. Do not calculate savings or write
+Terraform; LangGraph owns those values.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "elb",
   "skill_version": "2.0",
-  "findings": [
+  "decisions": [
     {
       "rule_id": "ELB_LB1_UNUSED",
       "resource": "<tf_resource_name>",
-      "severity": "HIGH",
+      "disposition": "accepted",
       "confidence": "HIGH",
-      "estimated_monthly_saving_usd": 0.0,
-      "evidence": ["request_count_sum=0", "active_connection_count_max=0", "no Route53 alias found"],
-      "recommendation": "Verify DNS, certificates, WAF, and DR dependencies, then delete if confirmed idle.",
-      "optimized_replacement": null
+      "rationale": "No traffic or DNS, certificate, WAF, or DR dependency was found.",
+      "evidence": ["request_count_sum=0", "active_connection_count_max=0", "no Route53 alias found"]
     }
   ]
 }
 ```
 
-Allowed `rule_id` values: `ELB_LB1_UNUSED`, `ELB_LB2_LOW_UTILIZATION`,
-`ELB_LB3_REVIEW_NLB_DOWNGRADE`, `ELB_LB4_MIGRATE_CLB`, `ELB_LB5_STALE_LISTENER`.
-
-Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable.
+Use only `accepted`, `rejected`, or `needs_evidence`, and decide only candidates
+present in the Skill request.

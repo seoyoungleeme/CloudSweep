@@ -1,9 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CloudSweep Skill Analysis Output",
-  "description": "Structured output written by a Claude domain skill before LangGraph runs. LangGraph reads this file and assigns finding_id, savings_group, and evidence_facts.",
+  "description": "Contextual decisions written by a Claude domain skill after LangGraph creates deterministic candidates. Legacy findings remain accepted for compatibility, but their savings and Terraform fields are ignored.",
   "type": "object",
-  "required": ["schema_version", "domain", "findings"],
+  "required": ["schema_version", "domain"],
+  "anyOf": [
+    { "required": ["decisions"] },
+    { "required": ["findings"] }
+  ],
   "properties": {
     "schema_version": {
       "type": "string",
@@ -15,6 +19,28 @@
     },
     "skill_version": {
       "type": "string"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "resource", "disposition", "confidence", "rationale"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "resource": { "type": "string" },
+          "disposition": {
+            "type": "string",
+            "enum": ["accepted", "rejected", "needs_evidence"]
+          },
+          "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+          "rationale": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
     },
     "findings": {
       "type": "array",

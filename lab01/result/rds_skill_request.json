@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0",
+  "domain": "rds",
+  "status": "needs_skill_review",
+  "evidence": {
+    "terraform": "C:\\Study\\CloudSweep\\lab01\\main.tf",
+    "genai_evidence": null,
+    "metrics": "C:\\Study\\CloudSweep\\lab01\\metrics.json",
+    "cost_report": null,
+    "parsed_input": "C:\\Study\\CloudSweep\\lab01\\parsed_input.json",
+    "existing_findings": null,
+    "cost_explorer": [],
+    "anomalies": null,
+    "cloudtrail": [],
+    "available": [
+      "metrics",
+      "parsed_input",
+      "terraform"
+    ]
+  },
+  "candidates": [
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "prod_api_db_0e77730c",
+      "severity": "HIGH",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency."
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "prod_api_db_0e77730c",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance."
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "multi_az=true",
+        "environment=dev",
+        "SLA/DR/compliance requirement not available",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ."
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "severity": "HIGH",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency."
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance."
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "dev_reporting_db_2b0272f3",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "multi_az=true",
+        "environment=dev",
+        "SLA/DR/compliance requirement not available",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ."
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "dev_reporting_db_2b0272f3",
+      "severity": "HIGH",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency."
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "dev_reporting_db_2b0272f3",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance."
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "staging_cache_db_19cba437",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "multi_az=true",
+        "environment=staging",
+        "SLA/DR/compliance requirement not available",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Review SLA, DR, and compliance requirements before changing non-production Multi-AZ."
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "staging_cache_db_19cba437",
+      "severity": "HIGH",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "cpu_avg_pct=13.1352",
+        "cpu_p95_pct=14.1031",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Benchmark a smaller supported DB class after checking memory, IOPS, connections, and latency."
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "staging_cache_db_19cba437",
+      "severity": "MEDIUM",
+      "deterministic_monthly_saving_usd": 0.0,
+      "evidence": [
+        "storage_type=gp2",
+        "gp3 offers higher baseline IOPS and 20% lower cost than gp2",
+        "rds Skill output missing; contextual guardrails were not adjudicated"
+      ],
+      "recommendation": "Migrate to gp3 storage and explicitly set iops and throughput to match or exceed current gp2 performance."
+    }
+  ],
+  "required_output": "C:\\Study\\CloudSweep\\lab01\\result\\rds_skill_analysis.json",
+  "decision_contract": {
+    "dispositions": [
+      "accepted",
+      "rejected",
+      "needs_evidence"
+    ],
+    "note": "Do not calculate or override savings or Terraform. Decide each candidate using contextual evidence."
+  }
+}

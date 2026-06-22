@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "domain": "rds",
+  "skill_version": "3.0",
+  "decisions": [
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "prod_api_db_0e77730c",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "Four identical CPU samples are insufficient for production downsizing, and memory, IOPS, latency, and peak data are missing.",
+      "evidence": ["cpu_datapoints=4", "memory_iops_latency=not_available"]
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "prod_api_db_0e77730c",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "evidence": ["storage_type=gp2", "storage_performance=not_available"]
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable.",
+      "evidence": ["environment=dev", "multi_az=true", "sla_dr=not_available"]
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "evidence": ["cpu_datapoints=4", "memory_iops_latency=not_available"]
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "dev_analytics_db_64c7c4dc",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "evidence": ["storage_type=gp2", "storage_performance=not_available"]
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "dev_reporting_db_2b0272f3",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "The database is non-production, but its SLA, DR, failover, and reporting dependencies are unavailable.",
+      "evidence": ["environment=dev", "multi_az=true", "sla_dr=not_available"]
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "dev_reporting_db_2b0272f3",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "evidence": ["cpu_datapoints=4", "memory_iops_latency=not_available"]
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "dev_reporting_db_2b0272f3",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "evidence": ["storage_type=gp2", "storage_performance=not_available"]
+    },
+    {
+      "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+      "resource": "staging_cache_db_19cba437",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "The database is staging, but its SLA, DR, failover, and cache dependency requirements are unavailable.",
+      "evidence": ["environment=staging", "multi_az=true", "sla_dr=not_available"]
+    },
+    {
+      "rule_id": "RDS_R2_LOW_UTILIZATION",
+      "resource": "staging_cache_db_19cba437",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "CPU is low, but only four samples exist and memory, IOPS, latency, and peak data are missing.",
+      "evidence": ["cpu_datapoints=4", "memory_iops_latency=not_available"]
+    },
+    {
+      "rule_id": "RDS_R5_GP2_STORAGE",
+      "resource": "staging_cache_db_19cba437",
+      "disposition": "needs_evidence",
+      "confidence": "LOW",
+      "rationale": "gp2 is observed, but current IOPS, throughput, latency, and migration constraints are unavailable.",
+      "evidence": ["storage_type=gp2", "storage_performance=not_available"]
+    }
+  ]
+}

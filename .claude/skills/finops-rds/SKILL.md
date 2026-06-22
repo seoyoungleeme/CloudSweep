@@ -31,10 +31,10 @@ Missing facts → write `Not available in the provided data; verify in the real 
 |------|-----------|----------|--------|
 | R1 | Multi-AZ on non-production with no SLA/DR requirement | MEDIUM | REVIEW_SINGLE_AZ |
 | R2 | Instance class underutilized across CPU, memory, connections, I/O with safe p95/max | HIGH | REVIEW_DOWNSIZE |
-| R3 | Provisioned storage, IOPS, or throughput exceeds observed needs | MEDIUM | REVIEW_STORAGE_IOPS |
+| R3 | Production baseline lacks Reserved DB coverage | LOW | REVIEW_RESERVED_INSTANCE |
 | R4 | Old engine version incurs Extended Support cost | HIGH | UPGRADE_ENGINE |
-| R5 | Steady retained baseline lacks Reserved DB Instance coverage | LOW | MODEL_RESERVED_INSTANCE |
-| R6 | Performance risk: high CPU, low memory, high I/O, high latency, throttling | INFO | DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE |
+| R5 | gp2 storage is a gp3 migration candidate | MEDIUM | REVIEW_GP3_MIGRATION |
+| R6 | Read replica has very low connection usage | MEDIUM | REVIEW_REPLICA_DEPENDENCIES |
 
 ## Safety Guardrails
 
@@ -43,39 +43,36 @@ Missing facts → write `Not available in the provided data; verify in the real 
   depth, failover/SLA, backup/DR, RI coverage first.
 - For R5 RI eligibility uncertainty (Aurora vs RDS, custom engines), note the
   uncertainty in the finding evidence rather than omitting the finding.
-- R6 is informational and must not carry savings. Its presence should block R2/R3.
+- R5 requires IOPS and throughput validation before accepting a migration.
+- R6 requires DR, reporting, and read-routing dependency validation.
 
 ## Output Contract
 
-Write `result/rds_skill_analysis.json` conforming to
-`schemas/skill-analysis.schema.json` before running LangGraph.
+Read `result/rds_skill_request.json` after the first LangGraph pass. Decide
+each candidate using SLA, DR, compliance, peak-performance, memory, I/O, and
+dependency context. Write `result/rds_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json`, then rerun LangGraph.
 
-LangGraph reads this file and assigns `finding_id`, `savings_group`, and
-`evidence_facts`. Do not include those fields in the skill output.
+Do not calculate savings, change severity, or write Terraform. LangGraph owns
+those deterministic values and applies them only to `accepted` candidates.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "rds",
   "skill_version": "2.0",
-  "findings": [
+  "decisions": [
     {
       "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
       "resource": "<tf_resource_name>",
-      "severity": "MEDIUM",
+      "disposition": "needs_evidence",
       "confidence": "MEDIUM",
-      "estimated_monthly_saving_usd": 0.0,
-      "evidence": ["multi_az=true", "environment=dev", "No DR/SLA requirement in config"],
-      "recommendation": "Review SLA, DR, and compliance requirements before disabling Multi-AZ.",
-      "optimized_replacement": null
+      "rationale": "Environment is non-production, but no SLA/DR requirement was provided.",
+      "evidence": ["multi_az=true", "environment=dev", "sla_requirement=not_available"]
     }
   ]
 }
 ```
 
-Allowed `rule_id` values: `RDS_R1_NONPROD_MULTI_AZ`, `RDS_R2_LOW_UTILIZATION`,
-`RDS_R3_STORAGE_IOPS_OVERPROVISIONED`, `RDS_R4_EXTENDED_SUPPORT`,
-`RDS_R5_NO_RI_COVERAGE`, `RDS_R6_PERFORMANCE_RISK`.
-
-Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable or
-when the rule is informational (R6).
+Use `needs_evidence` whenever a safety guardrail cannot be resolved. Never add
+a decision for a rule/resource pair absent from the Skill request.

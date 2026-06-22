@@ -1,6 +1,13 @@
 {
   "schema_version": "2.0", "rule_id": "CLOUDWATCH_ALARM_POLICY", "domain": "cloudwatch-alarm",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
+  "facts": {
+    "analyzable": {"type": "boolean", "required": true},
+    "resolution_seconds": {"type": "integer"},
+    "actual_required_resolution_seconds": {"type": "integer"},
+    "metric_type": {"type": "string"},
+    "evaluation_period_minutes": {"type": "number"}
+  },
+  "predicate": {"fact": "analyzable", "op": "eq", "value": true},
   "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "cloudwatch-alarm.extract", "savings": "cloudwatch-alarm.savings", "remediation": "cloudwatch-alarm.remediation"},
   "rule_name": "cloudwatch_metric_alarm_high_resolution",
   "description": "Identifies aws_cloudwatch_metric_alarm resources using high-resolution (1-second) period when standard resolution (60-second) is sufficient, generating avoidable custom metric cost.",
@@ -62,20 +69,42 @@
     {
       "id": "M1",
       "name": "high_resolution_with_sufficient_standard",
+      "rule_type": "finding",
+      "savings_fraction": 0.6,
+      "predicate": {
+        "all": [
+          {"fact": "resolution_seconds", "op": "eq", "value": 1},
+          {"fact": "actual_required_resolution_seconds", "op": "gte", "value": 60}
+        ]
+      },
       "condition": "resolution_seconds == 1 AND actual_required_resolution_seconds >= 60",
       "severity": "HIGH",
       "action": "DOWNGRADE_TO_STANDARD",
       "confidence": "HIGH",
-      "description": "Alarm is configured for 1-second high-resolution but scenario evidence indicates 60-second standard resolution is operationally sufficient. Downgrade period to 60 seconds to reduce custom metric cost from $0.90 to $0.30/metric/month."
+      "description": "Alarm is configured for 1-second high-resolution but scenario evidence indicates 60-second standard resolution is operationally sufficient. Downgrade period to 60 seconds to reduce custom metric cost from $0.90 to $0.30/metric/month.",
+      "recommendation": "Use standard-resolution metrics unless a documented sub-minute SLA requires high resolution."
     },
     {
       "id": "M2",
       "name": "high_resolution_with_long_evaluation_period",
+      "rule_type": "finding",
+      "savings_fraction": 0.6,
+      "predicate": {
+        "all": [
+          {"fact": "metric_type", "op": "eq", "value": "high_resolution"},
+          {"fact": "evaluation_period_minutes", "op": "gte", "value": 1},
+          {"not": {"all": [
+            {"fact": "resolution_seconds", "op": "eq", "value": 1},
+            {"fact": "actual_required_resolution_seconds", "op": "gte", "value": 60}
+          ]}}
+        ]
+      },
       "condition": "metric_type == 'high_resolution' AND evaluation_period_minutes >= 1",
       "severity": "HIGH",
       "action": "DOWNGRADE_TO_STANDARD",
       "confidence": "HIGH",
-      "description": "Alarm evaluates over 1+ minute windows. CloudWatch alarms aggregate data points within the evaluation period; 1-second granularity adds no detection advantage when the evaluation window is 60+ seconds."
+      "description": "Alarm evaluates over 1+ minute windows. CloudWatch alarms aggregate data points within the evaluation period; 1-second granularity adds no detection advantage when the evaluation window is 60+ seconds.",
+      "recommendation": "Use standard-resolution metrics unless a documented sub-minute SLA requires high resolution."
     },
     {
       "id": "M3",

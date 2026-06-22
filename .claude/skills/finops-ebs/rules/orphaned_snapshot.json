@@ -1,7 +1,37 @@
 {
-  "schema_version": "2.0", "rule_id": "EBS_SNAPSHOT_POLICY", "domain": "ebs",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "ebs.extract", "savings": "ebs.savings", "remediation": "ebs.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "EBS_SNAPSHOT_POLICY",
+  "domain": "ebs",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "has_deleted_source_volume": {
+      "type": "boolean"
+    },
+    "has_ami_reference": {
+      "type": "boolean"
+    },
+    "has_backup_reference": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "ebs.extract",
+    "savings": "ebs.savings",
+    "remediation": "ebs.remediation"
+  },
   "rule_name": "ebs_snapshot_lifecycle_policy",
   "description": "Identifies EBS snapshots that are potentially orphaned, stale, over-retained, archive candidates, or missing lifecycle governance. Destructive deletion requires dependency and retention validation.",
   "version": "1.1.0",
@@ -32,7 +62,15 @@
       "severity": "HIGH",
       "action": "REVIEW_DELETE",
       "confidence": "MEDIUM",
-      "description": "Snapshot source volume appears deleted. Treat as a strong cleanup candidate, but verify AMI, launch template, AWS Backup, DLM, legal hold, compliance, and owner dependencies before deletion."
+      "description": "Snapshot source volume appears deleted. Treat as a strong cleanup candidate, but verify AMI, launch template, AWS Backup, DLM, legal hold, compliance, and owner dependencies before deletion.",
+      "rule_type": "finding",
+      "savings_fraction": 1.0,
+      "predicate": {
+        "fact": "has_deleted_source_volume",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Verify AMI, AWS Backup, DLM, legal hold, audit, and DR dependencies before deleting."
     },
     {
       "id": "S2",
@@ -41,7 +79,27 @@
       "severity": "INFO",
       "action": "DO_NOT_DELETE",
       "confidence": "HIGH",
-      "description": "Snapshot has dependency or retention evidence. Do not delete for cost optimization unless the dependency or retention requirement is explicitly removed."
+      "description": "Snapshot has dependency or retention evidence. Do not delete for cost optimization unless the dependency or retention requirement is explicitly removed.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "S1"
+      ],
+      "predicate": {
+        "any": [
+          {
+            "fact": "has_ami_reference",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "has_backup_reference",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "recommendation": "Snapshot is referenced by an AMI or backup plan — do not delete."
     },
     {
       "id": "S3",

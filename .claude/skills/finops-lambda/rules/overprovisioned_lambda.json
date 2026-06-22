@@ -1,7 +1,37 @@
 {
-  "schema_version": "2.0", "rule_id": "LAMBDA_RIGHTSIZE_POLICY", "domain": "lambda",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "lambda.extract", "savings": "lambda.savings", "remediation": "lambda.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "LAMBDA_RIGHTSIZE_POLICY",
+  "domain": "lambda",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "allocated_mb": {
+      "type": "integer"
+    },
+    "memory_utilization_ratio": {
+      "type": "number"
+    },
+    "is_problem": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "lambda.extract",
+    "savings": "lambda.savings",
+    "remediation": "lambda.remediation"
+  },
   "rule_name": "lambda_cost_rightsizing_policy",
   "description": "Identifies Lambda cost inefficiencies from memory over-allocation, timeout misconfiguration, provisioned concurrency, ephemeral storage, architecture choice, and retry/error behavior.",
   "version": "1.1.0",
@@ -18,13 +48,15 @@
     "evaluation_period_days": 30,
     "require_p95_p99_for_memory_change": true,
     "require_cost_model_for_memory_change": true,
-    "require_error_throttle_check": true
+    "require_error_throttle_check": true,
+    "memory_rightsize_threshold": 0.2,
+    "min_allocated_mb_to_rightsize": 1024
   },
   "cost": {
     "region": "us-east-1",
-    "price_per_gb_second_usd_x86": 0.0000166667,
-    "price_per_million_requests_usd": 0.20,
-    "ephemeral_storage_per_gb_second_usd": 0.0000000309,
+    "price_per_gb_second_usd_x86": 1.66667e-05,
+    "price_per_million_requests_usd": 0.2,
+    "ephemeral_storage_per_gb_second_usd": 3.09e-08,
     "hours_per_month": 730,
     "min_memory_mb": 128,
     "max_memory_mb": 10240,
@@ -40,7 +72,41 @@
       "severity": "HIGH",
       "action": "RIGHTSIZE_MEMORY",
       "confidence": "MEDIUM",
-      "description": "Memory may be over-allocated, but change only when p95/p99 duration and modeled lower-memory cost show savings without latency, error, or throttle risk."
+      "description": "Memory may be over-allocated, but change only when p95/p99 duration and modeled lower-memory cost show savings without latency, error, or throttle risk.",
+      "rule_type": "finding",
+      "savings_fraction": 0.0,
+      "predicate": {
+        "all": [
+          {
+            "fact": "allocated_mb",
+            "op": "gte",
+            "threshold": "min_allocated_mb_to_rightsize"
+          },
+          {
+            "any": [
+              {
+                "all": [
+                  {
+                    "fact": "memory_utilization_ratio",
+                    "op": "exists"
+                  },
+                  {
+                    "fact": "memory_utilization_ratio",
+                    "op": "lt",
+                    "threshold": "memory_rightsize_threshold"
+                  }
+                ]
+              },
+              {
+                "fact": "is_problem",
+                "op": "eq",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "recommendation": "Set memory_size to the recommended value, then validate p95/p99 duration and errors."
     },
     {
       "id": "L2",

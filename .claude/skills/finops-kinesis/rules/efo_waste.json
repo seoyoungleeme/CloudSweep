@@ -1,7 +1,37 @@
 {
-  "schema_version": "2.0", "rule_id": "KINESIS_EFO_POLICY", "domain": "kinesis",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "kinesis.extract", "savings": "kinesis.savings", "remediation": "kinesis.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "KINESIS_EFO_POLICY",
+  "domain": "kinesis",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "enhanced_fan_out": {
+      "type": "boolean"
+    },
+    "processing_interval_minutes": {
+      "type": "number"
+    },
+    "has_throttles": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "kinesis.extract",
+    "savings": "kinesis.savings",
+    "remediation": "kinesis.remediation"
+  },
   "rule_name": "kinesis_stream_cost_policy",
   "description": "Identifies potentially unnecessary Enhanced Fan-Out, shard overcapacity, retention overuse, and billing mode mismatches while protecting throughput and latency requirements.",
   "version": "1.1.0",
@@ -35,7 +65,24 @@
       "severity": "MEDIUM",
       "action": "REVIEW_EFO",
       "confidence": "MEDIUM",
-      "description": "EFO may be unnecessary for batch or latency-tolerant consumers. Disable only after validating latency SLA, read throughput, consumer isolation, and iterator age in a pilot."
+      "description": "EFO may be unnecessary for batch or latency-tolerant consumers. Disable only after validating latency SLA, read throughput, consumer isolation, and iterator age in a pilot.",
+      "rule_type": "finding",
+      "savings_fraction": 0.4,
+      "predicate": {
+        "all": [
+          {
+            "fact": "enhanced_fan_out",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "processing_interval_minutes",
+            "op": "gte",
+            "threshold": "processing_interval_minutes_batch_min"
+          }
+        ]
+      },
+      "recommendation": "Validate latency SLA and consumer contention, then compare standard polling cost."
     },
     {
       "id": "K2",
@@ -71,7 +118,19 @@
       "severity": "INFO",
       "action": "DO_NOT_DOWNSIZE_REVIEW_PERFORMANCE",
       "confidence": "HIGH",
-      "description": "Throughput or latency risk exists. Do not reduce shards or disable EFO until throttling, iterator age, and consumer lag are resolved."
+      "description": "Throughput or latency risk exists. Do not reduce shards or disable EFO until throttling, iterator age, and consumer lag are resolved.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "K1",
+        "K2"
+      ],
+      "predicate": {
+        "fact": "has_throttles",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Resolve throttling and reduce iterator age before attempting stream mode or EFO changes."
     }
   ],
   "efo_justification_criteria": {

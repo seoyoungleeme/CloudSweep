@@ -14,9 +14,10 @@ LangGraph Python analyzers own detection, thresholds, savings arithmetic, and
 Terraform remediation candidates. Claude is the reviewer only.
 
 **Complex domains** (rds, elb, ecs, elasticache):
-Claude domain skills own detection and initial savings estimates.
-LangGraph assigns `finding_id`, `savings_group`, and `evidence_facts`.
-Claude must not re-run rule arithmetic after LangGraph has enriched the findings.
+LangGraph owns deterministic candidate detection, thresholds, savings arithmetic,
+and Terraform candidates. Claude domain skills own contextual disposition:
+`accepted`, `rejected`, or `needs_evidence`. Claude must not add candidates or
+change LangGraph arithmetic.
 
 ## Inputs
 
@@ -30,8 +31,17 @@ All generated artifacts belong under `<WORK_DIR>/result/`.
 
 1. Inventory evidence under `WORK_DIR` and detect which domains are present.
 
-2. **For each complex domain detected** (rds, elb, ecs, elasticache),
-   run the corresponding Claude skill first so it writes its analysis file:
+   When evidence comes from MiniStack, collect it before domain analysis:
+
+```text
+python -m cloudsweep <WORK_DIR> --from-ministack --collect-only
+```
+
+2. Run LangGraph once. For each complex domain it writes
+   `result/{domain}_skill_request.json` containing deterministic candidates.
+
+3. **For each complex domain request** (rds, elb, ecs, elasticache), run the
+   corresponding Claude skill so it writes contextual decisions:
 
    | Domain | Skill | Output file |
    |--------|-------|-------------|
@@ -42,7 +52,7 @@ All generated artifacts belong under `<WORK_DIR>/result/`.
 
    Simple and GenAI domains do not need a pre-run step.
 
-3. Run the LangGraph machine analysis:
+4. Rerun the LangGraph machine analysis:
 
 ```text
 python -m cloudsweep <WORK_DIR>
@@ -50,27 +60,30 @@ python -m cloudsweep <WORK_DIR>
 
    LangGraph loads any `result/{domain}_skill_analysis.json` files it finds and
    enriches them with `finding_id`, `savings_group`, and `evidence_facts`.
-   For domains without a skill output file it uses the Python fallback analyzer.
+   If a complex-domain decision output is missing, LangGraph emits only
+   `needs_skill_review` candidates and `result/{domain}_skill_request.json`.
+   Those candidates must have zero savings and no Terraform patch. Run the
+   missing domain Skill and rerun LangGraph; never treat the candidates as the
+   final complex-domain analysis.
 
-4. Read `result/cloudsweep_graph_state.json`. Treat an `unsupported` status in
+5. Read `result/cloudsweep_graph_state.json`. Treat an `unsupported` status in
    `analyzer_coverage` as an error. Do not replace a missing analyzer with
    Claude arithmetic.
 
-5. Review every finding using its `finding_id` and `evidence_facts`.
-   For complex domain findings (produced by a Claude skill), focus the review
-   on cross-domain patterns and safety constraints — do not re-judge the
-   individual rule conditions Claude already evaluated.
+6. Review every finding using its `finding_id` and `evidence_facts`.
+   For complex domain findings, preserve the domain Skill disposition and focus
+   this review on cross-domain patterns and final safety constraints.
    Choose exactly one disposition: `accepted`, `rejected`, or `needs_evidence`.
 
-6. Use pricing or documentation MCP only for findings whose machine enrichment
+7. Use pricing or documentation MCP only for findings whose machine enrichment
    is `evidence_only` or `unavailable`. Reuse already verified sources.
 
-7. Write `result/claude_review.json` using
+8. Write `result/claude_review.json` using
    `schemas/claude-review.schema.json`. Claude may add review confidence,
    rationale, documentation links, and fact-backed cross-domain statements. It
    may not add or change `estimated_monthly_saving_usd`.
 
-8. Finalize deterministically:
+9. Finalize deterministically:
 
 ```text
 python -m cloudsweep finalize <WORK_DIR> --review <WORK_DIR>/result/claude_review.json

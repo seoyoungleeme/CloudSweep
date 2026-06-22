@@ -49,35 +49,28 @@ Missing facts → write `Not available in the provided data; verify in the real 
 
 ## Output Contract
 
-Write `result/elasticache_skill_analysis.json` conforming to
-`schemas/skill-analysis.schema.json` before running LangGraph.
-
-LangGraph reads this file and assigns `finding_id`, `savings_group`, and
-`evidence_facts`. Do not include those fields in the skill output.
+Read `result/elasticache_skill_request.json`, decide each deterministic
+candidate, and write `result/elasticache_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json`. Do not calculate savings or write
+Terraform; LangGraph owns those values.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "elasticache",
   "skill_version": "2.0",
-  "findings": [
+  "decisions": [
     {
       "rule_id": "ELASTICACHE_EC1_REDUCE_REPLICAS",
       "resource": "<tf_resource_name>",
-      "severity": "HIGH",
+      "disposition": "accepted",
       "confidence": "MEDIUM",
-      "estimated_monthly_saving_usd": 0.0,
-      "evidence": ["num_cache_clusters=4", "replica_connection_p95_pct=18", "evictions=0", "replication_lag_ms_p95=12"],
-      "recommendation": "Reduce to 2 replicas after confirming eviction=0, lag<100ms, and hit rate >95%.",
-      "optimized_replacement": null
+      "rationale": "Replica reduction satisfies the observed HA and performance guardrails.",
+      "evidence": ["num_cache_clusters=4", "replica_connection_p95_pct=18", "evictions=0", "replication_lag_ms_p95=12"]
     }
   ]
 }
 ```
 
-Allowed `rule_id` values: `ELASTICACHE_EC1_REDUCE_REPLICAS`,
-`ELASTICACHE_EC2_DOWNSIZE_NODE`, `ELASTICACHE_EC3_NO_RESERVED_NODE`,
-`ELASTICACHE_EC4_NO_HA`, `ELASTICACHE_EC5_ENGINE_UPGRADE`.
-
-Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable or
-when the rule is informational (EC4).
+Use only `accepted`, `rejected`, or `needs_evidence`, and decide only candidates
+present in the Skill request.

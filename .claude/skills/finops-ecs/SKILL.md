@@ -46,33 +46,28 @@ Missing facts → write `Not available in the provided data; verify in the real 
 
 ## Output Contract
 
-Write `result/ecs_skill_analysis.json` conforming to
-`schemas/skill-analysis.schema.json` before running LangGraph.
-
-LangGraph reads this file and assigns `finding_id`, `savings_group`, and
-`evidence_facts`. Do not include those fields in the skill output.
+Read `result/ecs_skill_request.json`, decide each deterministic candidate, and
+write `result/ecs_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json`. Do not calculate savings or write
+Terraform; LangGraph owns those values.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "ecs",
   "skill_version": "2.0",
-  "findings": [
+  "decisions": [
     {
       "rule_id": "ECS_E1_FARGATE_RIGHTSIZE",
       "resource": "<tf_resource_name>",
-      "severity": "HIGH",
+      "disposition": "accepted",
       "confidence": "MEDIUM",
-      "estimated_monthly_saving_usd": 0.0,
-      "evidence": ["cpu_avg_pct=12", "cpu_p95_pct=38", "errors=0", "desired_count=3"],
-      "recommendation": "Reduce Fargate CPU/memory to next valid shape; canary and monitor p95 latency and errors.",
-      "optimized_replacement": null
+      "rationale": "Low sustained CPU has no observed latency, error, or throttling blocker.",
+      "evidence": ["cpu_avg_pct=12", "cpu_p95_pct=38", "errors=0", "desired_count=3"]
     }
   ]
 }
 ```
 
-Allowed `rule_id` values: `ECS_E1_FARGATE_RIGHTSIZE`, `ECS_E2_EC2_UNDERUTILIZED`,
-`ECS_E3_MISSING_AUTOSCALING`, `ECS_E4_MISSING_SCHEDULED_SCALING`.
-
-Set `estimated_monthly_saving_usd` to `0.0` when cost data is unavailable.
+Use only `accepted`, `rejected`, or `needs_evidence`, and decide only candidates
+present in the Skill request.

@@ -1,7 +1,37 @@
 {
-  "schema_version": "2.0", "rule_id": "ELB_USAGE_POLICY", "domain": "elb",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "elb.extract", "savings": "elb.savings", "remediation": "elb.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "ELB_USAGE_POLICY",
+  "domain": "elb",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "request_count_sum": {
+      "type": "number"
+    },
+    "active_connection_count_max": {
+      "type": "number"
+    },
+    "is_dr_or_protected": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "elb.extract",
+    "savings": "elb.savings",
+    "remediation": "elb.remediation"
+  },
   "rule_name": "elb_idle_load_balancer_policy",
   "description": "Identifies idle or potentially unused load balancers while requiring traffic, DNS, listener, target, and owner validation before deletion.",
   "version": "1.1.0",
@@ -35,7 +65,25 @@
       "severity": "HIGH",
       "action": "REVIEW_DELETE",
       "confidence": "HIGH",
-      "description": "Load balancer appears idle for the full observation window and dependency checks are clear. Delete only after owner approval and controlled traffic drain."
+      "description": "Load balancer appears idle for the full observation window and dependency checks are clear. Delete only after owner approval and controlled traffic drain.",
+      "rule_type": "finding",
+      "savings_fraction": 1.0,
+      "predicate": {
+        "all": [
+          {
+            "fact": "request_count_sum",
+            "op": "eq",
+            "value": 0
+          },
+          {
+            "not": {
+              "fact": "is_dr_or_protected",
+              "op": "eq",
+              "value": true
+            }
+          }
+        ]
+      }
     },
     {
       "id": "LB2",
@@ -71,7 +119,20 @@
       "severity": "INFO",
       "action": "DO_NOT_DELETE_WITHOUT_OWNER",
       "confidence": "HIGH",
-      "description": "A deletion blocker or special role is present. Do not remove without owner and architecture approval."
+      "description": "A deletion blocker or special role is present. Do not remove without owner and architecture approval.",
+      "rule_type": "blocker",
+      "missing_evidence_policy": "assume_triggered",
+      "blocked_by": [
+        "LB1",
+        "LB2",
+        "LB3"
+      ],
+      "predicate": {
+        "fact": "is_dr_or_protected",
+        "op": "eq",
+        "value": true
+      },
+      "recommendation": "Deletion protection or DR role is active — validate before removing."
     }
   ],
   "policy_controls": {

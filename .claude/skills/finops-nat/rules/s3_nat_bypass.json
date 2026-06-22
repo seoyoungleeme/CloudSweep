@@ -1,7 +1,37 @@
 {
-  "schema_version": "2.0", "rule_id": "NAT_ENDPOINT_POLICY", "domain": "nat",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "nat.extract", "savings": "nat.savings", "remediation": "nat.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "NAT_ENDPOINT_POLICY",
+  "domain": "nat",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "has_s3_endpoint": {
+      "type": "boolean"
+    },
+    "has_dynamodb_endpoint": {
+      "type": "boolean"
+    },
+    "nat_gateway_present": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "nat.extract",
+    "savings": "nat.savings",
+    "remediation": "nat.remediation"
+  },
   "rule_name": "nat_gateway_endpoint_bypass_policy",
   "description": "Identifies avoidable NAT Gateway data processing and cross-AZ routing cost by routing supported AWS service traffic through gateway or interface VPC endpoints when cost-effective and safe.",
   "version": "1.1.0",
@@ -33,7 +63,26 @@
       "severity": "HIGH",
       "action": "ADD_S3_GATEWAY_ENDPOINT",
       "confidence": "HIGH",
-      "description": "Same-region S3 traffic is using NAT data processing. Add or fix an S3 Gateway VPC Endpoint and associate the private route tables."
+      "description": "Same-region S3 traffic is using NAT data processing. Add or fix an S3 Gateway VPC Endpoint and associate the private route tables.",
+      "rule_type": "finding",
+      "savings_fraction": 0.5,
+      "predicate": {
+        "all": [
+          {
+            "fact": "nat_gateway_present",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "not": {
+              "fact": "has_s3_endpoint",
+              "op": "eq",
+              "value": true
+            }
+          }
+        ]
+      },
+      "recommendation": "Confirm same-region S3 traffic and route tables, then add an S3 Gateway Endpoint."
     },
     {
       "id": "N2",

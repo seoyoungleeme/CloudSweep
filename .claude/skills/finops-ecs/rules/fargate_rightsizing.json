@@ -1,7 +1,46 @@
 {
-  "schema_version": "2.0", "rule_id": "ECS_FARGATE_POLICY", "domain": "ecs",
-  "facts": {"analyzable": {"type": "boolean", "required": true}}, "predicate": {"fact": "analyzable", "op": "eq", "value": true},
-  "outcome": {"severity": "INFO", "action": "ANALYZE", "confidence": "HIGH"}, "handlers": {"extractor": "ecs.extract", "savings": "ecs.savings", "remediation": "ecs.remediation"},
+  "schema_version": "2.0",
+  "rule_id": "ECS_FARGATE_POLICY",
+  "domain": "ecs",
+  "facts": {
+    "analyzable": {
+      "type": "boolean",
+      "required": true
+    },
+    "launch_type": {
+      "type": "string"
+    },
+    "cpu_avg_pct": {
+      "type": "number"
+    },
+    "cpu_p95_pct": {
+      "type": "number"
+    },
+    "has_errors": {
+      "type": "boolean"
+    },
+    "has_throttles": {
+      "type": "boolean"
+    },
+    "is_problem": {
+      "type": "boolean"
+    }
+  },
+  "predicate": {
+    "fact": "analyzable",
+    "op": "eq",
+    "value": true
+  },
+  "outcome": {
+    "severity": "INFO",
+    "action": "ANALYZE",
+    "confidence": "HIGH"
+  },
+  "handlers": {
+    "extractor": "ecs.extract",
+    "savings": "ecs.savings",
+    "remediation": "ecs.remediation"
+  },
   "rule_name": "fargate_rightsizing_policy",
   "description": "Identifies ECS Fargate services with over-provisioned task CPU or memory, missing Auto Scaling, or stale platform versions that result in unnecessary compute cost.",
   "version": "1.0.0",
@@ -27,13 +66,48 @@
     "note": "Fargate charges are per vCPU-hour and per GB-hour for the provisioned task size, regardless of actual utilization. Right-sizing directly reduces the provisioned cost."
   },
   "valid_fargate_configurations": [
-    { "cpu_units": 256,   "vcpu": 0.25, "min_memory_gb": 0.5, "max_memory_gb": 2   },
-    { "cpu_units": 512,   "vcpu": 0.5,  "min_memory_gb": 1,   "max_memory_gb": 4   },
-    { "cpu_units": 1024,  "vcpu": 1,    "min_memory_gb": 2,   "max_memory_gb": 8   },
-    { "cpu_units": 2048,  "vcpu": 2,    "min_memory_gb": 4,   "max_memory_gb": 16  },
-    { "cpu_units": 4096,  "vcpu": 4,    "min_memory_gb": 8,   "max_memory_gb": 30  },
-    { "cpu_units": 8192,  "vcpu": 8,    "min_memory_gb": 16,  "max_memory_gb": 60  },
-    { "cpu_units": 16384, "vcpu": 16,   "min_memory_gb": 32,  "max_memory_gb": 120 }
+    {
+      "cpu_units": 256,
+      "vcpu": 0.25,
+      "min_memory_gb": 0.5,
+      "max_memory_gb": 2
+    },
+    {
+      "cpu_units": 512,
+      "vcpu": 0.5,
+      "min_memory_gb": 1,
+      "max_memory_gb": 4
+    },
+    {
+      "cpu_units": 1024,
+      "vcpu": 1,
+      "min_memory_gb": 2,
+      "max_memory_gb": 8
+    },
+    {
+      "cpu_units": 2048,
+      "vcpu": 2,
+      "min_memory_gb": 4,
+      "max_memory_gb": 16
+    },
+    {
+      "cpu_units": 4096,
+      "vcpu": 4,
+      "min_memory_gb": 8,
+      "max_memory_gb": 30
+    },
+    {
+      "cpu_units": 8192,
+      "vcpu": 8,
+      "min_memory_gb": 16,
+      "max_memory_gb": 60
+    },
+    {
+      "cpu_units": 16384,
+      "vcpu": 16,
+      "min_memory_gb": 32,
+      "max_memory_gb": 120
+    }
   ],
   "severity_rules": [
     {
@@ -44,7 +118,55 @@
       "action": "RIGHTSIZE_CPU",
       "confidence": "HIGH",
       "sizing_formula": "ceil(cpu_p95_actual_units * 1.3) rounded up to next valid Fargate cpu_units value",
-      "description": "Task CPU is chronically under-utilized. Fargate bills for provisioned vCPU regardless of actual use. Right-sizing to the next valid CPU tier that covers p95 × 1.3 eliminates the over-provisioned portion."
+      "description": "Task CPU is chronically under-utilized. Fargate bills for provisioned vCPU regardless of actual use. Right-sizing to the next valid CPU tier that covers p95 × 1.3 eliminates the over-provisioned portion.",
+      "rule_type": "finding",
+      "savings_fraction": 0.4,
+      "predicate": {
+        "all": [
+          {
+            "fact": "launch_type",
+            "op": "eq",
+            "value": "FARGATE"
+          },
+          {
+            "any": [
+              {
+                "fact": "is_problem",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "all": [
+                  {
+                    "fact": "cpu_avg_pct",
+                    "op": "exists"
+                  },
+                  {
+                    "fact": "cpu_avg_pct",
+                    "op": "lt",
+                    "threshold": "cpu_high_severity_avg_pct"
+                  },
+                  {
+                    "not": {
+                      "fact": "has_errors",
+                      "op": "eq",
+                      "value": true
+                    }
+                  },
+                  {
+                    "not": {
+                      "fact": "has_throttles",
+                      "op": "eq",
+                      "value": true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "recommendation": "Select a smaller Fargate CPU/memory shape and canary while monitoring p95/p99 latency."
     },
     {
       "id": "E2",
