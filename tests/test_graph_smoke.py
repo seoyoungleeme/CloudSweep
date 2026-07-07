@@ -73,7 +73,7 @@ resource "aws_instance" "trainer" {
         for finding in state["findings"]:
             if finding["rule_id"] != "SAGEMAKER_SM4_BURSTY_ALWAYS_ON_ENDPOINT":
                 self.assertGreater(finding["estimated_monthly_saving_usd"], 0)
-        self.assertIn("Conservative estimated monthly savings: **$1786.19**", state["report_markdown"])
+        self.assertIn("Estimated monthly savings: **$1786.19**", state["report_markdown"])
 
     def test_invalid_genai_evidence_is_reported_without_stopping_the_graph(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -158,6 +158,76 @@ resource "aws_instance" "trainer" {
 
         self.assertIn("domain_analysis", state["execution_plan"])
         self.assertEqual(["ec2"], state["domains"])
+
+    def test_ai_review_and_report_polish_are_single_report_inputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work_dir = Path(tmp)
+            (work_dir / "main.tf").write_text(
+                '''
+resource "aws_lambda_function" "worker" {
+  function_name = "worker"
+  role          = "arn:aws:iam::000000000000:role/lambda-role"
+  handler       = "handler.handler"
+  runtime       = "python3.12"
+  memory_size   = 1024
+}
+''',
+                encoding="utf-8",
+            )
+            (work_dir / "metrics.json").write_text(
+                json.dumps(
+                    {
+                        "resources": {
+                            "worker": {
+                                "service": "lambda",
+                                "resource_type": "aws_lambda_function",
+                                "metrics": {"memory_used_mb": {"datapoints": [128, 128]}},
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            pending = run_graph(work_dir, write=True, standard_output=True)
+            self.assertIn("ai_review_request", pending["output_paths"])
+            self.assertTrue((work_dir / "result" / ".machine" / "ai_review_request.json").exists())
+            self.assertIn("AI Review Required", pending["report_markdown"])
+            self.assertFalse((work_dir / "result" / "cloudsweep_graph_report.md").exists())
+
+            (work_dir / "result" / ".machine" / "ai_review.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0",
+                        "run_id": pending["run_id"],
+                        "summary": "AI review found no blocker.",
+                        "review_notes": ["Keep Lambda recommendation advisory until load testing."],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            polish_pending = run_graph(work_dir, write=True, standard_output=True)
+            self.assertIn("report_polish_request", polish_pending["output_paths"])
+            self.assertIn("ai review: loaded", polish_pending["trace"])
+
+            (work_dir / "result" / ".machine" / "report_polish.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0",
+                        "run_id": pending["run_id"],
+                        "executive_summary": "One Lambda rightsizing candidate was identified.",
+                        "key_points": ["The final output remains a single finops_report.md."],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            complete = run_graph(work_dir, write=True, standard_output=True)
+
+        self.assertNotIn("ai_review_request", complete["output_paths"])
+        self.assertNotIn("report_polish_request", complete["output_paths"])
+        self.assertIn("One Lambda rightsizing candidate was identified.", complete["report_markdown"])
+        self.assertIn("AI review found no blocker.", complete["report_markdown"])
+        self.assertIn("Report: ", f"Report: {complete['output_paths']['report']}")
 
 
 if __name__ == "__main__":

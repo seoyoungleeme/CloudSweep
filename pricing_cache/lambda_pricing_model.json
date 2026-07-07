@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "domain": "lambda",
+  "pricing_source": "aws_public_pricing_model",
+  "generated_at": "2026-07-06T17:49:17+09:00",
+  "unit_prices": [
+    {
+      "sku_key": "us-east-1|x86_64",
+      "unit": "Lambda-GB-Second",
+      "price_usd": 0.0000166667,
+      "aws_pricing_sku": "TG3M4CAGBA3NYQBH"
+    }
+  ]
+}

@@ -6,6 +6,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .token_usage import (
+    clear_start_marker,
+    compute_usage,
+    render_markdown as _render_token_usage,
+    write_usage_snapshot,
+)
+
 
 class ReviewValidationError(ValueError):
     pass
@@ -51,10 +58,23 @@ def validate_review(state: dict[str, Any], review: dict[str, Any]) -> None:
             raise ReviewValidationError(f"cross-domain review references unknown facts: {sorted(unknown_facts)}")
 
 
-def _conservative_total(findings: list[dict[str, Any]]) -> float:
+def _finding_savings_status(finding: dict[str, Any]) -> str:
+    status = finding.get("savings_status")
+    if isinstance(status, str) and status:
+        return status
+    if finding.get("pricing_source") == "unmeasured":
+        return "unmeasured"
+    if finding.get("pricing_source") == "reasonable_estimate":
+        return "reasonable_estimate"
+    return "priced"
+
+
+def _conservative_total(findings: list[dict[str, Any]], statuses: set[str] | None = None) -> float:
     groups: dict[str, float] = {}
     total = 0.0
     for finding in findings:
+        if statuses is not None and _finding_savings_status(finding) not in statuses:
+            continue
         value = float(finding.get("estimated_monthly_saving_usd", 0) or 0)
         group = finding.get("savings_group")
         if group:
@@ -94,19 +114,26 @@ def _apply_patches(work_dir: Path, accepted: list[dict[str, Any]]) -> str:
 def finalize(work_dir: str | Path, review_path: str | Path) -> dict[str, str]:
     work_dir = Path(work_dir).resolve()
     result_dir = work_dir / "result"
-    state = load_json(result_dir / "cloudsweep_graph_state.json")
+    state = load_json(result_dir / ".machine" / "cloudsweep_graph_state.json")
     review = load_json(review_path)
     validate_review(state, review)
     review_by_id = {row["finding_id"]: row for row in review["finding_reviews"]}
     accepted = [finding for finding in state.get("findings", []) if review_by_id[finding["finding_id"]]["disposition"] == "accepted"]
-    total = _conservative_total(accepted)
+    total = _conservative_total(accepted, {"priced"})
+    reasonable_total = _conservative_total(accepted, {"reasonable_estimate"})
+    token_usage = compute_usage(result_dir, run_id=state.get("run_id"))
     lines = [
-        "# FinOps Analysis Report",
+        "# Legacy FinOps Review Report",
+        "",
+        "_Legacy finalize output is isolated under result/.machine and does not overwrite the single CloudSweep finops_report.md._",
         "",
         f"- **Scenario**: {work_dir.name}",
         f"- **Run ID**: {state.get('run_id')}",
         f"- **Domains analyzed**: {', '.join(state.get('domains', [])) or 'none'}",
-        f"- **Conservative accepted monthly savings**: ${total:.2f}",
+        f"- **Accepted monthly savings**: ${total:.2f}",
+        f"- **Accepted reasonable estimate upside**: ${reasonable_total:.2f}",
+        "",
+        *_render_token_usage(token_usage),
         "",
         "## Executive Summary",
         "",
@@ -114,14 +141,16 @@ def finalize(work_dir: str | Path, review_path: str | Path) -> dict[str, str]:
         "",
         "## Reviewed Findings",
         "",
-        "| Domain | Resource | Rule | Disposition | Confidence | Monthly Savings |",
-        "|--------|----------|------|-------------|------------|-----------------|",
+        "| Domain | Resource | Rule | Disposition | Confidence | Savings Status | Pricing Source | Monthly Savings |",
+        "|--------|----------|------|-------------|------------|----------------|-----------------|-----------------|",
     ]
     for finding in state.get("findings", []):
         row = review_by_id[finding["finding_id"]]
         lines.append(
             f"| {finding.get('domain')} | {finding.get('resource')} | {finding.get('rule_id')} | "
             f"{row['disposition']} | {row.get('review_confidence', finding.get('confidence'))} | "
+            f"{_finding_savings_status(finding)} | "
+            f"{finding.get('pricing_source', 'n/a')} | "
             f"${float(finding.get('estimated_monthly_saving_usd', 0) or 0):.2f} |"
         )
         lines.append(f"\n- **{finding['finding_id']} review**: {row.get('rationale', '')}")
@@ -130,8 +159,12 @@ def finalize(work_dir: str | Path, review_path: str | Path) -> dict[str, str]:
     lines.extend(["", "## Cross-Domain Review", ""])
     for item in review.get("cross_domain_review", []):
         lines.append(f"- [{item['status']}] {item['statement']} (facts: {', '.join(item.get('fact_ids', [])) or 'none'})")
-    report_path = result_dir / "finops_report.md"
-    tf_path = result_dir / "main_optimized.tf"
+    machine_dir = result_dir / ".machine"
+    machine_dir.mkdir(parents=True, exist_ok=True)
+    report_path = machine_dir / "legacy_finops_report.md"
+    tf_path = machine_dir / "legacy_main_optimized.tf"
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     tf_path.write_text(_apply_patches(work_dir, accepted), encoding="utf-8")
+    write_usage_snapshot(result_dir, token_usage, run_id=state.get("run_id"))
+    clear_start_marker(result_dir)
     return {"report": str(report_path), "optimized_tf": str(tf_path)}

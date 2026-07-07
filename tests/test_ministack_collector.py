@@ -200,19 +200,25 @@ class MiniStackCollectorTests(unittest.TestCase):
 
             state = run_graph(work_dir, write=True)
             request = json.loads(
-                (work_dir / "result" / "rds_skill_request.json").read_text(encoding="utf-8")
+                (work_dir / "result" / ".machine" / "rds_skill_request.json").read_text(encoding="utf-8")
             )
 
-        rules = {finding["rule_id"] for finding in state["findings"]}
-        self.assertIn("RDS_R1_NONPROD_MULTI_AZ", rules)
-        self.assertIn("RDS_R2_LOW_UTILIZATION", rules)
-        self.assertTrue(all(finding["review_status"] == "needs_skill_review" for finding in state["findings"]))
-        self.assertTrue(all(finding["analysis_source"] == "langgraph_candidate" for finding in state["findings"]))
-        self.assertTrue(all(finding["estimated_monthly_saving_usd"] == 0.0 for finding in state["findings"]))
-        self.assertTrue(all("remediation_patch" not in finding for finding in state["findings"]))
-        self.assertEqual("needs_skill_review", request["status"])
-        self.assertEqual(2, len(request["candidates"]))
-        self.assertTrue(any("requires result/rds_skill_analysis.json" in warning for warning in state["warnings"]))
+        self.assertEqual([], state["findings"])
+        self.assertIn("rds", state["skill_requests"])
+        self.assertEqual("needs_skill_analysis", request["status"])
+        self.assertNotIn("candidates", request)
+        bundle = request["evidence_bundle"]
+        self.assertEqual(["cost_report.json"], bundle["missing_evidence"])
+        resources = bundle["terraform"]["resources"]
+        self.assertEqual(1, len(resources))
+        self.assertEqual("analytics", resources[0]["name"])
+        self.assertEqual("db.r5.xlarge", resources[0]["attributes"]["instance_class"])
+        self.assertTrue(resources[0]["attributes"]["multi_az"])
+        metrics = bundle["metrics"]["resources"]["analytics"]["metrics"]["cpuutilization"]
+        self.assertEqual("Percent", metrics["unit"])
+        self.assertEqual(4, metrics["datapoint_count"])
+        self.assertEqual(12.0, metrics["avg"])
+        self.assertTrue(any("requires Skill analysis output" in warning for warning in state["warnings"]))
 
 
 if __name__ == "__main__":

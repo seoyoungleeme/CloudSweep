@@ -1,0 +1,15 @@
+{
+  "measured": true,
+  "model": "claude-sonnet-5",
+  "run_id": "cs-ba9a17d0ec14",
+  "window_id": "lab01-restored-completion-window",
+  "start_time": "2026-07-07T05:00:00+00:00",
+  "input_tokens": 4,
+  "output_tokens": 688,
+  "cache_creation_input_tokens": 2064,
+  "cache_read_input_tokens": 1659208,
+  "message_count": 0,
+  "total_tokens": 1661964,
+  "estimated_cost_usd": 0.5158,
+  "snapshot_saved_at": "2026-07-07T06:04:19.641566+00:00"
+}

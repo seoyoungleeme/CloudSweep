@@ -23,7 +23,7 @@ performance, backup/restore, compliance, and maintenance requirements.
 | `metrics.json` | CPU avg/p95/max, connections, freeable memory, IOPS, throughput, latency, storage, queue depth | Mark metrics unavailable |
 | `cost_report.json` | Monthly RDS cost, pricing notes, RI coverage, Extended Support, storage, IOPS, backup, transfer cost | Mark cost unavailable |
 
-Missing facts → write `Not available in the provided data; verify in the real environment.`
+Missing facts: write `Not available in the provided data; verify in the real environment.`
 
 ## Detection Rules
 
@@ -46,33 +46,81 @@ Missing facts → write `Not available in the provided data; verify in the real 
 - R5 requires IOPS and throughput validation before accepting a migration.
 - R6 requires DR, reporting, and read-routing dependency validation.
 
+## Modeled Savings And Pricing Source
+
+Do not set savings to `$0` only because `cost_report.json` is missing. Use this
+pricing waterfall and include `pricing_source` on every finding:
+
+1. Prefer RDS line items from `cost_report.json` when they clearly map to the
+   resource and recommendation. Set `pricing_source` to `cost_report`.
+2. If an AWS public pricing tool such as `mcp__aws-pricing__get_pricing` is
+   available, use `evidence_bundle.pricing.pricing_model` for region, engine,
+   instance class, deployment type, and on-demand hourly prices. Set
+   `pricing_source` to `aws_public_pricing_model` and cap confidence at `MEDIUM`
+   unless cost allocation also confirms the resource.
+3. If public pricing is unavailable but the rule cost block has a matching
+   static price, use it as a modeled estimate with `pricing_source` set to
+   `static_fallback_estimate` and `pricing_confidence=LOW`.
+4. If quantity and price are available but safety guardrails are incomplete,
+   use `savings_status=reasonable_estimate`, keep confidence LOW, and state
+   the missing guardrails in `savings_reason`.
+5. Use `$0`, `pricing_source=unmeasured`, and `LOW` confidence only when the
+   quantity or price cannot be determined from the evidence bundle and rules.
+
+For R1 non-production Multi-AZ review, estimate the monthly compute savings for
+moving to Single-AZ as:
+
+`(multi_az_hourly_usd - single_az_hourly_usd) * hours_per_month`
+
+Use `engine`, `instance_class`, `multi_az`, and `region` from Terraform evidence
+plus `hours_per_month` from the rule cost block. Safety guardrails that are not
+resolved should lower confidence and require validation in the recommendation;
+they should not erase a calculable modeled estimate.
+
 ## Output Contract
 
-Read `result/rds_skill_request.json` after the first LangGraph pass. Decide
-each candidate using SLA, DR, compliance, peak-performance, memory, I/O, and
-dependency context. Write `result/rds_skill_analysis.json` conforming to
+Read `result/.machine/rds_skill_request.json` after the first LangGraph pass. Use the
+structured evidence bundle (`terraform`, `metrics`, `cost`, `pricing`, and
+`resource_records`) to produce authoritative findings for this domain. If
+`evidence_bundle.pricing.unresolved_skus` is non-empty, prefer filling
+`pricing_cache/rds_pricing_model.json` via AWS public pricing before final Skill
+analysis; otherwise use static fallback only as tier 3. Write
+`result/.machine/rds_skill_analysis.json` conforming to
 `schemas/skill-analysis.schema.json`, then rerun LangGraph.
 
-Do not calculate savings, change severity, or write Terraform. LangGraph owns
-those deterministic values and applies them only to `accepted` candidates.
+Do not write Terraform patches; LangGraph will only normalize, validate,
+aggregate, and report the Skill findings.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "rds",
   "skill_version": "2.0",
-  "decisions": [
+  "findings": [
     {
       "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
       "resource": "<tf_resource_name>",
-      "disposition": "needs_evidence",
-      "confidence": "MEDIUM",
-      "rationale": "Environment is non-production, but no SLA/DR requirement was provided.",
-      "evidence": ["multi_az=true", "environment=dev", "sla_requirement=not_available"]
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 365.0,
+      "pricing_source": "static_fallback_estimate",
+      "evidence": [
+        "multi_az=true",
+        "environment=dev",
+        "instance_class=db.r5.xlarge",
+        "engine=postgres",
+        "pricing_source=static_fallback_estimate",
+        "multi_az_hourly_usd=1.0",
+        "single_az_hourly_usd=0.5",
+        "hours_per_month=730",
+        "sla_requirement=not_available"
+      ],
+      "recommendation": "Needs evidence: confirm SLA/DR/compliance requirements before changing Multi-AZ."
     }
   ]
 }
 ```
 
-Use `needs_evidence` whenever a safety guardrail cannot be resolved. Never add
-a decision for a rule/resource pair absent from the Skill request.
+Use `$0`, `pricing_source=unmeasured`, and `LOW` confidence only when price or
+quantity cannot be determined. Unresolved safety guardrails should be visible in
+the evidence and recommendation.

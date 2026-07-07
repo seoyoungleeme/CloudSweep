@@ -173,7 +173,7 @@ resource "aws_lambda_function" "waste_email_sender_89f0878f" {
   role          = "arn:aws:iam::000000000000:role/lambda-execution-role"
   handler       = "handler.handler"
   runtime       = "python3.12"
-  memory_size = 2048
+  memory_size = 1024
   timeout     = 120
   tags = {
     Environment = "production"
@@ -186,7 +186,7 @@ resource "aws_lambda_function" "waste_health_checker_ed3ddab0" {
   role          = "arn:aws:iam::000000000000:role/lambda-execution-role"
   handler       = "handler.handler"
   runtime       = "python3.12"
-  memory_size = 2048
+  memory_size = 1024
   timeout     = 300
   tags = {
     Environment = "production"
@@ -212,7 +212,7 @@ resource "aws_lambda_function" "waste_notification_push_67b6b765" {
   role          = "arn:aws:iam::000000000000:role/lambda-execution-role"
   handler       = "handler.handler"
   runtime       = "python3.12"
-  memory_size = 1536
+  memory_size = 1024
   timeout     = 60
   tags = {
     Environment = "production"
@@ -332,6 +332,75 @@ resource "aws_cloudwatch_log_group" "aws_rds_dev_analytics_db_55513166" {
 }
 
 # CloudSweep generated lifecycle guardrails
+resource "aws_s3_bucket_lifecycle_configuration" "deprecated_frontend_assets_2eccac5f_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.deprecated_frontend_assets_2eccac5f.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "dev_scratch_jan2024_baedda61_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.dev_scratch_jan2024_baedda61.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "old_migration_dump_v2_92e45c70_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.old_migration_dump_v2_92e45c70.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "poc_analytics_raw_c8fe879d_cloudsweep_lifecycle" {
   bucket = aws_s3_bucket.poc_analytics_raw_c8fe879d.id
 
@@ -355,8 +424,77 @@ resource "aws_s3_bucket_lifecycle_configuration" "poc_analytics_raw_c8fe879d_clo
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "staging_logs_backup_713531e3_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.staging_logs_backup_713531e3.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "temp_data_export_2024q1_8c684d70_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.temp_data_export_2024q1_8c684d70.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "test_results_archive_0218008b_cloudsweep_lifecycle" {
   bucket = aws_s3_bucket.test_results_archive_0218008b.id
+
+  rule {
+    id     = "cloudsweep-standard-ia-then-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "unused_ml_training_data_d8cafa08_cloudsweep_lifecycle" {
+  bucket = aws_s3_bucket.unused_ml_training_data_d8cafa08.id
 
   rule {
     id     = "cloudsweep-standard-ia-then-glacier"

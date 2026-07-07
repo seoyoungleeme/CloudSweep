@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "run_id": "cs-ba9a17d0ec14",
+  "executive_summary": "lab01 has $696.05/mo in evidence-backed savings and a further $569.40/mo of reasonable-estimate upside pending safety review, across 30 findings in s3, lambda, rds, and cloudwatch. The confirmed savings come from five Lambda memory rightsizing candidates and three RDS Multi-AZ removals on non-production instances, all priced from AWS public on-demand rates. No cost_report.json was available for this scenario, so pricing relies on the public-pricing waterfall and static fallback estimates rather than billed line items.",
+  "key_points": [
+    "Lambda: 5 functions over-allocated relative to observed p99 memory usage; rightsizing saves $23.72/mo, priced from AWS Lambda's public GB-second rate.",
+    "RDS: 3 non-production instances (dev_analytics_db, dev_reporting_db, staging_cache_db) run Multi-AZ without a stated SLA/DR requirement; removing it saves $672.33/mo, priced from AWS public RDS instance-hour rates.",
+    "RDS instance downsizing on those same 3 instances is a separate $569.40/mo reasonable-estimate path -- treat it as an alternative to the Multi-AZ removal above, not an additional stack of savings on the same instance.",
+    "S3: 8 buckets lack a lifecycle policy but bucket size was not observed, so savings remain unmeasured rather than assumed.",
+    "CloudWatch: 6 log groups have no retention policy, but all report zero stored bytes -- confirm this is a metrics gap rather than genuinely empty groups before counting these as cost recovery."
+  ],
+  "caveats": [
+    "No cost_report.json was available; all pricing is modeled from AWS public rates or the domain's static fallback price, not billed cost data.",
+    "RDS R1 (drop Multi-AZ) and R2 (downsize instance) findings on the same 3 instances are alternatives from the same cost baseline -- do not sum them as independent savings.",
+    "S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste."
+  ]
+}

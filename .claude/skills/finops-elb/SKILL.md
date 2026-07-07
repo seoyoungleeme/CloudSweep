@@ -24,7 +24,7 @@ certificate/WAF dependencies.
 | `metrics.json` | RequestCount, ActiveConnectionCount, NewConnectionCount, ProcessedBytes, HealthyHostCount, UnHealthyHostCount | Mark metrics unavailable |
 | `cost_report.json` | Monthly ELB/ALB cost per resource | Mark cost unavailable |
 
-Missing facts → write `Not available in the provided data; verify in the real environment.`
+Missing facts: write `Not available in the provided data; verify in the real environment.`
 
 ## Detection Rules
 
@@ -39,39 +39,84 @@ Missing facts → write `Not available in the provided data; verify in the real 
 ## Safety Guardrails
 
 - Do not flag for deletion when DNS records (Route 53 or external) point to
-  the load balancer — check `aws_route53_record` aliases in the Terraform slice.
+  the load balancer. Check `aws_route53_record` aliases in the Terraform slice.
 - Do not flag when blue-green or canary deployment evidence is present (multiple
   target groups, weighted routing, or `deployment_group` references).
 - Do not flag when the load balancer is a DR standby (tagged `Environment=dr`
   or `Purpose=standby`).
 - Treat incomplete metrics (observation window <7 days) as confidence=LOW.
-- NLB metrics differ from ALB — `ActiveFlowCount` replaces `ActiveConnectionCount`;
+- NLB metrics differ from ALB: `ActiveFlowCount` replaces `ActiveConnectionCount`;
   adjust rule LB1 accordingly.
+
+## Modeled Savings And Pricing Source
+
+Do not set savings to `$0` only because `cost_report.json` is missing. Use this
+pricing waterfall and include `pricing_source` on every finding:
+
+1. Prefer ELB/ALB/NLB line items from `cost_report.json` when they clearly map
+   to the resource and recommendation. Set `pricing_source` to `cost_report`.
+2. If AWS public pricing has been supplied, use
+   `evidence_bundle.pricing.pricing_model` for load balancer-hour and
+   LCU/NLCU/GLCU-hour unit prices. Set `pricing_source` to
+   `aws_public_pricing_model` and cap confidence at `MEDIUM` unless cost
+   allocation also confirms the resource.
+3. If public pricing is unavailable but the rule cost block has a matching
+   static price, use it as a modeled estimate with `pricing_source` set to
+   `static_fallback_estimate` and `pricing_confidence=LOW`.
+4. If quantity and price are available but safety guardrails are incomplete,
+   use `savings_status=reasonable_estimate`, keep confidence LOW, and state
+   the missing guardrails in `savings_reason`.
+5. Use `$0`, `pricing_source=unmeasured`, and `LOW` confidence only when the
+   quantity or price cannot be determined from the evidence bundle and rules.
+
+For idle load balancer deletion review, model fixed monthly savings as
+`load_balancer_hourly_usd * hours_per_month`. Add observed LCU/NLCU/GLCU
+savings only when usage quantity is present. Safety guardrails that are not
+resolved should lower confidence and require validation; they should not erase
+a calculable modeled estimate.
 
 ## Output Contract
 
-Read `result/elb_skill_request.json`, decide each deterministic candidate, and
-write `result/elb_skill_analysis.json` conforming to
-`schemas/skill-analysis.schema.json`. Do not calculate savings or write
-Terraform; LangGraph owns those values.
+Read `result/.machine/elb_skill_request.json` after the first LangGraph pass. Use the
+structured evidence bundle (`terraform`, `metrics`, `cost`, `pricing`, and
+`resource_records`) to produce authoritative findings for this domain. If
+`evidence_bundle.pricing.unresolved_skus` is non-empty, prefer filling
+`pricing_cache/elb_pricing_model.json` via AWS public pricing before final Skill
+analysis; otherwise use static fallback only as tier 3. Write
+`result/.machine/elb_skill_analysis.json` conforming to
+`schemas/skill-analysis.schema.json`, then rerun LangGraph.
+
+Do not write Terraform patches; LangGraph will only normalize, validate,
+aggregate, and report the Skill findings.
 
 ```json
 {
   "schema_version": "1.0",
   "domain": "elb",
   "skill_version": "2.0",
-  "decisions": [
+  "findings": [
     {
       "rule_id": "ELB_LB1_UNUSED",
       "resource": "<tf_resource_name>",
-      "disposition": "accepted",
-      "confidence": "HIGH",
-      "rationale": "No traffic or DNS, certificate, WAF, or DR dependency was found.",
-      "evidence": ["request_count_sum=0", "active_connection_count_max=0", "no Route53 alias found"]
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "estimated_monthly_saving_usd": 16.43,
+      "pricing_source": "static_fallback_estimate",
+      "evidence": [
+        "request_count_sum=0",
+        "active_connection_count_max=0",
+        "load_balancer_type=application",
+        "pricing_source=static_fallback_estimate",
+        "load_balancer_hourly_usd=0.0225",
+        "hours_per_month=730",
+        "no Route53 alias found"
+      ],
+      "recommendation": "Needs evidence: confirm DNS, certificate, WAF, and DR dependencies before deleting the load balancer."
     }
   ]
 }
 ```
 
-Use only `accepted`, `rejected`, or `needs_evidence`, and decide only candidates
-present in the Skill request.
+Use `$0`, `pricing_source=unmeasured`, and `LOW` confidence only when price or
+quantity cannot be determined. Unresolved safety guardrails should be visible in
+the evidence and recommendation.
