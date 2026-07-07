@@ -492,6 +492,145 @@ resource "aws_s3_bucket" "orphan_dump" {
         pricing = state["skill_requests"]["rds"]["evidence_bundle"]["pricing"]
         self.assertTrue(pricing["pricing_model"]["unit_prices"])
 
+    def test_partial_complex_pricing_model_does_not_reanalysis_loop(self):
+        self._write_cache_model(
+            "rds",
+            {
+                "schema_version": "1.0",
+                "domain": "rds",
+                "pricing_source": "aws_public_pricing_model",
+                "unit_prices": [
+                    {
+                        "sku_key": "us-east-1|postgres|db.r5.xlarge|multi_az",
+                        "unit": "InstanceHour",
+                        "price_usd": 1.0,
+                    }
+                ],
+            },
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            work_dir = Path(tmp)
+            (work_dir / "main.tf").write_text(
+                '''resource "aws_db_instance" "analytics" {
+  identifier     = "analytics"
+  engine         = "postgres"
+  instance_class = "db.r5.xlarge"
+  multi_az       = true
+}
+''',
+                encoding="utf-8",
+            )
+            result_dir = work_dir / "result"
+            result_dir.mkdir()
+            (result_dir / ".machine").mkdir()
+            (result_dir / ".machine" / "rds_skill_analysis.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0",
+                        "domain": "rds",
+                        "findings": [
+                            {
+                                "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+                                "resource": "analytics",
+                                "severity": "MEDIUM",
+                                "confidence": "LOW",
+                                "estimated_monthly_saving_usd": 365.0,
+                                "pricing_source": "static_fallback_estimate",
+                                "evidence": ["pricing_source=static_fallback_estimate"],
+                                "recommendation": "Validate SLA before disabling Multi-AZ.",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            state = run_graph(work_dir, write=False)
+
+        self.assertEqual("static_fallback_estimate", state["findings"][0]["pricing_source"])
+        self.assertIn("rds", state.get("pricing_requests", {}))
+        self.assertNotIn("rds", state.get("skill_requests", {}))
+        pricing = state["pricing_requests"]["rds"]
+        unresolved = {sku["sku_key"] for sku in pricing["skus"]}
+        self.assertIn("us-east-1|postgres|db.r5.xlarge|single_az", unresolved)
+
+    def test_rds_alternative_findings_share_savings_group(self):
+        self._write_cache_model(
+            "rds",
+            {
+                "schema_version": "1.0",
+                "domain": "rds",
+                "pricing_source": "aws_public_pricing_model",
+                "unit_prices": [
+                    {
+                        "sku_key": "us-east-1|postgres|db.r5.xlarge|multi_az",
+                        "unit": "InstanceHour",
+                        "price_usd": 1.0,
+                    },
+                    {
+                        "sku_key": "us-east-1|postgres|db.r5.large|multi_az",
+                        "unit": "InstanceHour",
+                        "price_usd": 0.5,
+                    },
+                ],
+            },
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            work_dir = Path(tmp)
+            (work_dir / "main.tf").write_text(
+                '''resource "aws_db_instance" "analytics" {
+  identifier     = "analytics"
+  engine         = "postgres"
+  instance_class = "db.r5.xlarge"
+  multi_az       = true
+}
+''',
+                encoding="utf-8",
+            )
+            result_dir = work_dir / "result"
+            result_dir.mkdir()
+            (result_dir / ".machine").mkdir()
+            (result_dir / ".machine" / "rds_skill_analysis.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0",
+                        "domain": "rds",
+                        "findings": [
+                            {
+                                "rule_id": "RDS_R1_NONPROD_MULTI_AZ",
+                                "resource": "analytics",
+                                "severity": "MEDIUM",
+                                "confidence": "LOW",
+                                "estimated_monthly_saving_usd": 365.0,
+                                "pricing_source": "aws_public_pricing_model",
+                                "evidence": ["pricing_source=aws_public_pricing_model"],
+                                "recommendation": "Validate SLA before disabling Multi-AZ.",
+                            },
+                            {
+                                "rule_id": "RDS_R2_LOW_UTILIZATION",
+                                "resource": "analytics",
+                                "severity": "HIGH",
+                                "confidence": "LOW",
+                                "estimated_monthly_saving_usd": 0.0,
+                                "pricing_source": "unmeasured",
+                                "evidence": ["cpu_datapoints=4"],
+                                "recommendation": "Needs evidence before downsizing.",
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            state = run_graph(work_dir, write=False)
+
+        by_rule = {finding["rule_id"]: finding for finding in state["findings"]}
+        self.assertEqual(
+            by_rule["RDS_R1_NONPROD_MULTI_AZ"]["savings_group"],
+            by_rule["RDS_R2_LOW_UTILIZATION"]["savings_group"],
+        )
+        self.assertEqual("rds:analytics", by_rule["RDS_R1_NONPROD_MULTI_AZ"]["savings_group"])
+
 
 if __name__ == "__main__":
     unittest.main()

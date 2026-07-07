@@ -826,6 +826,9 @@ def _skill_findings_need_pricing_reanalysis(
     unit_prices = pricing_context.get("pricing_model", {}).get("unit_prices", [])
     if not unit_prices:
         return False
+    unresolved_skus = pricing_context.get("unresolved_skus", [])
+    if unresolved_skus:
+        return False
     return any(
         finding.get("pricing_source") == "static_fallback_estimate"
         for finding in skill_findings
@@ -898,6 +901,10 @@ def _enrich_rds_skill_findings(
 
         pricing_source = str(finding.get("pricing_source") or "unmeasured")
         rule_id = str(finding.get("rule_id") or "")
+        if rule_id in {"RDS_R1_NONPROD_MULTI_AZ", "RDS_R2_LOW_UTILIZATION"}:
+            resource_name = str(finding.get("resource") or "").strip()
+            if resource_name:
+                finding.setdefault("savings_group", f"rds:{resource_name}")
         if pricing_source != "unmeasured":
             _add_savings_metadata(
                 finding,
