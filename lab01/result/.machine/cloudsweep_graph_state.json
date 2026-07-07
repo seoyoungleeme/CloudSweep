@@ -1099,6 +1099,7 @@
       "pricing_confidence": "LOW",
       "savings_status": "unmeasured",
       "display_name": "prod-api-db",
+      "savings_group": "rds:prod_api_db_0e77730c",
       "savings_reason": "safety_or_target_pricing_evidence_missing",
       "finding_id": "cs-902d3c75e7cd",
       "rule_version": "2.0.0",
@@ -1189,8 +1190,8 @@
         "engine=postgres",
         "instance_class=db.r5.xlarge",
         "pricing_source=aws_public_pricing_model",
-        "multi_az_pricing_sku=QWJ9UQ8SUK2X9B8T",
-        "single_az_pricing_sku=EX3HAFXC259SRYQ4",
+        "multi_az_pricing_sku=us-east-1|postgres|db.r5.xlarge|multi_az",
+        "single_az_pricing_sku=us-east-1|postgres|db.r5.xlarge|single_az",
         "multi_az_hourly_usd=1.0",
         "single_az_hourly_usd=0.5",
         "hours_per_month=730",
@@ -1203,6 +1204,7 @@
       "pricing_confidence": "MEDIUM",
       "savings_status": "priced",
       "display_name": "dev-analytics-db",
+      "savings_group": "rds:dev_analytics_db_64c7c4dc",
       "savings_reason": "priced_from_public_rds_instance_hours",
       "finding_id": "cs-a98c4832b73f",
       "rule_version": "2.0.0",
@@ -1229,12 +1231,12 @@
           "statement": "pricing_source=aws_public_pricing_model"
         },
         {
-          "fact_id": "cs-b71e460572f2",
-          "statement": "multi_az_pricing_sku=QWJ9UQ8SUK2X9B8T"
+          "fact_id": "cs-f065bd9453a4",
+          "statement": "multi_az_pricing_sku=us-east-1|postgres|db.r5.xlarge|multi_az"
         },
         {
-          "fact_id": "cs-7843ef04d6f8",
-          "statement": "single_az_pricing_sku=EX3HAFXC259SRYQ4"
+          "fact_id": "cs-03d1706de4b3",
+          "statement": "single_az_pricing_sku=us-east-1|postgres|db.r5.xlarge|single_az"
         },
         {
           "fact_id": "cs-6f6c18e879e5",
@@ -1298,6 +1300,7 @@
       "pricing_confidence": "LOW",
       "savings_status": "reasonable_estimate",
       "display_name": "dev-analytics-db",
+      "savings_group": "rds:dev_analytics_db_64c7c4dc",
       "savings_reason": "safety_or_target_pricing_evidence_missing",
       "finding_id": "cs-d9fe142ea7e4",
       "rule_version": "2.0.0",
@@ -1428,8 +1431,8 @@
         "engine=mysql",
         "instance_class=db.m5.large",
         "pricing_source=aws_public_pricing_model",
-        "multi_az_pricing_sku=SF96G6SBN7X5NVXR",
-        "single_az_pricing_sku=C86H957YE4QF4727",
+        "multi_az_pricing_sku=us-east-1|mysql|db.m5.large|multi_az",
+        "single_az_pricing_sku=us-east-1|mysql|db.m5.large|single_az",
         "multi_az_hourly_usd=0.342",
         "single_az_hourly_usd=0.171",
         "hours_per_month=730",
@@ -1442,6 +1445,7 @@
       "pricing_confidence": "MEDIUM",
       "savings_status": "priced",
       "display_name": "dev-reporting-db",
+      "savings_group": "rds:dev_reporting_db_2b0272f3",
       "savings_reason": "priced_from_public_rds_instance_hours",
       "finding_id": "cs-64dc0e806818",
       "rule_version": "2.0.0",
@@ -1468,12 +1472,12 @@
           "statement": "pricing_source=aws_public_pricing_model"
         },
         {
-          "fact_id": "cs-81d661541c62",
-          "statement": "multi_az_pricing_sku=SF96G6SBN7X5NVXR"
+          "fact_id": "cs-aa268fb2a7a2",
+          "statement": "multi_az_pricing_sku=us-east-1|mysql|db.m5.large|multi_az"
         },
         {
-          "fact_id": "cs-68c90ed4e435",
-          "statement": "single_az_pricing_sku=C86H957YE4QF4727"
+          "fact_id": "cs-62a50c487d2b",
+          "statement": "single_az_pricing_sku=us-east-1|mysql|db.m5.large|single_az"
         },
         {
           "fact_id": "cs-83c67b7c838c",
@@ -1527,6 +1531,7 @@
       "pricing_confidence": "LOW",
       "savings_status": "reasonable_estimate",
       "display_name": "dev-reporting-db",
+      "savings_group": "rds:dev_reporting_db_2b0272f3",
       "savings_reason": "safety_or_target_pricing_evidence_missing",
       "finding_id": "cs-057c6e053c43",
       "rule_version": "2.0.0",
@@ -1637,8 +1642,8 @@
         "engine=postgres",
         "instance_class=db.r5.large",
         "pricing_source=aws_public_pricing_model",
-        "multi_az_pricing_sku=KJQ97B4JNQ9MDAB9",
-        "single_az_pricing_sku=Z2RB67372WKJEQ45",
+        "multi_az_pricing_sku=us-east-1|postgres|db.r5.large|multi_az",
+        "single_az_pricing_sku=us-east-1|postgres|db.r5.large|single_az",
         "multi_az_hourly_usd=0.5",
         "single_az_hourly_usd=0.25",
         "hours_per_month=730",
@@ -1651,6 +1656,7 @@
       "pricing_confidence": "MEDIUM",
       "savings_status": "priced",
       "display_name": "staging-cache-db",
+      "savings_group": "rds:staging_cache_db_19cba437",
       "savings_reason": "priced_from_public_rds_instance_hours",
       "finding_id": "cs-104216ffe4bf",
       "rule_version": "2.0.0",
@@ -1677,12 +1683,12 @@
           "statement": "pricing_source=aws_public_pricing_model"
         },
         {
-          "fact_id": "cs-3ce11c32ebad",
-          "statement": "multi_az_pricing_sku=KJQ97B4JNQ9MDAB9"
+          "fact_id": "cs-261c9f1884cc",
+          "statement": "multi_az_pricing_sku=us-east-1|postgres|db.r5.large|multi_az"
         },
         {
-          "fact_id": "cs-5f7fd2a028d6",
-          "statement": "single_az_pricing_sku=Z2RB67372WKJEQ45"
+          "fact_id": "cs-8d42521d4377",
+          "statement": "single_az_pricing_sku=us-east-1|postgres|db.r5.large|single_az"
         },
         {
           "fact_id": "cs-2070c95d1fdd",
@@ -1736,6 +1742,7 @@
       "pricing_confidence": "LOW",
       "savings_status": "reasonable_estimate",
       "display_name": "staging-cache-db",
+      "savings_group": "rds:staging_cache_db_19cba437",
       "savings_reason": "safety_or_target_pricing_evidence_missing",
       "finding_id": "cs-cf0ef1475774",
       "rule_version": "2.0.0",
@@ -2428,11 +2435,13 @@
       "RDS_R1_NONPROD_MULTI_AZ and RDS_R2_LOW_UTILIZATION are computed independently on the same three instances (dev_analytics_db_64c7c4dc, dev_reporting_db_2b0272f3, staging_cache_db_19cba437). R1 assumes the instance stays at its current class and only Multi-AZ is removed; R2 assumes Multi-AZ stays on and only the instance class shrinks. These are alternative remediation paths from the same baseline, not additive -- report R1 as evidence-backed savings and keep R2 as separate reasonable-estimate upside unless a reviewer explicitly chooses the downsizing path instead.",
       "prod_api_db_0e77730c correctly has no R1 finding (production, Multi-AZ retained) -- consistent with the R1 rule only firing on non-production instances.",
       "Lambda cross-domain refs (waste_email_sender, waste_thumbnail_gen) to their CloudWatch log groups are backed by observed dependency_facts with fact_ids -- safe to treat as observed, not hypothesis.",
-      "The three cloudwatch_retention_review hypotheses (app_access_logs, app_debug_logs, aws_ecs_staging_service) correctly stay as unconfirmed hypotheses with no fact_ids -- no compute/RDS association was observed for them, so they should not be escalated to observed cross-domain statements."
+      "The three cloudwatch_retention_review hypotheses (app_access_logs, app_debug_logs, aws_ecs_staging_service) correctly stay as unconfirmed hypotheses with no fact_ids -- no compute/RDS association was observed for them, so they should not be escalated to observed cross-domain statements.",
+      "RDS Reserved Instance coverage (rule R3) was correctly not raised as a finding for prod_api_db_0e77730c: cost_report.json is absent, so there is no billing evidence to confirm an on-demand-only baseline. Raising R3 here would be speculation, not a finding."
     ],
     "quality_flags": [
       "All 6 CloudWatch log-group retention findings (CLOUDWATCH_RETENTION_POLICY:C1) report stored_bytes=0. A log group with zero stored bytes has no storage cost to recover today, so setting a retention policy on it is a preventive/governance action, not a monthly-savings action -- confirm this is a metrics collection gap (e.g. logs written after the collection window) rather than genuinely empty groups before representing these as cost-saving candidates in the same table as priced findings.",
-      "All 8 S3 lifecycle findings and the RDS R2/R5 findings on prod_api_db_0e77730c are unmeasured for the same root cause (bucket_size / IOPS-storage evidence not collected) -- this is a data-collection gap on the MiniStack/metrics side, not a detection weakness; worth noting as a follow-up evidence request rather than closing these out as no-waste."
+      "All 8 S3 lifecycle findings and the RDS R2/R5 findings on prod_api_db_0e77730c are unmeasured for the same root cause (bucket_size / IOPS-storage evidence not collected) -- this is a data-collection gap on the MiniStack/metrics side, not a detection weakness; worth noting as a follow-up evidence request rather than closing these out as no-waste.",
+      "Lambda finding cs-d45e08bd096c (waste-notification-push) carries evidence value trigger=waste_name_lte_35_pct. This reads like a mislabeled trigger constant (compare to the other four Lambda findings' trigger=p99_memory_lte_25_pct) rather than a real metric name. It does not affect the priced savings figure, but the label should be corrected in the rule engine so evidence stays legible."
     ],
     "missed_candidate_hypotheses": []
   },
@@ -2451,7 +2460,8 @@
     "caveats": [
       "No cost_report.json was available; all pricing is modeled from AWS public rates or the domain's static fallback price, not billed cost data.",
       "RDS R1 (drop Multi-AZ) and R2 (downsize instance) findings on the same 3 instances are alternatives from the same cost baseline -- do not sum them as independent savings.",
-      "S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste."
+      "S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste.",
+      "One Lambda finding (waste-notification-push) carries a mislabeled evidence trigger value (waste_name_lte_35_pct); the priced savings figure is unaffected, but the label should be fixed at the source."
     ]
   },
   "report_polish_request": {},
