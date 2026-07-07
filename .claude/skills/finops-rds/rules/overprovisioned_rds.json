@@ -72,6 +72,16 @@
     "region": "us-east-1",
     "hours_per_month": 730,
     "multi_az_multiplier_legacy_estimate": 2.0,
+    "static_instance_hourly_usd": {
+      "postgres|db.t3.medium|multi_az": 0.145,
+      "postgres|db.t3.medium|single_az": 0.072,
+      "postgres|db.r5.xlarge|multi_az": 1.0,
+      "postgres|db.r5.xlarge|single_az": 0.5,
+      "mysql|db.m5.large|multi_az": 0.342,
+      "mysql|db.m5.large|single_az": 0.171,
+      "postgres|db.r5.large|multi_az": 0.5,
+      "postgres|db.r5.large|single_az": 0.25
+    },
     "pricing_source": "Static fallback estimate. Prefer AWS Pricing MCP, AWS Pricing API, or cost_report region-specific pricing when available.",
     "note": "RDS pricing varies by engine, region, deployment type, storage, IOPS, backup, Extended Support, and reserved instance coverage. Multi-AZ cost impact should be verified by engine/deployment type."
   },

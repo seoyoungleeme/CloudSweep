@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "domain": "rds",
+  "pricing_source": "aws_public_pricing_model",
+  "generated_at": "2026-07-06T17:49:17+09:00",
+  "unit_prices": [
+    {
+      "sku_key": "us-east-1|mysql|db.m5.large|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.342,
+      "aws_pricing_sku": "SF96G6SBN7X5NVXR"
+    },
+    {
+      "sku_key": "us-east-1|mysql|db.m5.large|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.171,
+      "aws_pricing_sku": "C86H957YE4QF4727"
+    },
+    {
+      "sku_key": "us-east-1|mysql|db.t3.large|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.272,
+      "aws_pricing_sku": "ETKD4HY22VH8VCG6"
+    },
+    {
+      "sku_key": "us-east-1|mysql|db.t3.large|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.136,
+      "aws_pricing_sku": "8M69JFENFPCVW9UF"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.r5.large|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.5,
+      "aws_pricing_sku": "KJQ97B4JNQ9MDAB9"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.r5.large|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.25,
+      "aws_pricing_sku": "Z2RB67372WKJEQ45"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.r5.xlarge|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 1.0,
+      "aws_pricing_sku": "QWJ9UQ8SUK2X9B8T"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.r5.xlarge|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.5,
+      "aws_pricing_sku": "EX3HAFXC259SRYQ4"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.t3.large|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.29,
+      "aws_pricing_sku": "9SYTURERCZYH5V7W"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.t3.large|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.145,
+      "aws_pricing_sku": "5489E7MRWFBZGMP6"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.t3.medium|multi_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.145,
+      "aws_pricing_sku": "ZK5MCA7TTVR2MRC7"
+    },
+    {
+      "sku_key": "us-east-1|postgres|db.t3.medium|single_az",
+      "unit": "InstanceHour",
+      "price_usd": 0.072,
+      "aws_pricing_sku": "2V4Z46C2HCZPQCUW"
+    }
+  ]
+}
