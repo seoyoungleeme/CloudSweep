@@ -12,6 +12,7 @@
   "caveats": [
     "No cost_report.json was available; all pricing is modeled from AWS public rates or the domain's static fallback price, not billed cost data.",
     "RDS R1 (drop Multi-AZ) and R2 (downsize instance) findings on the same 3 instances are alternatives from the same cost baseline -- do not sum them as independent savings.",
-    "S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste."
+    "S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste.",
+    "One Lambda finding (waste-notification-push) carries a mislabeled evidence trigger value (waste_name_lte_35_pct); the priced savings figure is unaffected, but the label should be fixed at the source."
   ]
 }

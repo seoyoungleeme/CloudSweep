@@ -10,14 +10,14 @@
 | Metric | Value |
 |--------|-------|
 | Model | claude-sonnet-5 |
-| Input tokens | 4 |
-| Output tokens | 688 |
-| Cache write tokens | 2,064 |
-| Cache read tokens | 1,659,208 |
-| Total tokens | 1,661,964 |
-| Estimated cost (USD) | $0.5158 |
+| Input tokens | 50 |
+| Output tokens | 27,284 |
+| Cache write tokens | 102,344 |
+| Cache read tokens | 3,626,734 |
+| Total tokens | 3,756,412 |
+| Estimated cost (USD) | $1.8812 |
 
-_Persisted from the completed CloudSweep AI window because this rerender had no new transcript activity. The total covers complex Skill work, AI review, and report polish from that completed window; deterministic Python graph rendering itself does not call an LLM and subagent-session token spend is excluded._
+_Recovered from this machine's Claude Code session transcript for the current CloudSweep completion window. This is a single total for complex Skill work, AI review, and report polish performed in that window (standard Sonnet 5 list pricing, $3/$15 per MTok); deterministic Python graph rendering itself does not call an LLM and subagent-session token spend is excluded._
 
 ## Executive Summary
 
@@ -33,6 +33,7 @@ Key caveats:
 - No cost_report.json was available; all pricing is modeled from AWS public rates or the domain's static fallback price, not billed cost data.
 - RDS R1 (drop Multi-AZ) and R2 (downsize instance) findings on the same 3 instances are alternatives from the same cost baseline -- do not sum them as independent savings.
 - S3 and most RDS storage/utilization findings are unmeasured because bucket size and IOPS/storage metrics were not collected for this scenario; this is a data-collection gap, not evidence of no waste.
+- One Lambda finding (waste-notification-push) carries a mislabeled evidence trigger value (waste_name_lte_35_pct); the priced savings figure is unaffected, but the label should be fixed at the source.
 
 ## AI Review
 
@@ -43,10 +44,12 @@ Review notes:
 - prod_api_db_0e77730c correctly has no R1 finding (production, Multi-AZ retained) -- consistent with the R1 rule only firing on non-production instances.
 - Lambda cross-domain refs (waste_email_sender, waste_thumbnail_gen) to their CloudWatch log groups are backed by observed dependency_facts with fact_ids -- safe to treat as observed, not hypothesis.
 - The three cloudwatch_retention_review hypotheses (app_access_logs, app_debug_logs, aws_ecs_staging_service) correctly stay as unconfirmed hypotheses with no fact_ids -- no compute/RDS association was observed for them, so they should not be escalated to observed cross-domain statements.
+- RDS Reserved Instance coverage (rule R3) was correctly not raised as a finding for prod_api_db_0e77730c: cost_report.json is absent, so there is no billing evidence to confirm an on-demand-only baseline. Raising R3 here would be speculation, not a finding.
 
 Quality flags:
 - All 6 CloudWatch log-group retention findings (CLOUDWATCH_RETENTION_POLICY:C1) report stored_bytes=0. A log group with zero stored bytes has no storage cost to recover today, so setting a retention policy on it is a preventive/governance action, not a monthly-savings action -- confirm this is a metrics collection gap (e.g. logs written after the collection window) rather than genuinely empty groups before representing these as cost-saving candidates in the same table as priced findings.
 - All 8 S3 lifecycle findings and the RDS R2/R5 findings on prod_api_db_0e77730c are unmeasured for the same root cause (bucket_size / IOPS-storage evidence not collected) -- this is a data-collection gap on the MiniStack/metrics side, not a detection weakness; worth noting as a follow-up evidence request rather than closing these out as no-waste.
+- Lambda finding cs-d45e08bd096c (waste-notification-push) carries evidence value trigger=waste_name_lte_35_pct. This reads like a mislabeled trigger constant (compare to the other four Lambda findings' trigger=p99_memory_lte_25_pct) rather than a real metric name. It does not affect the priced savings figure, but the label should be corrected in the rule engine so evidence stays legible.
 
 ## Priority Summary
 
